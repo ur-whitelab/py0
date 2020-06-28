@@ -9,13 +9,24 @@ MaxEntEp
    :target: https://travis-ci.org/kragniz/cookiecutter-pypackage-minimal
    :alt: Latest Travis CI build status
 
-An opinionated, minimal cookiecutter template for Python packages
+
 
 Usage
 -----
 
 Installation
 ------------
+1. Clone the repository and change direcotry to MaxEntEp:
+```bash
+git clone git@github.com:ur-whitelab/maxent-epidemiology.git
+cd MaxEntEp
+```
+
+2. Install the module using pip:
+```bash
+pip install .
+```
+3. Run examples/try.py.
 
 Requirements
 ^^^^^^^^^^^^
