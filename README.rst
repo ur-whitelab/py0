@@ -29,5 +29,4 @@ Licence
 Authors
 -------
 
-`MaxEntEp` was written by `Mehrad Ansari <Mehrad.ansari@rochester.edu>`_, `Rainier Barrett <rbarret8@ur.rochester.edu>`_, and `
-Andrew White <andrew.white@rochester.edu>`_.
+`MaxEntEp` was developed by `Mehrad Ansari <Mehrad.ansari@rochester.edu>`_, `Rainier Barrett <rbarret8@ur.rochester.edu>`_, and `Andrew White <andrew.white@rochester.edu>`_.
