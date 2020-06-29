@@ -14,7 +14,7 @@ def read(filename):
 
 
 setup(
-    name="MaxEntEp",
+    name="maxentep",
     version="1.0",
     url="https://github.com/kragniz/cookiecutter-pypackage-minimal",
     license='MIT',
@@ -23,11 +23,11 @@ setup(
     author_email="Mehrad.ansari@rochester.edu",
 
     description="An opinionated, minimal cookiecutter template for Python packages",
-    long_description=read("README.rst"),
+    long_description=read("README.md"),
 
     packages=find_packages(exclude=('tests',)),
 
-    install_requires=[],
+    install_requires=['numpy', 'matplotlib', 'scipy'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

@@ -1,4 +1,4 @@
-MaxEntEp
+maxentep
 ========
 
 Usage
@@ -6,10 +6,10 @@ Usage
 
 Installation
 ------------
-1. Clone the repository and change direcotry to MaxEntEp:
+1. Clone the repository and change direcotry to maxentep:
 ```bash
 git clone git@github.com:ur-whitelab/maxent-epidemiology.git
-cd MaxEntEp
+cd maxentep
 ```
 
 2. Install the module using pip:
@@ -30,4 +30,4 @@ Licence
 Authors
 -------
 
-MaxEntEp was developed by [Mehrad Ansari](Mehrad.ansari@rochester.edu), [Rainier Barrett](rbarret8@ur.rochester.edu), and [Andrew White](andrew.white@rochester.edu).
+maxentep was developed by [Mehrad Ansari](Mehrad.ansari@rochester.edu), [Rainier Barrett](rbarret8@ur.rochester.edu), and [Andrew White](andrew.white@rochester.edu).
