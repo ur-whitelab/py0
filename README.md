@@ -1,6 +1,7 @@
 maxentep
 ========
-This python module implements maximum entropy method to find the best epidomiology parameters that allows a better fit of the simulation trajoctory of COVID-19 with real data. The developed module is currently an ongoing research at the University of Rochester and it is not available for peer review at this stage.     
+This python module implements maximum entropy method to find the best epidomiology parameters that allows a better fit of the simulation trajoctory of COVID-19 with real data. The developed plugin is currently an ongoing research at the University of Rochester and it is not available for peer review at this stage.  
+
 Usage
 -----
 
@@ -27,6 +28,7 @@ Compatibility
 License
 -------
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Authors
 -------
 
