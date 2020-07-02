@@ -2,9 +2,6 @@ maxentep
 ========
 This python module implements maximum entropy method to modify epidomiology parameters to find the best fit of the simulation trajectory of COVID-19 with real data. The developed plugin is currently an ongoing research at the University of Rochester and it is not available for peer review at this stage.  
 
-Usage
------
-
 Installation
 ------------
 1. Clone the repository and change direcotry to maxentep:
@@ -18,12 +15,6 @@ cd maxentep
 pip install .
 ```
 3. Run examples/SIR_Example.ipynb.
-
-Requirements
-------------
-
-Compatibility
--------------
 
 License
 -------
