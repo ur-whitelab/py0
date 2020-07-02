@@ -17,7 +17,7 @@ cd maxentep
 ```bash
 pip install .
 ```
-3. Run examples/try.py.
+3. Run examples/SIR_Example.ipynb.
 
 Requirements
 ------------
