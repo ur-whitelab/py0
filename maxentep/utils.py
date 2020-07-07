@@ -69,7 +69,8 @@ def traj_quantile(trajs, weights = None, names=None, plot_means=True, alpha=0.2)
         plt.plot(x, qtrajs[1, :, i], color=f'C{i}', label=f'Compartment {names[i]}')
         plt.fill_between(x, qtrajs[0, :, i], qtrajs[-1, :, i],
                          color=f'C{i}', alpha=alpha)
-    plt.plot(x, np.sum(qtrajs[1, :, :], axis=1),
+    if not plot_means:
+        plt.plot(x, np.sum(qtrajs[1, :, :], axis=1),
              color='gray', label='Total', linestyle=':')
     # add margin for legend
     plt.xlim(0, max(x) * 1.2)

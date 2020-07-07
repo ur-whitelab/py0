@@ -9,6 +9,14 @@ class Prior:
     def log_denom(self, l):
         raise NotImplementedError
 
+class EmptyPrior(Prior):
+    def expected(self, l):
+        return 0.0
+    def expected_grad(self, l):
+        return 0.0
+    def log_denom(self, l):
+        return 0.0
+
 class Laplace(Prior):
     def __init__(self, sigma):
         self.sigma = sigma
@@ -81,12 +89,28 @@ def reweight_laplace(trajs, restraints, **kw_args):
     should be an K x (2 + T)... array. K is number of restraints.
     The first two values in the second dimension are target value and
     Laplace prior sigma. T is the dimension of trajs - 1 used to index trajectory.
+
+    Example 1: [
+        [0.5, 0.1, 10, 1]
+        [0.6, 0.0, 25, 0]
+    ]
+    2 restraints corresponding to slice [10, 1] and [25, 0] in the trajectories.
+    The first should be 0.5 with uncertainty (with Laplace dist) 0.1. The second
+    is an exact restraint (no uncertainty) with value 0.6.
     '''
     restraints = np.array(restraints)
     if len(restraints.shape) == 1 or restraints.shape[1] != 2 + len(trajs.shape[1:]):
         raise ValueError('Bad restraint shape')
-    _restraints = [Restraint(lambda t: t[tuple(i.astype(np.int))], v, Laplace(s)) for\
-                    i,v,s in zip(restraints[:, 2:],
-                                 restraints[:, 0],
-                                 restraints[:, 1])]
+
+    # build restraints using uncertainties
+    _restraints = []
+    K = restraints.shape[0]
+
+    for i in range(K):
+        traj_index = tuple(restraints[i, 2:].astype(np.int))
+        value = restraints[i, 0]
+        uncertainty = restraints[i, 1]
+        p = Laplace(uncertainty) if uncertainty > 0 else EmptyPrior()
+        r = Restraint(lambda traj: traj[traj_index], value, p)
+        _restraints.append(r)
     return reweight(trajs, _restraints, **kw_args), _restraints
