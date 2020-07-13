@@ -1,4 +1,8 @@
 import numpy as np
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = lambda x: x
 
 class Metapop:
     '''Metapopulation model
@@ -17,7 +21,6 @@ class Metapop:
         # infer number of trajectories based on parameter dimensions
         self.N = 1
         self.M, self.C = mobility_matrix.shape[1], compartment_matrix.shape[1]
-        print(mobility_matrix.shape)
         if len(mobility_matrix.shape) == 3:
             self.N = mobility_matrix.shape[0]
         if type(infection_func) != list:
@@ -30,7 +33,7 @@ class Metapop:
     def run(self, T):
         self.traj = np.zeros((self.N, T, self.M, self.C))
         self.traj[:,0, :, :] = self.rho0
-        for t in range(0, T - 1):
+        for t in tqdm(range(0, T - 1)):
             # compute effective pops
             neff = self.traj[:,t].reshape((self.N, self.M, 1, self.C)) * self.R.transpose().reshape((self.N, self.M, self.M, 1))
             # compute infected prob

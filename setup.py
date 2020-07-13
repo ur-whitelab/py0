@@ -27,7 +27,7 @@ setup(
 
     packages=find_packages(exclude=('tests',)),
 
-    install_requires=['numpy', 'matplotlib', 'scipy'],
+    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
