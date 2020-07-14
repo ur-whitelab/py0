@@ -1,6 +1,6 @@
 import numpy as np
 
-class SIR_model:
+class SIRModel:
     def __init__(self, initial_compartments, alpha, beta, N_steps=1000):
         self.I, self.R = initial_compartments[1], initial_compartments[2]
         self.alpha, self.beta = alpha, beta
