@@ -60,7 +60,8 @@ class MetaModel:
         S = 1 - tf.reduce_sum(trajs, axis=-1)
         result = tf.concat((S[:,:,:,tf.newaxis], trajs), axis=-1)
         # want batch index first
-        result = tf.transpose(result, perm=[1,0,2,3])
+        with tf.device('/CPU:0'):
+            result = tf.transpose(result, perm=[1,0,2,3])
         return result
 
 def contact_infection_func(beta):

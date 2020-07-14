@@ -37,15 +37,14 @@ class Restraint:
     def __call__(self, traj):
         return self.fxn(traj) - self.target
 
-def reweight(trajs, restraints, iter=100, batch_size=32, learning_rate=1e-2, callback=None, A=25):
+def reweight(trajs, restraints, iter=100, batch_size=32, learning_rate=1e-2, callback=None):
     '''callback is called with f(iteration_number, weights, exp(restraint - target), agreement)
     '''
     N = trajs.shape[0]
     K = len(restraints)
     lambdas = np.random.uniform(-1, 1, size=K)
     # add a tiny bit for possible zero-gradients
-    accum_queue = np.zeros((A, K)) + 1e-12
-    accum_ptr = 0
+    accum_queue = np.zeros((K,)) + 1e-12
 
     # get value of all restraints on trajectories
     # note wish I could do this without for loop comprehension
@@ -69,16 +68,15 @@ def reweight(trajs, restraints, iter=100, batch_size=32, learning_rate=1e-2, cal
         # get two gradient terms
         agreement = (e_gk + [r.prior.expected(l) for l,r in zip(lambdas, restraints)])
         scale = ([r.prior.expected_grad(l) for l,r in zip(lambdas, restraints)] + e_gk**2 - e_g2k)
-        # compute gradient
+        # compute gradient and penalty (?)
         grad = agreement * scale
         # add noise
         if K > 1:
             grad *= np.random.randint(0,2, size=K)
         # compute grad accumulation
-        accum_queue[accum_ptr] = grad**2
-        accum_ptr = (accum_ptr + 1) % A
-        # update with adagrad
-        lambdas -= grad / np.sqrt(np.sum(accum_queue, axis=0)) * learning_rate
+        accum_queue += grad**2
+        # update with adagrad-ish
+        lambdas -= grad / np.sqrt(accum_queue) * learning_rate
         # callback
         if callback is not None:
             callback(i, weights, lambdas, e_gk, agreement, scale)
