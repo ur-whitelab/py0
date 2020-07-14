@@ -26,8 +26,7 @@ class MetaModel:
         self.M, self.C = mobility_matrix.shape[1], compartment_matrix.shape[1]
         if len(mobility_matrix.shape) == 3:
             self.N = mobility_matrix.shape[0]
-        if type(infection_func) != list:
-            self.infect_func = [infection_func for _ in range(self.N)]
+        self.infect_func = infection_func
         self.dtype = tf.float32
         self.R = tf.constant(mobility_matrix.reshape((self.N, self.M, self.M)), dtype=self.dtype)
         self.T = tf.constant(compartment_matrix.reshape((self.N, self.C, self.C)), dtype=self.dtype)
@@ -39,15 +38,17 @@ class MetaModel:
             # compute effective pops
             neff = tf.reshape(prev_rho, (self.N, self.M, 1, self.C)) *\
                    tf.reshape(tf.transpose(self.R), (self.N, self.M, self.M, 1))
+            ntot = tf.reduce_sum(self.R, axis=1)
             # compute infected prob
-            self.infect_prob = 0.01 * tf.ones((self.N, self.M), dtype=self.dtype)#[self.infect_func[i](neff[i]) for i in range(self.N)]
+            infect_prob = self.infect_func(neff, ntot)
             # infect them
-            new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * tf.einsum('ijk,ik->ij', self.R, self.infect_prob)
+            new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * tf.einsum('ijk,ik->ij', self.R, infect_prob)
             # create new compartment values
             rho = tf.einsum('ijk,ikl->ijl', prev_rho, self.T) + \
                 new_infected[:,:,tf.newaxis] * tf.constant([1] + [0 for _ in range(self.C - 1)], dtype=self.dtype)
-            # move across compartments
-            rho = tf.clip_by_value(rho, 0, 1)
+            # project back to allowable values
+            rho = tf.clip_by_value(rho, 0, 100000)
+            #rho /= tf.clip_by_value(tf.reduce_sum(rho, axis=-1, keepdims=True), 1, 1000000)
             # write
             trajs_array = trajs_array.write(i, rho)
             return i + 1, rho, trajs_array
@@ -63,7 +64,7 @@ class MetaModel:
         return result
 
 def contact_infection_func(beta):
-    def fxn(neff):
-        p = 1 - np.exp(np.log(1 - beta) * np.sum((neff[:,:,1] + neff[:,:,2]), axis=1))
+    def fxn(neff, ntot):
+        p = 1 - tf.math.exp(tf.math.log(1 - beta[:,tf.newaxis]) * tf.reduce_sum((neff[:,:,:,1] + neff[:,:,:,2]) / ntot[:,:,tf.newaxis], axis=2))
         return p
     return fxn

@@ -79,9 +79,10 @@ def traj_quantile(trajs, weights = None, names=None, plot_means=True, ax=None, a
         x, [1/3, 1/2, 2/3], sample_weight=w), 0, trajs)
     if plot_means:
         # approximate quantiles as distance from median applied to mean
+        # with clips
         mtrajs = np.sum(trajs * w[:, np.newaxis, np.newaxis], axis=0)
-        qtrajs[0, :, :] = qtrajs[0, :, :] - qtrajs[1, :, :] + mtrajs
-        qtrajs[2, :, :] = qtrajs[2, :, :] - qtrajs[1, :, :] + mtrajs
+        qtrajs[0, :, :] = np.clip(qtrajs[0, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
+        qtrajs[2, :, :] = np.clip(qtrajs[2, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
         qtrajs[1, :, :] = mtrajs
     if ax is None:
         ax = plt.gca()
