@@ -153,6 +153,7 @@ class MaxentModel(tf.keras.Model):
     def __init__(self, restraints, use_cov=False, name='maxent-model', **kwargs):
         super(MaxentModel, self).__init__(name=name, **kwargs)
         self.restraints = restraints
+        restraint_dim = len(restraints)
         # identify prior
         prior = type(restraints[0].prior)
         # double-check
@@ -176,7 +177,7 @@ class MaxentModel(tf.keras.Model):
         return super(MaxentModel, self).compile(optimizer, loss=[None, loss], **kwargs)
 
     def fit(self, trajs, batch_size=16, **kwargs):
-        gk = _compute_restraints(trajs, restraints)
+        gk = _compute_restraints(trajs, self.restraints)
         inputs = gk.astype(np.float32)
         data = tf.data.Dataset.from_tensor_slices((inputs, np.zeros_like(gk,dtype=np.float32)))
         data = data.shuffle(batch_size * 4).batch(batch_size)
