@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import softmax
+import tensorflow as tf
 
 class Prior:
     def expected(self, l):
@@ -37,50 +38,85 @@ class Restraint:
     def __call__(self, traj):
         return self.fxn(traj) - self.target
 
-def reweight(trajs, restraints, iter=100, batch_size=32, learning_rate=1e-2, callback=None):
-    '''callback is called with f(iteration_number, weights, exp(restraint - target), agreement)
-    '''
+# TODO make laplace maxent layer and add that to call
+class MaxentLayer(tf.keras.layers.Layer):
+    def __init__(self, restraint_dim):
+        super(MaxentLayer, self).__init__()
+        l_init = tf.random_uniform_initializer(-10, 10)
+        self.l = tf.Variable(
+            initial_value=l_init(shape=(restraint_dim,), dtype='float32'),
+            trainable=True,
+            name='maxent-lambda'
+        )
+    def call(self, gk):
+        e_gk = _reweight_op2(self.l, gk)
+        return e_gk
+
+class ReweightLayer(tf.keras.layers.Layer):
+    def __init__(self, maxent_layer):
+        super(ReweightLayer, self).__init__()
+        if type(maxent_layer) != MaxentLayer:
+            raise TypeError('arg maxent_layer needs to be MaxentLayer')
+        self.l = maxent_layer.l
+    def call(self, gk):
+        # sum-up constraint terms
+        logits = tf.reduce_sum(-self.l[tf.newaxis, :] * gk, axis=1)
+        # compute per-trajectory weights
+        weights = tf.math.softmax(logits)
+        return weights
+
+@tf.custom_gradient
+def _reweight_op(lambdas, gk):
+    # sum-up constraint terms
+    logits = tf.reduce_sum(-lambdas[tf.newaxis, :] * gk, axis=1)
+    # compute per-trajectory weights
+    weights = tf.math.softmax(logits)
+    # sum over trajectories
+    e_gk = tf.reduce_sum(gk * weights[:, tf.newaxis], axis=0)
+    def grad_fn(dy):
+        e_g2k = tf.reduce_sum(gk**2 * weights[:, tf.newaxis], axis=0)
+        grad = -(e_gk**2 - e_g2k)
+        # other gradients are undefined
+        return grad * dy, None
+    return e_gk, grad_fn
+
+def _reweight_op2(lambdas, gk):
+    # sum-up constraint terms
+    logits = tf.reduce_sum(-lambdas[tf.newaxis, :] * gk, axis=1)
+    # compute per-trajectory weights
+    weights = tf.math.softmax(logits)
+    # sum over trajectories
+    e_gk = tf.reduce_sum(gk * weights[:, tf.newaxis], axis=0)
+    return e_gk
+
+def _compute_restraints(trajs, restraints):
     N = trajs.shape[0]
     K = len(restraints)
-    lambdas = np.random.uniform(-1, 1, size=K)
-    # add a tiny bit for possible zero-gradients
-    accum_queue = np.zeros((K,)) + 1e-12
-
-    # get value of all restraints on trajectories
-    # note wish I could do this without for loop comprehension
-    # guess it's a one time loop
     gk = np.empty((N, K))
     for i in range(N):
         gk[i, :] = [r(trajs[i]) for r in restraints]
+    return gk
 
-    for i in range(iter):
-        # update weights
-        # compute effect of priors
-        prior_term = np.array([r.prior.log_denom(l) for l,r in zip(lambdas, restraints)]).reshape(1, K)
-        # sum-up constraint terms
-        logits = np.sum(-lambdas.reshape(1, K) * gk + prior_term, axis=1)
-        # compute per-trajectory weights
-        weights = softmax(logits)
-        # make w be N x 1 to broadcast
-        # sum over N
-        e_gk = np.sum(gk * weights[:, np.newaxis], axis=0)
-        e_g2k = np.sum(gk**2 * weights[:, np.newaxis], axis=0)
-        # get two gradient terms
-        agreement = (e_gk + [r.prior.expected(l) for l,r in zip(lambdas, restraints)])
-        scale = ([r.prior.expected_grad(l) for l,r in zip(lambdas, restraints)] + e_gk**2 - e_g2k)
-        # compute gradient and penalty (?)
-        grad = agreement * scale
-        # add noise
-        if K > 1:
-            grad *= np.random.randint(0,2, size=K)
-        # compute grad accumulation
-        accum_queue += grad**2
-        # update with adagrad-ish
-        lambdas -= grad / np.sqrt(accum_queue) * learning_rate
-        # callback
-        if callback is not None:
-            callback(i, weights, lambdas, e_gk, agreement, scale)
-    return weights
+class MaxentModel(tf.keras.Model):
+    def __init__(self, restraint_dim, name='maxent-model', **kwargs):
+        super(MaxentModel, self).__init__(name=name, **kwargs)
+        self.me_layer = MaxentLayer(restraint_dim)
+        self.weight_layer = ReweightLayer(self.me_layer)
+        self.lambdas = self.me_layer.l
+    def call(self, inputs):
+        wgk = self.me_layer(inputs)
+        weights = self.weight_layer(inputs)
+        return [weights, wgk]
+    def compile(self, optimizer='rmsprop', loss=None, **kwargs):
+        return super(MaxentModel, self).compile(optimizer, loss=[None, loss], **kwargs)
+
+    def fit(self, trajs, restraints, batch_size=32, **kwargs):
+        gk = _compute_restraints(trajs, restraints)
+        data = tf.data.Dataset.from_tensor_slices((gk.astype(np.float32), np.zeros_like(gk,dtype=np.float32))).shuffle(batch_size * 4).batch(batch_size)
+        result = super(MaxentModel, self).fit(data, **kwargs)
+        self.traj_weights = self.call(gk)[0]
+        return result
+
 
 def reweight_laplace(trajs, restraints, **kw_args):
     '''Assumes laplace prior, fixed time restraints. Restraints
