@@ -7,9 +7,9 @@ class Prior:
     def expected(self, l):
         raise NotImplementedError()
     def expected_grad(self, l):
-        raise NotImplementedError
+        raise NotImplementedError()
     def log_denom(self, l):
-        raise NotImplementedError
+        raise NotImplementedError()
 
 class EmptyPrior(Prior):
     def expected(self, l):
@@ -39,30 +39,30 @@ class Restraint:
     def __call__(self, traj):
         return self.fxn(traj) - self.target
 
-class AvgLayer(tf.keras.layers.Layer):
+class AvgLayerLaplace(tf.keras.layers.Layer):
     def __init__(self, reweight_layer):
-        super(AvgLayer, self).__init__()
-        if type(reweight_layer) != ReweightLayer:
+        super(AvgLayerLaplace, self).__init__()
+        if type(reweight_layer) != ReweightLayerLaplace:
             raise TypeError()
         self.rl = reweight_layer
     def call(self, gk, weights):
-        mask = tf.cast(tf.equal(self.rl.sigmas, 0), tf.float32)
         # sum over trajectories
         e_gk = tf.reduce_sum(gk * weights[:, tf.newaxis], axis=0)
         # add laplace term
         # cannot rely on mask due to no clip
-        err_e_gk = e_gk + mask * (1.5 - tf.math.divide_no_nan(1.,(self.rl.l**2 * self.rl.sigmas**2)))
+        err_e_gk = e_gk + -1. * self.rl.l * self.rl.sigmas**2 / (1. - self.rl.l**2 * self.rl.sigmas**2 / 2)
         return err_e_gk
 
-class ReweightLayer(tf.keras.layers.Layer):
+class ReweightLayerLaplace(tf.keras.layers.Layer):
     def __init__(self, sigmas):
-        super(ReweightLayer, self).__init__()
-        l_init = tf.random_uniform_initializer(-10, 10)
+        super(ReweightLayerLaplace, self).__init__()
+        l_init = tf.random_uniform_initializer(-1,1)
         restraint_dim = len(sigmas)
         self.l = tf.Variable(
             initial_value=l_init(shape=(restraint_dim,), dtype='float32'),
             trainable=True,
-            name='maxent-lambda'
+            name='maxent-lambda',
+            constraint=lambda x: tf.clip_by_value(x, -sqrt(2) / (1e-10 + sigmas), sqrt(2) / (1e-10 + sigmas))
         )
         self.sigmas = sigmas
     def call(self, gk):
@@ -74,6 +74,33 @@ class ReweightLayer(tf.keras.layers.Layer):
             1e-8, 1e8))
         # sum-up constraint terms
         logits = tf.reduce_sum(-self.l[tf.newaxis, :] * gk + prior_term[tf.newaxis, :], axis=1)
+        # compute per-trajectory weights
+        weights = tf.math.softmax(logits)
+        return weights
+
+class AvgLayer(tf.keras.layers.Layer):
+    def __init__(self, reweight_layer):
+        super(AvgLayer, self).__init__()
+        if type(reweight_layer) != ReweightLayer:
+            raise TypeError()
+        self.rl = reweight_layer
+    def call(self, gk, weights):
+        # sum over trajectories
+        e_gk = tf.reduce_sum(gk * weights[:, tf.newaxis], axis=0)
+        return e_gk
+
+class ReweightLayer(tf.keras.layers.Layer):
+    def __init__(self, restraint_dim):
+        super(ReweightLayer, self).__init__()
+        l_init = tf.zeros_initializer()
+        self.l = tf.Variable(
+            initial_value=l_init(shape=(restraint_dim,), dtype='float32'),
+            trainable=True,
+            name='maxent-lambda'
+        )
+    def call(self, gk):
+        # sum-up constraint terms
+        logits = tf.reduce_sum(-self.l[tf.newaxis, :] * gk , axis=1)
         # compute per-trajectory weights
         weights = tf.math.softmax(logits)
         return weights
@@ -93,28 +120,29 @@ class MaxentModel(tf.keras.Model):
         restraint_dim = len(restraints)
         # identify prior
         prior = type(restraints[0].prior)
-        if prior != Laplace:
-            raise NotImplementedError()
         # double-check
         for r in restraints:
             if type(r.prior) != prior:
                 raise ValueError('Can only do restraints of one type')
-        sigmas = np.array([r.prior.sigma for r in restraints], dtype=np.float32)
-        self.weight_layer = ReweightLayer(sigmas)
-        self.avg_layer = AvgLayer(self.weight_layer)
+        if prior == Laplace:
+            sigmas = np.array([r.prior.sigma for r in restraints], dtype=np.float32)
+            self.weight_layer = ReweightLayerLaplace(sigmas)
+            self.avg_layer = AvgLayerLaplace(self.weight_layer)
+        else:
+            self.weight_layer = ReweightLayer(restraint_dim)
+            self.avg_layer = AvgLayer(self.weight_layer)
         self.lambdas = self.weight_layer.l
         self.prior = prior
     def call(self, inputs):
         weights = self.weight_layer(inputs)
         wgk = self.avg_layer(inputs, weights)
-        return [weights, wgk]
-    def compile(self, optimizer='rmsprop', loss=None, **kwargs):
-        return super(MaxentModel, self).compile(optimizer, loss=[None, loss], **kwargs)
+        return wgk
     def fit(self, trajs, batch_size=16, **kwargs):
         gk = _compute_restraints(trajs, self.restraints)
         inputs = gk.astype(np.float32)
         data = tf.data.Dataset.from_tensor_slices((inputs, np.zeros_like(gk,dtype=np.float32)))
         data = data.shuffle(batch_size * 4).batch(batch_size)
         result = super(MaxentModel, self).fit(data, **kwargs)
-        self.traj_weights = self.call(inputs)[0]
+        self.traj_weights = self.weight_layer(inputs)
+        self.restraint_values = gk
         return result
