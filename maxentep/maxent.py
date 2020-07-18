@@ -3,6 +3,33 @@ from scipy.special import softmax
 import tensorflow as tf
 from math import sqrt
 
+def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7):
+    '''Creates npoints restraints based on given trajectory with noise and time averaging.
+    For example, it could be weekly averages with some noise.
+
+    Returns: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it
+    '''
+    restraints = []
+    plots = []
+    # make sure it's a tuple
+    inner_slice = tuple(inner_slice)
+    slices = np.random.choice(range(0,len(traj) // time_average), replace=False, size=npoints)
+    for i in slices:
+        # pick random time period
+        s = slice(i * time_average, i * time_average + time_average)
+        v = np.clip(np.mean(traj[s], axis=0)[inner_slice] + np.random.normal(scale=noise), 0, 1)
+        fxn = lambda x,s=s: np.mean(x[s], axis=0)[inner_slice]
+        print(i * time_average + time_average // 2, np.mean(traj[s], axis=0)[inner_slice], v)
+        # need to make a multiline lambda, so fake it with tuple
+        plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
+            ax.plot(i * time_average + time_average // 2, v, 'o', color=color),
+            ax.errorbar(i * time_average + time_average //  2, v, xerr=time_average // 2, yerr=prior.expected(float(l)), color=color, capsize=8)
+        )
+        r = Restraint(fxn, v, prior)
+        restraints.append(r)
+        plots.append(plotter)
+    return restraints, plots
+
 class Prior:
     def expected(self, l):
         raise NotImplementedError()
