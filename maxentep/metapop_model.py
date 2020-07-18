@@ -64,8 +64,11 @@ class MetaModel:
             result = tf.transpose(result, perm=[1,0,2,3])
         return result
 
-def contact_infection_func(beta):
+def contact_infection_func(beta, infectious_compartments):
     def fxn(neff, ntot):
-        p = 1 - tf.math.exp(tf.math.log(1 - beta[:,tf.newaxis]) * tf.reduce_sum((neff[:,:,:,1] + neff[:,:,:,2]) / ntot[:,:,tf.newaxis], axis=2))
+        ninf = tf.zeros_like(neff[:, :, 0])
+        for i in infectious_compartments:
+            ninf += neff[:, :, i]
+        p = 1 - tf.math.exp(tf.math.log(1 - beta[:,tf.newaxis]) * tf.reduce_sum((ninf) / ntot[:,:,tf.newaxis], axis=2))
         return p
     return fxn

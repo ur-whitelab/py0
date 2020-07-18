@@ -1,5 +1,41 @@
 import numpy as np
+import scipy.stats as ss
 import matplotlib.pyplot as plt
+
+
+class TransitionMatrix:
+    def __init__(self, timestep, compartment_names):
+        self.timestep = timestep
+        self.names = compartment_names
+        self.transitions = []
+    def add_dist(self, name1, name2, distribution):
+        if name1 not in self.names or name2 not in self.names:
+            raise ValueError('name not in compartment names')
+        if name1 == name2:
+            raise ValueError('self-loops are added automatically')
+        self.transitions.append([name1, name2, distribution])
+    def add_norm_dist(self, name1, name2, timestep_mean, timestep_std):
+        self.add_dist(name1, name2, lambda : 1. / np.clip(ss.norm.rvs(size=1, scale=timestep_std, loc=timestep_mean), 2,1e10))
+    def sample(self, size, timestep=None):
+        '''Return instance of transition matrix, optionally
+        with different timescale than it was built.
+        '''
+        if timestep is None:
+            ratio = 1
+        else:
+            ratio = timestep / self.timestep
+        C = len(self.names)
+        T = np.zeros((size,C,C))
+        for s in range(size):
+            Ti = np.zeros((C,C))
+            for n1,n2,d in self.transitions:
+                i = self.names.index(n1)
+                j = self.names.index(n2)
+                Ti[i,j] = d()
+            # get what leaves
+            np.fill_diagonal(Ti, 1 - np.sum(Ti, axis=1))
+            T[s] = Ti
+        return T * ratio
 
 
 def _weighted_quantile(values, quantiles, sample_weight=None,
