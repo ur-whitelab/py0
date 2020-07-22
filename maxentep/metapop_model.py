@@ -65,6 +65,8 @@ class MetaModel:
         return result
 
 def contact_infection_func(beta, infectious_compartments):
+    if type(beta) == float:
+        beta = tf.constant([beta])
     def fxn(neff, ntot):
         ninf = tf.zeros_like(neff[:, :, 0])
         for i in infectious_compartments:
