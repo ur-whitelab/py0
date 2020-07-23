@@ -7,108 +7,31 @@ try:
 except ImportError:
     tqdm = lambda x: x
 
-class DirichletmatDist:
-    '''Normalized trainable distribution. Zeros in starting matrix are preserved'''
-    def __init__(self, start):
-        self.model = tf.keras.Sequential([
-            TrainableInputLayer(start, constraint=PositiveMaskedConstraint(start > 0)),
-            tf.keras.layers.Lambda(lambda x: x + 1e-20),
-            tfp.layers.DistributionLambda(lambda t: tfd.Dirichlet(t[0]))
-        ])
-        self.unbiased_model = tf.keras.Sequential([
-            TrainableInputLayer(start, constraint=PositiveMaskedConstraint(start > 0)),
-            tf.keras.layers.Lambda(lambda x: x + 1e-20),
-            tfp.layers.DistributionLambda(lambda t: tfd.Dirichlet(t[0]))
-        ])
-        self.unbiased_model.trainable = False
+def dirichlet_mat_layer(input, start, name):
+    '''Dirichlet distributed trainable distribution (columns sum to 1). Zeros in starting matrix are preserved'''
+    x  = TrainableInputLayer(start, constraint=PositiveMaskedConstraint(start > 0), name=name + '-hypers')(input)
+    x = tf.keras.layers.Lambda(lambda x: x +  1e-10 * np.mean(start), name=name + '-jitter')(x)
+    return tfp.layers.DistributionLambda(lambda t: tfd.Dirichlet(10 * t[0]), name=name + '-dist')(x)
 
-class NormmatDist:
-    '''Normalized trainable distribution. Zeros in starting matrix are preserved'''
-    def __init__(self, start, start_var=1, clip_high=100):
-        # stack variance
-        start_val = np.concatenate((
-                start[np.newaxis,...],
-                np.tile(start_var, start.shape)[np.newaxis,...]
-                ))
-        # zero-out variance of zeroed starts
-        start_val[1] = start_val[1] * (start_val[0] > 0)
-        self.model = tf.keras.Sequential([
-            TrainableInputLayer(start_val, constraint=PositiveMaskedConstraint(start_val > 0)),
-            tf.keras.layers.Lambda(lambda x: x + 1e-20),
-            tfp.layers.DistributionLambda(
-                lambda t: tfd.TruncatedNormal(
-                    loc=t[0,0],
-                    low=0.0,
-                    high=clip_high,
-                    scale=t[0,1])
-            )
-        ])
-        self.unbiased_model = tf.keras.Sequential([
-            TrainableInputLayer(start_val, constraint=PositiveMaskedConstraint(start_val > 0)),
-            tf.keras.layers.Lambda(lambda x: x + 1e-20),
-            tfp.layers.DistributionLambda(
-                lambda t: tfd.TruncatedNormal(
-                    loc=t[0,0],
-                    low=0.0,
-                    high=clip_high,
-                    scale=t[0,1])
-            )
-        ])
-        self.unbiased_model.trainable = False
-
-def metapop_parameter_dist(input, rho, R, T, name_prefix='',
-                            rho_var=0.2, rho_clip=0.5, R_var=1.0, R_clip=10):
-
-    # make rho layers
-    rho_val = np.concatenate((
-            rho[np.newaxis,...],
-            np.tile(rho_var, rho.shape)[np.newaxis,...]
+def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
+    '''Normally distributed trainable distribution. Zeros in starting matrix are preserved'''
+    # stack variance
+    start_val = np.concatenate((
+            start[np.newaxis,...],
+            np.tile(start_var, start.shape)[np.newaxis,...]
             ))
     # zero-out variance of zeroed starts
-    rho_val[1] = rho_val[1] * (rho_val[0] > 0)
-    x = TrainableInputLayer(
-        rho_val,
-        name=name_prefix + 'rho',
-        constraint=PositiveMaskedConstraint(rho_val > 0))(input)
-    rho_i = tf.keras.layers.Lambda(lambda x: x + 1e-20)(x)
-
-    # make R layers
-    R_val = np.concatenate((
-            R[np.newaxis,...],
-            np.tile(R_var, R.shape)[np.newaxis,...]
-            ))
-    # zero-out variance of zeroed starts
-    R_val[1] = R_val[1] * (R_val[0] > 0)
-    x = TrainableInputLayer(
-        R_val,
-        name=name_prefix + 'R',
-        constraint=PositiveMaskedConstraint(R_val > 0))(input)
-    R_i = tf.keras.layers.Lambda(lambda x: x + 1e-20)(x)
-
-    # make T layers
-    x = TrainableInputLayer(
-        T,
-        name=name_prefix + 'T',
-        constraint=PositiveMaskedConstraint(T > 0))(input)
-    T_i = tf.keras.layers.Lambda(lambda x: x + 1e-20)(x)
-
-    out = tfp.layers.DistributionLambda(
-        lambda t: tfd.JointDistributionSequential([
-            tfd.TruncatedNormal(
-                    loc=t[0][0,0],
-                    low=0.0,
-                    high=rho_clip,
-                    scale=t[0][0,1]),
-            tfd.TruncatedNormal(
-                    loc=t[1][0,0],
-                    low=0.0,
-                    high=R_clip,
-                    scale=t[1][0,1]),
-            tfd.Dirichlet(t[2][0])
-            ]),
-        name = name_prefix + 'joint'
-    )
-    return out([rho_i, R_i, T_i])
+    start_val[1] = start_val[1] * (start_val[0] > 0)
+    x  = TrainableInputLayer(start_val, name=name + '-hypers', constraint=PositiveMaskedConstraint(start_val > 0))(input)
+    x = tf.keras.layers.Lambda(lambda x: x + 1e-10 * np.mean(start), name=name + '-jitter')(x)
+    return tfp.layers.DistributionLambda(
+            lambda t: tfd.TruncatedNormal(
+                loc=t[0,0],
+                low=0.0,
+                high=clip_high,
+                scale=t[0,1]),
+                name=name + '-dist'
+        )(x)
 
 
 class TrainableMetaModel(tf.keras.Model):
@@ -242,8 +165,8 @@ class PositiveMaskedConstraint(tf.keras.constraints.Constraint):
     self.mask = mask
 
   def __call__(self, w):
-    wz = tf.clip_by_value(w, 0., 1e10) * self.mask
-    return wz * self.mask
+    wz = tf.math.multiply_no_nan(tf.clip_by_value(w, 0., 1e10), self.mask)
+    return wz
 
 class AddSusceptibleLayer(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
