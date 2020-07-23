@@ -6,5 +6,5 @@ __all__ = []
 
 from .utils import traj_quantile, patch_quantile, TransitionMatrix
 from .SIR_model import SIRModel
-from .metapop_model import MetaModel, contact_infection_func
+from .metapop_model import *
 from .maxent import *
