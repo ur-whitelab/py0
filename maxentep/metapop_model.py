@@ -5,6 +5,33 @@ try:
 except ImportError:
     tqdm = lambda x: x
 
+class TrainableMetaModel(tf.keras.Model):
+    def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
+        super(TrainableMetaModel, self).__init__()
+        self.R_layer = TrainableInputLayer(mobility_matrix,
+                                       constraint=NormalizationConstraint(1, mobility_matrix > 0))
+        self.T_layer = TrainableInputLayer(compartment_matrix, NormalizationConstraint(1, compartment_matrix > 0))
+        self.start_layer = TrainableInputLayer(start, tf.keras.constraints.MinMaxNorm(min_value=0.0, rate=0.2, max_value=0.3, axis=-1))
+        self.metapop_layer = MetapopLayer(timesteps, infect_func)
+        self.traj_layer = AddSusceptibleLayer(name='traj')
+        self.agreement_layer = tf.keras.layers.Lambda(loss_fxn)
+    def call(self, inputs):
+        self.R = self.R_layer(inputs)
+        self.T = self.T_layer(inputs)
+        self.rho = self.start_layer(inputs)
+        x =  self.metapop_layer([self.R, self.T, self.rho])
+        self.traj = self.traj_layer(x)
+        self.agreement = self.agreement_layer(self.traj)
+        return self.traj, self.agreement
+    def get_traj(self):
+        return self([0.0])[0]
+    def compile(self, optimizer, **kwargs):
+        if 'loss' in kwargs:
+            raise ValueError('Do not specificy loss, instead use loss_fxn in constructor')
+        super(TrainableMetaModel, self).compile(optimizer, [None, 'mean_absolute_error'], **kwargs)
+    def fit(self, steps=100, **kwargs):
+        super(TrainableMetaModel, self).fit(steps * [0.], steps * [0.], batch_size=1, **kwargs)
+
 class MetaModel:
     '''Metapopulation model
 
@@ -66,7 +93,7 @@ class MetaModel:
 
 class TrainableInputLayer(tf.keras.layers.Layer):
     ''' Create trainable input layer'''
-    def __init__(self, initial_value, constraint=None, **kwargs):
+    def __init__(self, initial_value, constraint=None,regularizer=None, **kwargs):
         super(TrainableInputLayer, self).__init__(**kwargs)
         flat = initial_value.flatten()
         self.w = self.add_weight(
@@ -80,23 +107,31 @@ class TrainableInputLayer(tf.keras.layers.Layer):
     def call(self, inputs):
         return tf.expand_dims(self.w, 0)
 
-class NormalizationConstraint(tf.keras.constraints.Constraint):
-  ''' Makes weights normalized after reshape'''
+class DeltaRegularizer(tf.keras.regularizers.Regularizer):
 
-  def __init__(self, axis):
+    def __init__(self, value, strength=1e-3):
+        self.strength = strength
+        self.value = value
+
+    def __call__(self, x):
+        return self.strength * tf.reduce_sum((x - self.value)**2)
+
+
+class NormalizationConstraint(tf.keras.constraints.Constraint):
+  ''' Makes weights normalized after reshape and applying mask'''
+
+  def __init__(self, axis, mask):
     self.axis = axis
+    self.mask = mask
 
   def __call__(self, w):
-    m = tf.reduce_mean(w, axis=self.axis, keepdims=True)
-    w /= m
-    return w
-
-  def get_config(self):
-    return {'axis': self.axis}
+    wz = tf.clip_by_value(w, 0., 1e10) * self.mask
+    m = tf.reduce_sum(wz, axis=self.axis, keepdims=True)
+    return wz / m
 
 class AddSusceptibleLayer(tf.keras.layers.Layer):
-    def __init__(self):
-        super(AddSusceptibleLayer, self).__init__()
+    def __init__(self, **kwargs):
+        super(AddSusceptibleLayer, self).__init__(**kwargs)
     def call(self, trajs):
         S = 1 - tf.reduce_sum(trajs, axis=-1)
         result = tf.concat((S[:,:,:,tf.newaxis], trajs), axis=-1)
@@ -105,16 +140,16 @@ class AddSusceptibleLayer(tf.keras.layers.Layer):
         return result
 
 class MetapopLayer(tf.keras.layers.Layer):
-    def __init__(self, timesteps, model_shape, infect_func):
+    def __init__(self, timesteps, infect_func):
         super(MetapopLayer, self).__init__()
         self.infect_func = infect_func
         self.timesteps = timesteps
     def build(self, input_shape):
-        if len(input_shape) != 3:
-            raise ValueError('Must have a size 3 model shape (batch, patch, compartment)')
-        self.trajs_array = tf.TensorArray(size=self.timesteps, element_shape=input_shape, dtype=self.dtype)
-        self.N,self.M,self.C  = input_shape
-    def call(self, R, T, rho0):
+        self.N, self.M, self.C = input_shape[-1]
+
+    def call(self, inputs):
+        R, T, rho0 = inputs
+        trajs_array = tf.TensorArray(size=self.timesteps, element_shape=(self.N, self.M, self.C), dtype=self.dtype)
         def body(i, prev_rho, trajs_array):
             # compute effective pops
             neff = tf.reshape(prev_rho, (-1, self.M, 1, self.C)) *\
@@ -135,8 +170,8 @@ class MetapopLayer(tf.keras.layers.Layer):
             trajs_array = trajs_array.write(i, rho)
             return i + 1, rho, trajs_array
         cond = lambda i, *_: i < self.timesteps
-        _, _, trajs_array = tf.while_loop(cond, body, (0, rho0, self.trajs_array))
-        return self.trajs_array.stack()
+        _, _, trajs_array = tf.while_loop(cond, body, (0, rho0, trajs_array))
+        return trajs_array.stack()
 
 def contact_infection_func(beta, infectious_compartments):
     if type(beta) == float:
