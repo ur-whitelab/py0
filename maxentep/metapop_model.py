@@ -7,6 +7,8 @@ try:
 except ImportError:
     tqdm = lambda x: x
 
+EPS = np.finfo(np.float32).tiny
+
 def dirichlet_mat_layer(input, start, name):
     '''Dirichlet distributed trainable distribution (columns sum to 1). Zeros in starting matrix are preserved'''
     x  = TrainableInputLayer(start, constraint=PositiveMaskedConstraint(start > 0), name=name + '-hypers')(input)
@@ -165,7 +167,7 @@ class PositiveMaskedConstraint(tf.keras.constraints.Constraint):
     self.mask = mask
 
   def __call__(self, w):
-    wz = tf.math.multiply_no_nan(tf.clip_by_value(w, 0., 1e10), self.mask)
+    wz = tf.math.multiply_no_nan(tf.clip_by_value(w, EPS, 1e10), self.mask)
     return wz
 
 class AddSusceptibleLayer(tf.keras.layers.Layer):
