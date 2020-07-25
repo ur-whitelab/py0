@@ -105,7 +105,7 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
         # compute per-trajectory weights
         weights = tf.math.softmax(logits)
         if input_weights is not None:
-            weights *= input_weights
+            weights = weights * tf.reshape(input_weights, (-1,))
             weights /= tf.reduce_sum(weights)
         return weights
 
@@ -179,7 +179,7 @@ class MaxentModel(tf.keras.Model):
         gk = _compute_restraints(trajs, self.restraints)
         inputs = gk.astype(np.float32)
         if input_weights is None:
-            input_weights = tf.ones(tf.shape(gk)[0])
+            input_weights = tf.ones((tf.shape(gk)[0],1))
         result = super(MaxentModel, self).fit([inputs, input_weights], tf.zeros_like(gk), **kwargs)
         self.traj_weights = self.weight_layer(inputs, input_weights)
         self.restraint_values = gk
