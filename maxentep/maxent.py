@@ -93,7 +93,7 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
             constraint=lambda x: tf.clip_by_value(x, -sqrt(2) / (1e-10 + sigmas), sqrt(2) / (1e-10 + sigmas))
         )
         self.sigmas = sigmas
-    def call(self, gk):
+    def call(self, gk, input_weights = None):
         # add priors
         mask = tf.cast(tf.equal(self.sigmas, 0), tf.float32)
         two_sig = tf.math.divide_no_nan(sqrt(2), self.sigmas)
@@ -104,6 +104,9 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
         logits = tf.reduce_sum(-self.l[tf.newaxis, :] * gk + prior_term[tf.newaxis, :], axis=1)
         # compute per-trajectory weights
         weights = tf.math.softmax(logits)
+        if input_weights is not None:
+            weights = weights * tf.reshape(input_weights, (-1,))
+            weights /= tf.reduce_sum(weights)
         return weights
 
 class AvgLayer(tf.keras.layers.Layer):
@@ -126,11 +129,14 @@ class ReweightLayer(tf.keras.layers.Layer):
             trainable=True,
             name='maxent-lambda'
         )
-    def call(self, gk):
+    def call(self, gk, input_weights = None):
         # sum-up constraint terms
         logits = tf.reduce_sum(-self.l[tf.newaxis, :] * gk , axis=1)
         # compute per-trajectory weights
         weights = tf.math.softmax(logits)
+        if input_weights is not None:
+            weights = weights * tf.reshape(input_weights, (-1,))
+            weights /= tf.reduce_sum(weights)
         return weights
 
 def _compute_restraints(trajs, restraints):
@@ -162,15 +168,19 @@ class MaxentModel(tf.keras.Model):
         self.lambdas = self.weight_layer.l
         self.prior = prior
     def call(self, inputs):
-        weights = self.weight_layer(inputs)
+        input_weights = None
+        if (type(inputs) == tuple or type(inputs) == list) and len(inputs) == 2:
+            input_weights = inputs[1]
+            inputs = inputs[0]
+        weights = self.weight_layer(inputs, input_weights=input_weights)
         wgk = self.avg_layer(inputs, weights)
         return wgk
-    def fit(self, trajs, batch_size=16, **kwargs):
+    def fit(self, trajs, input_weights=None, batch_size=16, **kwargs):
         gk = _compute_restraints(trajs, self.restraints)
         inputs = gk.astype(np.float32)
-        data = tf.data.Dataset.from_tensor_slices((inputs, np.zeros_like(gk,dtype=np.float32)))
-        data = data.shuffle(batch_size * 4).batch(batch_size)
-        result = super(MaxentModel, self).fit(data, **kwargs)
-        self.traj_weights = self.weight_layer(inputs)
+        if input_weights is None:
+            input_weights = tf.ones((tf.shape(gk)[0],1))
+        result = super(MaxentModel, self).fit([inputs, input_weights], tf.zeros_like(gk), **kwargs)
+        self.traj_weights = self.weight_layer(inputs, input_weights)
         self.restraint_values = gk
         return result

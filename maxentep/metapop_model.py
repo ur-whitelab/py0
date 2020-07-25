@@ -1,9 +1,40 @@
 import numpy as np
 import tensorflow as tf
+import tensorflow_probability as tfp
+tfd = tfp.distributions
 try:
     from tqdm import tqdm
 except ImportError:
     tqdm = lambda x: x
+
+EPS = np.finfo(np.float32).tiny
+
+def dirichlet_mat_layer(input, start, name):
+    '''Dirichlet distributed trainable distribution (columns sum to 1). Zeros in starting matrix are preserved'''
+    x  = TrainableInputLayer(start, constraint=PositiveMaskedConstraint(start > 0), name=name + '-hypers')(input)
+    x = tf.keras.layers.Lambda(lambda x: x +  1e-10 * np.mean(start), name=name + '-jitter')(x)
+    return tfp.layers.DistributionLambda(lambda t: tfd.Dirichlet(10 * t[0]), name=name + '-dist')(x)
+
+def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
+    '''Normally distributed trainable distribution. Zeros in starting matrix are preserved'''
+    # stack variance
+    start_val = np.concatenate((
+            start[np.newaxis,...],
+            np.tile(start_var, start.shape)[np.newaxis,...]
+            ))
+    # zero-out variance of zeroed starts
+    start_val[1] = start_val[1] * (start_val[0] > 0)
+    x  = TrainableInputLayer(start_val, name=name + '-hypers', constraint=PositiveMaskedConstraint(start_val > 0))(input)
+    x = tf.keras.layers.Lambda(lambda x: x + 1e-10 * np.mean(start), name=name + '-jitter')(x)
+    return tfp.layers.DistributionLambda(
+            lambda t: tfd.TruncatedNormal(
+                loc=t[0,0],
+                low=0.0,
+                high=clip_high,
+                scale=t[0,1]),
+                name=name + '-dist'
+        )(x)
+
 
 class TrainableMetaModel(tf.keras.Model):
     def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
@@ -32,64 +63,17 @@ class TrainableMetaModel(tf.keras.Model):
     def fit(self, steps=100, **kwargs):
         super(TrainableMetaModel, self).fit(steps * [0.], steps * [0.], batch_size=1, **kwargs)
 
-class MetaModel:
-    '''Metapopulation model
-
-    M -> Patch Number
-    N -> Trajectory Number
-    C -> Compartments (excluding implied S)
-
-
-    params:
-        mobility_matrix:  NxN
-        compartment transitions: C x C. From column (j) to row (i)
-
-    '''
-    def __init__(self, start, mobility_matrix, compartment_matrix, infection_func):
-        # infer number of trajectories based on parameter dimensions
-        self.N = 1
-        # in case arrays are passed
-        start, mobility_matrix, compartment_matrix = np.array(start), np.array(mobility_matrix), np.array(compartment_matrix)
-        self.M, self.C = mobility_matrix.shape[1], compartment_matrix.shape[1]
-        if len(mobility_matrix.shape) == 3:
-            self.N = mobility_matrix.shape[0]
-        self.infect_func = infection_func
-        self.dtype = tf.float32
-        self.R = tf.constant(mobility_matrix.reshape((self.N, self.M, self.M)), dtype=self.dtype)
-        self.T = tf.constant(compartment_matrix.reshape((self.N, self.C, self.C)), dtype=self.dtype)
-        self.rho0 = tf.constant(np.array(start).reshape((self.N, self.M, self.C)), dtype=self.dtype)
-
-    def run(self, time, display_tqdm=True):
-        trajs_array = tf.TensorArray(size=time, element_shape=self.rho0.shape, dtype=self.dtype)
-        def body(i, prev_rho, trajs_array):
-            # compute effective pops
-            neff = tf.reshape(prev_rho, (self.N, self.M, 1, self.C)) *\
-                   tf.reshape(tf.transpose(self.R), (self.N, self.M, self.M, 1))
-            ntot = tf.reduce_sum(self.R, axis=1)
-            # compute infected prob
-            infect_prob = self.infect_func(neff, ntot)
-            # infect them
-            new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * tf.einsum('ijk,ik->ij', self.R, infect_prob)
-            # create new compartment values
-            rho = tf.einsum('ijk,ikl->ijl', prev_rho, self.T) + \
-                new_infected[:,:,tf.newaxis] * tf.constant([1] + [0 for _ in range(self.C - 1)], dtype=self.dtype)
-            # project back to allowable values
-            rho = tf.clip_by_value(rho, 0, 100000)
-            #rho /= tf.clip_by_value(tf.reduce_sum(rho, axis=-1, keepdims=True), 1, 1000000)
-            # write
-            trajs_array = trajs_array.write(i, rho)
-            return i + 1, rho, trajs_array
-        cond = lambda i, *_: i < time
-        _, rho, trajs_array = tf.while_loop(cond, body, (0, self.rho0, trajs_array))
-        trajs = trajs_array.stack()
-        trajs_array.close()
-        # now add back implied susceptible compartment
-        S = 1 - tf.reduce_sum(trajs, axis=-1)
-        result = tf.concat((S[:,:,:,tf.newaxis], trajs), axis=-1)
-        # want batch index first
-        with tf.device('/CPU:0'):
-            result = tf.transpose(result, perm=[1,0,2,3])
-        return result
+class MetaModel(tf.keras.Model):
+    def __init__(self, infect_func, timesteps):
+        super(MetaModel, self).__init__()
+        self.metapop_layer = MetapopLayer(timesteps, infect_func)
+        self.traj_layer = AddSusceptibleLayer(name='traj')
+    def call(self, R, T, rho, params):
+        if tf.rank(R) == 2:
+            R, T, rho = R[tf.newaxis,...], T[tf.newaxis, ...], rho[tf.newaxis,...]
+        x =  self.metapop_layer([R, T, rho, params])
+        traj = self.traj_layer(x)
+        return traj
 
 class TrainableInputLayer(tf.keras.layers.Layer):
     ''' Create trainable input layer'''
@@ -129,6 +113,16 @@ class NormalizationConstraint(tf.keras.constraints.Constraint):
     m = tf.reduce_sum(wz, axis=self.axis, keepdims=True)
     return wz / m
 
+class PositiveMaskedConstraint(tf.keras.constraints.Constraint):
+  ''' Makes weights normalized after reshape and applying mask'''
+
+  def __init__(self, mask):
+    self.mask = mask
+
+  def __call__(self, w):
+    wz = tf.math.multiply_no_nan(tf.clip_by_value(w, EPS, 1e10), self.mask)
+    return wz
+
 class AddSusceptibleLayer(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super(AddSusceptibleLayer, self).__init__(**kwargs)
@@ -140,15 +134,16 @@ class AddSusceptibleLayer(tf.keras.layers.Layer):
         return result
 
 class MetapopLayer(tf.keras.layers.Layer):
-    def __init__(self, timesteps, infect_func):
-        super(MetapopLayer, self).__init__()
+    def __init__(self, timesteps, infect_func, dtype=tf.float32):
+        super(MetapopLayer, self).__init__(dtype=dtype)
         self.infect_func = infect_func
         self.timesteps = timesteps
     def build(self, input_shape):
-        self.N, self.M, self.C = input_shape[-1]
+        self.N, self.M, self.C = input_shape[2]
 
     def call(self, inputs):
-        R, T, rho0 = inputs
+        R, T, rho0 = inputs[:3]
+        infect_params = inputs[3:]
         trajs_array = tf.TensorArray(size=self.timesteps, element_shape=(self.N, self.M, self.C), dtype=self.dtype)
         def body(i, prev_rho, trajs_array):
             # compute effective pops
@@ -156,7 +151,7 @@ class MetapopLayer(tf.keras.layers.Layer):
                    tf.reshape(tf.transpose(R), (-1, self.M, self.M, 1))
             ntot = tf.reduce_sum(R, axis=1)
             # compute infected prob
-            infect_prob = self.infect_func(neff, ntot)
+            infect_prob = self.infect_func(neff, ntot, *infect_params)
             # infect them
             new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * tf.einsum('ijk,ik->ij', R, infect_prob)
             # create new compartment values
@@ -173,14 +168,29 @@ class MetapopLayer(tf.keras.layers.Layer):
         _, _, trajs_array = tf.while_loop(cond, body, (0, rho0, trajs_array))
         return trajs_array.stack()
 
-def contact_infection_func(beta, infectious_compartments):
-    if type(beta) == float:
-        beta = tf.constant([beta])
-    def fxn(neff, ntot):
+class ContactInfectionLayer(tf.keras.layers.Layer):
+    def __init__(self, initial_beta,  infectious_compartments, clip_low=0.01, clip_high=0.5, **kwargs):
+        super(ContactInfectionLayer, self).__init__(**kwargs)
+        self.infectious_compartments = infectious_compartments
+        self.beta = tf.Variable(
+            initial_value=tf.reshape(initial_beta, (-1,)),
+            trainable=True,
+            constraint=lambda x: tf.clip_by_value(x, clip_low, clip_high),
+            name='contact-beta'
+        )
+    def call(self, neff, ntot):
+        ninf = tf.zeros_like(neff[:, :, 0])
+        for i in self.infectious_compartments:
+            ninf += neff[:, :, i]
+        p = 1 - tf.math.exp(tf.math.log(1 -self.beta[:,tf.newaxis]) * tf.reduce_sum((ninf) / ntot[:,:,tf.newaxis], axis=2))
+        return p
+
+def contact_infection_func(infectious_compartments):
+    def fxn(neff, ntot, beta):
         ninf = tf.zeros_like(neff[:, :, 0])
         for i in infectious_compartments:
             ninf += neff[:, :, i]
-        p = 1 - tf.math.exp(tf.math.log(1 - beta[:,tf.newaxis]) * tf.reduce_sum((ninf) / ntot[:,:,tf.newaxis], axis=2))
+        p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1,1))) * tf.reduce_sum((ninf) / ntot[:,:,tf.newaxis], axis=2))
         return p
     return fxn
 
