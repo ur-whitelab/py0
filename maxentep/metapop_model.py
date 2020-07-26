@@ -35,6 +35,42 @@ def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
                 name=name + '-dist'
         )(x)
 
+class ParameterHypers:
+    def __init__(self):
+        self.beta_low = 0.01
+        self.beta_high = 0.7
+        self.beta_var = 0.1
+        self.start_high = 0.5
+
+def parameter_joint(
+    start, mobility_matrix,
+    compartment_matrix, beta,
+    name='', hypers=None):
+    '''Create trainable joint model for parameters'''
+    if hypers is None:
+        hypers = ParameterHypers()
+    i = tf.keras.layers.Input((1,))
+    # infection parameter first
+    beta_layer = tf.keras.layers.Dense(
+        1,
+        use_bias=False,
+        kernel_constraint=tf.keras.constraints.MinMaxNorm(hypers.beta_low, hypers.beta_high),
+        kernel_initializer = tf.keras.initializers.Constant(beta),
+        name='beta')
+    beta_dist = tfp.layers.DistributionLambda(
+        lambda b: tfd.TruncatedNormal(
+            loc=b,
+            scale=hypers.beta_var,
+            low=0.0,
+            high=hypers.beta_high + hypers.beta_var),
+        name='beta-dist'
+    )(beta_layer(i))
+    R_dist = normal_mat_layer(i, mobility_matrix, name='R-dist')
+    T_dist =  dirichlet_mat_layer(i, compartment_matrix, name='T-dist')
+    start_dist = normal_mat_layer(i, start, clip_high=hypers.start_high, name='rho-dist')
+    model = tf.keras.Model(inputs=i, outputs=[R_dist, T_dist, start_dist, beta_dist], name=name + '-model')
+    return model
+
 
 class TrainableMetaModel(tf.keras.Model):
     def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
@@ -194,3 +230,8 @@ def contact_infection_func(infectious_compartments):
         return p
     return fxn
 
+
+def negloglik(y, rv_y):
+    logp = rv_y.log_prob(y + EPS)
+    logp = tf.reduce_sum(tf.reshape(logp, (tf.shape(y)[0], -1)), axis=1)
+    return -logp
