@@ -2,6 +2,7 @@ import numpy as np
 from scipy.special import softmax
 import tensorflow as tf
 from math import sqrt
+EPS = np.finfo(np.float32).tiny
 
 def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7):
     '''Creates npoints restraints based on given trajectory with noise and time averaging.
@@ -175,7 +176,7 @@ class MaxentModel(tf.keras.Model):
         weights = self.weight_layer(inputs, input_weights=input_weights)
         wgk = self.avg_layer(inputs, weights)
         return wgk
-    def fit(self, trajs, input_weights=None, batch_size=16, **kwargs):
+    def fit(self, trajs, input_weights=None, **kwargs):
         gk = _compute_restraints(trajs, self.restraints)
         inputs = gk.astype(np.float32)
         if input_weights is None:
@@ -183,4 +184,40 @@ class MaxentModel(tf.keras.Model):
         result = super(MaxentModel, self).fit([inputs, input_weights], tf.zeros_like(gk), **kwargs)
         self.traj_weights = self.weight_layer(inputs, input_weights)
         self.restraint_values = gk
+        return result
+
+
+def reweight(samples, unbiased_joint, joint):
+    batch_dim = samples[0].shape[0]
+    logit = tf.zeros((batch_dim,))
+    for i,(uj,j) in enumerate(zip(unbiased_joint, joint)):
+        # reduce across other axis (summing independent variable log ps)
+        logitdiff = uj.log_prob(samples[i] + EPS) - j.log_prob(samples[i] + EPS)
+        logit += tf.reduce_sum(tf.reshape(logitdiff, (batch_dim, -1)), axis=1)
+    return tf.math.softmax(logit)
+
+class HyperMaxentModel(MaxentModel):
+    def __init__(self, restraints, prior_model, simulation,
+                name='hyper-maxent-model', **kwargs):
+        super(HyperMaxentModel, self).__init__(restraints=restraints,name=name, **kwargs)
+        self.prior_model = prior_model
+        self.unbiased_joint = prior_model(tf.constant([1.]))
+        self.simulation = simulation
+    def fit(self, sample_batch_size = 256, outter_epochs=10, **kwargs):
+        # TODO: Deal with callbacks/history
+        for i in range(outter_epochs):
+            joint = self.prior_model(tf.constant([1.]))
+            psample = [j.sample(sample_batch_size) for j in joint]
+            trajs = self.simulation(*psample)
+            rw = reweight(psample, self.unbiased_joint, joint)
+            # final training step we do maxent twice instead of another prior
+            # heuristic to get better convergence
+            result = super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
+            if i == outter_epochs - 1:
+                result = super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
+            else:
+                w = self.traj_weights
+                fake_x = tf.constant(sample_batch_size * [1.])
+                self.prior_model.fit(fake_x, psample, sample_weight=w, **kwargs)
+        self.trajs = trajs
         return result
