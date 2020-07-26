@@ -41,6 +41,8 @@ class ParameterHypers:
         self.beta_high = 0.7
         self.beta_var = 0.1
         self.start_high = 0.5
+        self.start_var = 0.1
+        self.R_var = 0.2
 
 def parameter_joint(
     start, mobility_matrix,
@@ -65,9 +67,9 @@ def parameter_joint(
             high=hypers.beta_high + hypers.beta_var),
         name='beta-dist'
     )(beta_layer(i))
-    R_dist = normal_mat_layer(i, mobility_matrix, name='R-dist')
+    R_dist = normal_mat_layer(i, mobility_matrix,  start_var=hypers.R_var, name='R-dist')
     T_dist =  dirichlet_mat_layer(i, compartment_matrix, name='T-dist')
-    start_dist = normal_mat_layer(i, start, clip_high=hypers.start_high, name='rho-dist')
+    start_dist = normal_mat_layer(i, start, start_var=hypers.start_var, clip_high=hypers.start_high, name='rho-dist')
     model = tf.keras.Model(inputs=i, outputs=[R_dist, T_dist, start_dist, beta_dist], name=name + '-model')
     return model
 
