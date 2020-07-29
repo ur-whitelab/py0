@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 tfd = tfp.distributions
+tfb = tfp.bijectors
+from tensorflow_probability.python.internal import tensorshape_util
 try:
     from tqdm import tqdm
 except ImportError:
@@ -9,11 +11,138 @@ except ImportError:
 
 EPS = np.finfo(np.float32).tiny
 
+# NOTE in all these trainable input -> distribution lambdas, we ignore batch dim
+# this is because the trainable input layers are not a function of input.
+
+class Scatter(tfb.Bijector):
+    def __init__(self, indices, output_shape, validate_args=False, name='scatter'):
+        super(Scatter, self).__init__(
+          validate_args=validate_args,
+          forward_min_event_ndims=0,
+          name=name)
+        self.indices = indices
+        self.output_shape = output_shape
+    def _forward(self, x):
+        if tf.rank(x) > 1:
+            return tf.map_fn(lambda x: tf.scatter_nd(self.indices, x, self.output_shape), x)
+        else:
+            return tf.scatter_nd(self.indices, x, self.output_shape)
+    def _inverse(self, y):
+        if tf.rank(y) > 1:
+            return tf.map_fn(tf.gather_nd(y, self.indices), y)
+        else:
+            return tf.gather_nd(y, self.indices)
+    def _forward_log_det_jacobian(self, x):
+        return tf.zeros([], dtype=x.dtype)
+    def _inverse_log_det_jacobian(self, y):
+        return tf.zeros([], dtype=y.dtype)
+    def _forward_event_shape(self, input_shape_tensor):
+        batch_shape = input_shape_tensor[:-1]
+        return tensorshape_util.concatenate(batch_shape, self.output_shape)
+    def _forward_event_shape_tensor(self,input_shape_tensor):
+        batch_shape, d = input_shape_tensor[:-1], input_shape_tensor[-1]
+        if d != tf.shape(self.indices)[0]:
+            raise ValueError('Input Shape must match indices')
+        return tf.concat([batch_shape, self.output_shape], axis=0)
+    def _inverse_event_shape_tensor(self,input_shape_tensor):
+        r = tf.rank(self.output_shape)
+        batch_shape, d = input_shape_tensor[:-r], input_shape_tensor[-r]
+        if d != self.output_shape:
+            raise ValueError('Inverse event shape must be sample as given output shape')
+        return tensorshape_util.concatenate(batch_shape, self.indices.shape[:-1] + input_shape_tensor[self.indices.shape[-1]:])
+
+
+def _compute_trans_diagonal(tri_values, indices, shape):
+    # deal with batching
+    if tf.rank(tri_values) == 2:
+        bd = tf.shape(tri_values)[0]
+        il = indices.shape[0]
+        indices = tf.tile(tf.reshape(indices,(1, -1, 2)), [bd, 1, 1])
+        # add batch index
+        batch_i = tf.reshape(tf.tile(tf.range(bd)[:,tf.newaxis], [1,il]),(bd,-1,1))
+        indices = tf.concat((batch_i, indices), axis=-1)
+        shape = [bd, *shape]
+    m = tf.scatter_nd(indices, tri_values, shape)
+    diag = 1 - tf.reduce_sum(m, axis=-1)
+    return diag
+
+def _fill_tri_permutation(N):
+    '''Gives you a permutation so you can re-insert diagonals that were removed from upper right triangular matrix
+       using the fill_triangular bijector
+    '''
+    # TO TEST:
+    # x = np.concatenate((test[np.triu_indices_from(test, k=1)], np.diag(test)))
+    # bi = tfb.Chain([tfb.FillTriangular(upper=True), tfb.Permute(tri_fill)])
+    # print(bi.forward(x), x)
+    test = np.zeros((N,N), dtype=np.int32)
+    test[np.triu_indices_from(test, k=1)] = np.arange(0, N * (N - 1) // 2)
+    tri_fill = tfp.math.fill_triangular_inverse(test, upper=True).numpy()
+    test[np.triu_indices_from(test, k=0)] = np.arange(0, N * (N + 1) // 2)
+    diag = np.diag(test)
+    diag_fill = tfp.math.fill_triangular_inverse(test, upper=True).numpy()
+    indices = np.nonzero(diag[:,None] == diag_fill)[1]
+    tri_fill[indices] = np.arange(N * (N - 1) // 2, N * (N + 1) // 2)
+    return tri_fill
+
+def norm_tri_mat_dist(trans_times, trans_times_var, indices):
+    # Rewrite for tf arrays
+    L = trans_times.shape[0]
+    tf.print(L)
+    trii = np.triu_indices(L, k=1)
+    mask = mask[trii]
+    trii = np.array(trii).T.reshape(-1,2)
+    # convert to TF format
+    trii = tf.constant(np.array(trii).T.reshape(-1,2).astype(np.int32))
+    values = tf.gather_nd(trans_times, trii)
+    v_vars =  tf.gather_nd(trans_times_var, trii)
+
+    # sample values
+    # rearranged a little odd to avoid what TF thinks are booleans
+    select = [i for i,m in enumerate(mask) if m]
+    dists = [None for _ in mask]
+    #dists[select]
+    dists = []
+    for i,m in enumerate(mask):
+        if not m:
+            dists.append(tfd.Deterministic(tf.constant(0.)))
+        else:
+            dists.append(
+                    tfd.TransformedDistribution(
+                        tfd.TruncatedNormal(loc=values[i], scale=v_vars[i], low=1., high=1e10),
+                        bijector=tfb.Reciprocal()
+            ))
+    j = tfd.JointDistributionSequential([
+        tfd.Blockwise(dists),
+        lambda v: tfd.Independent(
+            tfd.Deterministic(loc=_compute_trans_diagonal(v, trii, trans_times.shape))
+            ,1)
+    ])
+    return tfd.TransformedDistribution(
+        tfd.Blockwise(j),
+        bijector = tfb.Chain([tfb.FillTriangular(upper=True), tfb.Permute(permutation)])
+    )
+
+def recip_norm_tri_mat_layer(input, time_means, time_vars, name):
+    '''Normalized Upper-Right Triangular Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved'''
+    # need to compute permutation to interleave into a triangular matrix
+    # now to use eager mode
+    perm = _fill_tri_permutation(time_means.shape[0])
+    # add extra row that we use for concentration
+    combined = np.stack((time_means, time_vars))
+    print(combined.shape)
+    x  = TrainableInputLayer(combined, constraint=PositiveMaskedConstraint(combined > 0), name=name + '-hypers')(input)
+    return tfp.layers.DistributionLambda(
+        lambda t: norm_tri_mat_dist(t[0,0], t[0,1], perm, time_means > 0),
+        name=name + '-dist')(x)
+
 def dirichlet_mat_layer(input, start, name):
     '''Dirichlet distributed trainable distribution (columns sum to 1). Zeros in starting matrix are preserved'''
-    x  = TrainableInputLayer(start, constraint=PositiveMaskedConstraint(start > 0), name=name + '-hypers')(input)
+    # add extra row that we use for concentration
+    start_aug = np.concatenate((start, np.zeros_like(start)))
+    start_aug[-1, -1] = 5.0
+    x  = TrainableInputLayer(start_aug, constraint=PositiveMaskedConstraint(start_aug > 0), name=name + '-hypers')(input)
     x = tf.keras.layers.Lambda(lambda x: x +  1e-10 * np.mean(start), name=name + '-jitter')(x)
-    return tfp.layers.DistributionLambda(lambda t: tfd.Dirichlet(10 * t[0]), name=name + '-dist')(x)
+    return tfp.layers.DistributionLambda(lambda t: tfd.Dirichlet((t[0,-1,-1] * t[0,:-1])), name=name + '-dist')(x)
 
 def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
     '''Normally distributed trainable distribution. Zeros in starting matrix are preserved'''
