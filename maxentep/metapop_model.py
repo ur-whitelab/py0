@@ -23,15 +23,11 @@ class Scatter(tfb.Bijector):
         self.indices = indices
         self.output_shape = output_shape
     def _forward(self, x):
-        if tf.rank(x) > 1:
-            return tf.map_fn(lambda x: tf.scatter_nd(self.indices, x, self.output_shape), x)
-        else:
-            return tf.scatter_nd(self.indices, x, self.output_shape)
+        batched = tf.reshape(x, (-1, tf.shape(self.indices)[0]))
+        return tf.squeeze(tf.map_fn(lambda x: tf.scatter_nd(self.indices, x, self.output_shape), batched))
     def _inverse(self, y):
-        if tf.rank(y) > 1:
-            return tf.map_fn(tf.gather_nd(y, self.indices), y)
-        else:
-            return tf.gather_nd(y, self.indices)
+        batched = tf.reshape(y, tf.concat([-1, self.output_shape]))
+        return tf.squeeze(tf.map_fn(lambda y: tf.gather_nd(y, self.indices), batched))
     def _forward_log_det_jacobian(self, x):
         return tf.zeros([], dtype=x.dtype)
     def _inverse_log_det_jacobian(self, y):
@@ -53,86 +49,50 @@ class Scatter(tfb.Bijector):
 
 
 def _compute_trans_diagonal(tri_values, indices, shape):
-    # deal with batching
-    if tf.rank(tri_values) == 2:
-        bd = tf.shape(tri_values)[0]
-        il = indices.shape[0]
-        indices = tf.tile(tf.reshape(indices,(1, -1, 2)), [bd, 1, 1])
-        # add batch index
-        batch_i = tf.reshape(tf.tile(tf.range(bd)[:,tf.newaxis], [1,il]),(bd,-1,1))
-        indices = tf.concat((batch_i, indices), axis=-1)
-        shape = [bd, *shape]
-    m = tf.scatter_nd(indices, tri_values, shape)
+    # force tri_values to be batched
+    batched = tf.reshape(tri_values, (-1, tf.shape(indices)[0]))
+    m = tf.map_fn(lambda v: tf.scatter_nd(indices, v, shape), batched)
+    #m = tf.scatter_nd(indices, tri_values, shape)
     diag = 1 - tf.reduce_sum(m, axis=-1)
-    return diag
+    return tf.squeeze(diag)
 
-def _fill_tri_permutation(N):
-    '''Gives you a permutation so you can re-insert diagonals that were removed from upper right triangular matrix
-       using the fill_triangular bijector
-    '''
-    # TO TEST:
-    # x = np.concatenate((test[np.triu_indices_from(test, k=1)], np.diag(test)))
-    # bi = tfb.Chain([tfb.FillTriangular(upper=True), tfb.Permute(tri_fill)])
-    # print(bi.forward(x), x)
-    test = np.zeros((N,N), dtype=np.int32)
-    test[np.triu_indices_from(test, k=1)] = np.arange(0, N * (N - 1) // 2)
-    tri_fill = tfp.math.fill_triangular_inverse(test, upper=True).numpy()
-    test[np.triu_indices_from(test, k=0)] = np.arange(0, N * (N + 1) // 2)
-    diag = np.diag(test)
-    diag_fill = tfp.math.fill_triangular_inverse(test, upper=True).numpy()
-    indices = np.nonzero(diag[:,None] == diag_fill)[1]
-    tri_fill[indices] = np.arange(N * (N - 1) // 2, N * (N + 1) // 2)
-    return tri_fill
-
-def norm_tri_mat_dist(trans_times, trans_times_var, indices):
-    # Rewrite for tf arrays
-    L = trans_times.shape[0]
-    tf.print(L)
-    trii = np.triu_indices(L, k=1)
-    mask = mask[trii]
-    trii = np.array(trii).T.reshape(-1,2)
-    # convert to TF format
-    trii = tf.constant(np.array(trii).T.reshape(-1,2).astype(np.int32))
-    values = tf.gather_nd(trans_times, trii)
-    v_vars =  tf.gather_nd(trans_times_var, trii)
-
-    # sample values
-    # rearranged a little odd to avoid what TF thinks are booleans
-    select = [i for i,m in enumerate(mask) if m]
-    dists = [None for _ in mask]
-    #dists[select]
-    dists = []
-    for i,m in enumerate(mask):
-        if not m:
-            dists.append(tfd.Deterministic(tf.constant(0.)))
-        else:
-            dists.append(
-                    tfd.TransformedDistribution(
-                        tfd.TruncatedNormal(loc=values[i], scale=v_vars[i], low=1., high=1e10),
-                        bijector=tfb.Reciprocal()
-            ))
+def recip_norm_mat_dist(trans_times, trans_times_var):
+    # would like to do this check, but cannot
+    # since it makes this a dynamic layer
+    # if tf.rank(trans_times) != 2:
+    #    raise ValueError('Input must have shape (N, N)')
+    L = tf.shape(trans_times)[-1]
+    indices = tf.cast(tf.where(trans_times > 0), tf.int32)
+    diag_indices = tf.tile(tf.range(L)[:, tf.newaxis], [1, 2])
+    # remove batching
+    values = tf.gather_nd(trans_times, indices)
+    v_vars =  tf.gather_nd(trans_times_var, indices)
+    print(values)
+    tf.print(values)
+    print(v_vars)
+    tf.print(v_vars)
     j = tfd.JointDistributionSequential([
-        tfd.Blockwise(dists),
+        tfd.Independent(tfd.TransformedDistribution(
+            tfd.TruncatedNormal(loc=values, scale=v_vars, low=1., high=1e10),
+            bijector=tfb.Reciprocal()
+        ),1),
         lambda v: tfd.Independent(
-            tfd.Deterministic(loc=_compute_trans_diagonal(v, trii, trans_times.shape))
+            tfd.Deterministic(loc=_compute_trans_diagonal(v, indices, trans_times.shape))
             ,1)
     ])
+    print(j)
     return tfd.TransformedDistribution(
         tfd.Blockwise(j),
-        bijector = tfb.Chain([tfb.FillTriangular(upper=True), tfb.Permute(permutation)])
+        bijector = Scatter(tf.concat((indices, diag_indices), axis=0), trans_times.shape)
     )
 
-def recip_norm_tri_mat_layer(input, time_means, time_vars, name):
-    '''Normalized Upper-Right Triangular Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved'''
-    # need to compute permutation to interleave into a triangular matrix
-    # now to use eager mode
-    perm = _fill_tri_permutation(time_means.shape[0])
+def recip_norm_mat_layer(input, time_means, time_vars, name):
+    '''Column Normalized Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved'''
     # add extra row that we use for concentration
     combined = np.stack((time_means, time_vars))
-    print(combined.shape)
     x  = TrainableInputLayer(combined, constraint=PositiveMaskedConstraint(combined > 0), name=name + '-hypers')(input)
     return tfp.layers.DistributionLambda(
-        lambda t: norm_tri_mat_dist(t[0,0], t[0,1], perm, time_means > 0),
+        lambda t: recip_norm_mat_dist(t[0,0], t[0,1]),
         name=name + '-dist')(x)
 
 def dirichlet_mat_layer(input, start, name):
@@ -256,7 +216,8 @@ class TrainableInputLayer(tf.keras.layers.Layer):
             trainable=True)
         self.trainable_flat = len(flat)
     def call(self, inputs):
-        return tf.expand_dims(self.w, 0)
+        batch_dim = tf.shape(inputs)[:1]
+        return tf.tile(self.w[tf.newaxis,...], tf.concat((batch_dim, tf.ones(tf.rank(self.w), dtype=tf.int32)), axis=0))
 
 class DeltaRegularizer(tf.keras.regularizers.Regularizer):
 
