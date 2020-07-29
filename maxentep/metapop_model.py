@@ -23,11 +23,13 @@ class Scatter(tfb.Bijector):
         self.indices = indices
         self.output_shape = output_shape
     def _forward(self, x):
-        batched = tf.reshape(x, (-1, tf.shape(self.indices)[0]))
-        return tf.squeeze(tf.map_fn(lambda x: tf.scatter_nd(self.indices, x, self.output_shape), batched))
+        #return tf.scatter_nd(self.indices, x, self.output_shape)
+        return tf.map_fn(
+            lambda x: tf.scatter_nd(x[0], x[1], self.output_shape),
+            elems=[self.indices, x],
+            dtype=tf.float32)
     def _inverse(self, y):
-        batched = tf.reshape(y, tf.concat([-1, self.output_shape]))
-        return tf.squeeze(tf.map_fn(lambda y: tf.gather_nd(y, self.indices), batched))
+        return tf.gather_nd(y, self.indices, batch_dims=1)
     def _forward_log_det_jacobian(self, x):
         return tf.zeros([], dtype=x.dtype)
     def _inverse_log_det_jacobian(self, y):
@@ -50,11 +52,15 @@ class Scatter(tfb.Bijector):
 
 def _compute_trans_diagonal(tri_values, indices, shape):
     # force tri_values to be batched
-    batched = tf.reshape(tri_values, (-1, tf.shape(indices)[0]))
-    m = tf.map_fn(lambda v: tf.scatter_nd(indices, v, shape), batched)
+    #batched = tf.reshape(tri_values, (-1, tf.shape(indices)[0]))
+    print(tri_values)
+    print(indices)
+    print(shape)
+    m = tf.map_fn(lambda x: tf.scatter_nd(x[0], x[1], shape[1:]), elems=[indices,tri_values],  dtype=tri_values.dtype)
     #m = tf.scatter_nd(indices, tri_values, shape)
     diag = 1 - tf.reduce_sum(m, axis=-1)
-    return tf.squeeze(diag)
+    print(diag)
+    return diag
 
 def recip_norm_mat_dist(trans_times, trans_times_var):
     # would like to do this check, but cannot
@@ -62,15 +68,24 @@ def recip_norm_mat_dist(trans_times, trans_times_var):
     # if tf.rank(trans_times) != 2:
     #    raise ValueError('Input must have shape (N, N)')
     L = tf.shape(trans_times)[-1]
-    indices = tf.cast(tf.where(trans_times > 0), tf.int32)
+    # This gets a mask ( > 0 ) that is batched
+    indices = tf.reshape(tf.cast(tf.where(trans_times > 0)[...,1:], tf.int32), (-1, L, 2))
+    print('indicies', indices)
     diag_indices = tf.tile(tf.range(L)[:, tf.newaxis], [1, 2])
+    # add batch to diag_indices
+    bd = tf.shape(trans_times)[0]
+    b_indices = tf.tile(tf.reshape(diag_indices,(1, -1, 2)), [bd, 1, 1])
+    print('bindices', b_indices)
+    # add batch index
+    batch_i = tf.reshape(tf.tile(tf.range(bd)[:,tf.newaxis], [1,tf.shape(diag_indices)[0]]),(bd,-1,1))
+    print(batch_i)
+    diag_indices = tf.concat((batch_i, b_indices), axis=-1)
+    print(diag_indices)
     # remove batching
-    values = tf.gather_nd(trans_times, indices)
-    v_vars =  tf.gather_nd(trans_times_var, indices)
-    print(values)
-    tf.print(values)
-    print(v_vars)
-    tf.print(v_vars)
+    print(indices, trans_times.shape)
+    values = tf.gather_nd(trans_times, indices, batch_dims=1)
+    v_vars =  tf.gather_nd(trans_times_var, indices, batch_dims=1)
+    print('should get out', values)
     j = tfd.JointDistributionSequential([
         tfd.Independent(tfd.TransformedDistribution(
             tfd.TruncatedNormal(loc=values, scale=v_vars, low=1., high=1e10),
@@ -80,10 +95,11 @@ def recip_norm_mat_dist(trans_times, trans_times_var):
             tfd.Deterministic(loc=_compute_trans_diagonal(v, indices, trans_times.shape))
             ,1)
     ])
-    print(j)
+    print(j, tfd.Blockwise(j))
+    #return tfd.Blockwise(j)
     return tfd.TransformedDistribution(
         tfd.Blockwise(j),
-        bijector = Scatter(tf.concat((indices, diag_indices), axis=0), trans_times.shape)
+        bijector = Scatter(tf.concat((indices, b_indices), axis=1), trans_times.shape[1:])
     )
 
 def recip_norm_mat_layer(input, time_means, time_vars, name):
@@ -92,7 +108,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
     combined = np.stack((time_means, time_vars))
     x  = TrainableInputLayer(combined, constraint=PositiveMaskedConstraint(combined > 0), name=name + '-hypers')(input)
     return tfp.layers.DistributionLambda(
-        lambda t: recip_norm_mat_dist(t[0,0], t[0,1]),
+        lambda t: recip_norm_mat_dist(t[:,0], t[:,1]),
         name=name + '-dist')(x)
 
 def dirichlet_mat_layer(input, start, name):
