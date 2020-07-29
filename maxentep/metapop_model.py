@@ -86,7 +86,7 @@ def recip_norm_mat_dist(trans_times, trans_times_var):
     values = tf.gather_nd(trans_times, indices, batch_dims=1)
     v_vars =  tf.gather_nd(trans_times_var, indices, batch_dims=1)
     print('should get out', values)
-    j = tfd.JointDistributionSequential([
+    j = tfd.JointDistributionSequentialAutoBatched([
         tfd.Independent(tfd.TransformedDistribution(
             tfd.TruncatedNormal(loc=values, scale=v_vars, low=1., high=1e10),
             bijector=tfb.Reciprocal()
@@ -94,7 +94,7 @@ def recip_norm_mat_dist(trans_times, trans_times_var):
         lambda v: tfd.Independent(
             tfd.Deterministic(loc=_compute_trans_diagonal(v, indices, trans_times.shape))
             ,1)
-    ])
+    ], batch_ndims=1)
     print(j, tfd.Blockwise(j))
     #return tfd.Blockwise(j)
     return tfd.TransformedDistribution(
