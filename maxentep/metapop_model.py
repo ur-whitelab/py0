@@ -14,52 +14,10 @@ EPS = np.finfo(np.float32).tiny
 # NOTE in all these trainable input -> distribution lambdas, we ignore batch dim
 # this is because the trainable input layers are not a function of input.
 
-class Scatter(tfb.Bijector):
-    def __init__(self, indices, output_shape, validate_args=False, name='scatter'):
-        super(Scatter, self).__init__(
-          validate_args=validate_args,
-          forward_min_event_ndims=0,
-          name=name)
-        self.indices = indices
-        self.output_shape = output_shape
-    def _forward(self, x):
-        #return tf.scatter_nd(self.indices, x, self.output_shape)
-        return tf.map_fn(
-            lambda x: tf.scatter_nd(x[0], x[1], self.output_shape),
-            elems=[self.indices, x],
-            dtype=tf.float32)
-    def _inverse(self, y):
-        return tf.gather_nd(y, self.indices, batch_dims=1)
-    def _forward_log_det_jacobian(self, x):
-        return tf.zeros([], dtype=x.dtype)
-    def _inverse_log_det_jacobian(self, y):
-        return tf.zeros([], dtype=y.dtype)
-    def _forward_event_shape(self, input_shape_tensor):
-        batch_shape = input_shape_tensor[:-1]
-        return tensorshape_util.concatenate(batch_shape, self.output_shape)
-    def _forward_event_shape_tensor(self,input_shape_tensor):
-        batch_shape, d = input_shape_tensor[:-1], input_shape_tensor[-1]
-        if d != tf.shape(self.indices)[0]:
-            raise ValueError('Input Shape must match indices')
-        return tf.concat([batch_shape, self.output_shape], axis=0)
-    def _inverse_event_shape_tensor(self,input_shape_tensor):
-        r = tf.rank(self.output_shape)
-        batch_shape, d = input_shape_tensor[:-r], input_shape_tensor[-r]
-        if d != self.output_shape:
-            raise ValueError('Inverse event shape must be sample as given output shape')
-        return tensorshape_util.concatenate(batch_shape, self.indices.shape[:-1] + input_shape_tensor[self.indices.shape[-1]:])
-
-
 def _compute_trans_diagonal(tri_values, indices, shape):
     # force tri_values to be batched
-    #batched = tf.reshape(tri_values, (-1, tf.shape(indices)[0]))
-    print(tri_values)
-    print(indices)
-    print(shape)
-    m = tf.map_fn(lambda x: tf.scatter_nd(x[0], x[1], shape[1:]), elems=[indices,tri_values],  dtype=tri_values.dtype)
-    #m = tf.scatter_nd(indices, tri_values, shape)
+    m = tf.scatter_nd(indices, tri_values, shape)
     diag = 1 - tf.reduce_sum(m, axis=-1)
-    print(diag)
     return diag
 
 def recip_norm_mat_dist(trans_times, trans_times_var):
@@ -69,23 +27,10 @@ def recip_norm_mat_dist(trans_times, trans_times_var):
     #    raise ValueError('Input must have shape (N, N)')
     L = tf.shape(trans_times)[-1]
     # This gets a mask ( > 0 ) that is batched
-    indices = tf.reshape(tf.cast(tf.where(trans_times > 0)[...,1:], tf.int32), (-1, L, 2))
-    print('indicies', indices)
+    indices = tf.cast(tf.where(trans_times > 0), tf.int32)
     diag_indices = tf.tile(tf.range(L)[:, tf.newaxis], [1, 2])
-    # add batch to diag_indices
-    bd = tf.shape(trans_times)[0]
-    b_indices = tf.tile(tf.reshape(diag_indices,(1, -1, 2)), [bd, 1, 1])
-    print('bindices', b_indices)
-    # add batch index
-    batch_i = tf.reshape(tf.tile(tf.range(bd)[:,tf.newaxis], [1,tf.shape(diag_indices)[0]]),(bd,-1,1))
-    print(batch_i)
-    diag_indices = tf.concat((batch_i, b_indices), axis=-1)
-    print(diag_indices)
-    # remove batching
-    print(indices, trans_times.shape)
-    values = tf.gather_nd(trans_times, indices, batch_dims=1)
-    v_vars =  tf.gather_nd(trans_times_var, indices, batch_dims=1)
-    print('should get out', values)
+    values = tf.gather_nd(trans_times, indices)
+    v_vars =  tf.gather_nd(trans_times_var, indices)
     j = tfd.JointDistributionSequentialAutoBatched([
         tfd.Independent(tfd.TransformedDistribution(
             tfd.TruncatedNormal(loc=values, scale=v_vars, low=1., high=1e10),
@@ -93,14 +38,17 @@ def recip_norm_mat_dist(trans_times, trans_times_var):
         ),1),
         lambda v: tfd.Independent(
             tfd.Deterministic(loc=_compute_trans_diagonal(v, indices, trans_times.shape))
-            ,1)
-    ], batch_ndims=1)
-    print(j, tfd.Blockwise(j))
-    #return tfd.Blockwise(j)
-    return tfd.TransformedDistribution(
-        tfd.Blockwise(j),
-        bijector = Scatter(tf.concat((indices, b_indices), axis=1), trans_times.shape[1:])
-    )
+            ,1),
+        lambda d, v: tfd.Independent(
+            tfd.Deterministic(
+                loc=tf.scatter_nd(
+                    tf.concat((indices, diag_indices), axis=0),
+                    tf.concat((v, d), axis=0),
+                    trans_times.shape))
+            ,1),
+
+    ])
+    return j
 
 def recip_norm_mat_layer(input, time_means, time_vars, name):
     '''Column Normalized Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved'''
@@ -108,7 +56,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
     combined = np.stack((time_means, time_vars))
     x  = TrainableInputLayer(combined, constraint=PositiveMaskedConstraint(combined > 0), name=name + '-hypers')(input)
     return tfp.layers.DistributionLambda(
-        lambda t: recip_norm_mat_dist(t[:,0], t[:,1]),
+        lambda t: recip_norm_mat_dist(t[0,0], t[0,1]),
         name=name + '-dist')(x)
 
 def dirichlet_mat_layer(input, start, name):
