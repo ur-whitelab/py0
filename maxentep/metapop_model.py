@@ -53,13 +53,13 @@ def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, 
         dtype=x.dtype)(input)
     d = tfp.layers.DistributionLambda(lambda t:
             tfd.Blockwise(tfd.JointDistributionSequential([
-                tfd.Multinomial(1, t[0][0]),
+                tfd.Independent(tfd.Bernoulli(logits=t[0][0], dtype=t[0].dtype),1),
                 tfd.Sample(
                     tfd.TruncatedNormal(
                         loc=t[1][0,0],
                         scale=1e-3 + tf.math.sigmoid(t[1][0,1]),
                         low=0.0,
-                        high=1.0)
+                        high=0.5)
                     ,sample_shape=[L]),
             ]))
         , name=name + '-dist')([x,y])
@@ -91,7 +91,7 @@ class ParameterHypers:
     def __init__(self):
         self.beta_low = 0.01
         self.beta_high = 0.7
-        self.beta_var = 0.1
+        self.beta_var = 0.05
         self.start_high = 0.5
         self.start_var = 0.1
         self.R_var = 0.2
@@ -111,14 +111,13 @@ class ParameterJoint(tf.keras.Model):
         beta_layer = tf.keras.layers.Dense(
             1,
             use_bias=False,
-            kernel_constraint=tf.keras.constraints.MinMaxNorm(hypers.beta_low, hypers.beta_high),
-            kernel_initializer = tf.keras.initializers.Constant(hypers.beta_start),
+            kernel_initializer = tf.keras.initializers.Constant(tf.math.log(hypers.beta_start)),
             name='beta')
         beta_dist = tfp.layers.DistributionLambda(
             lambda b: tfd.Independent(tfd.TruncatedNormal(
-                loc=b[...,0],
+                loc=tf.math.exp(b[...,0]),
                 scale=hypers.beta_var,
-                low=0.0,
+                low=hypers.beta_low,
                 high=hypers.beta_high + hypers.beta_var), 1),
             name='beta-dist'
         )(beta_layer(i))
@@ -148,7 +147,7 @@ class TrainableMetaModel(tf.keras.Model):
         self.R_layer = TrainableInputLayer(mobility_matrix,
                                        constraint=NormalizationConstraint(1, mobility_matrix > 0))
         self.T_layer = TrainableInputLayer(compartment_matrix, NormalizationConstraint(1, compartment_matrix > 0))
-        self.start_layer = TrainableInputLayer(start, tf.keras.constraints.MinMaxNorm(min_value=0.0, rate=0.2, max_value=0.3, axis=-1))
+        self.start_layer = TrainableInputLayer(start, tf.keras.constraints.MinMaxNorm(min_value=0.0, rate=1.0, max_value=0.3, axis=-1))
         self.metapop_layer = MetapopLayer(timesteps, infect_func)
         self.traj_layer = AddSusceptibleLayer(name='traj')
         self.agreement_layer = tf.keras.layers.Lambda(loss_fxn)
@@ -254,6 +253,8 @@ class MetapopLayer(tf.keras.layers.Layer):
         infect_params = inputs[3:]
         trajs_array = tf.TensorArray(size=self.timesteps, element_shape=(self.N, self.M, self.C), dtype=self.dtype)
         def body(i, prev_rho, trajs_array):
+            # write first so we get starting rho
+            trajs_array = trajs_array.write(i, prev_rho)
             # compute effective pops
             neff = tf.reshape(prev_rho, (-1, self.M, 1, self.C)) *\
                    tf.reshape(tf.transpose(R), (-1, self.M, self.M, 1))
@@ -269,8 +270,6 @@ class MetapopLayer(tf.keras.layers.Layer):
             # project back to allowable values
             rho = tf.clip_by_value(rho, 0, 1e10)
             #rho /= tf.clip_by_value(tf.reduce_sum(rho, axis=-1, keepdims=True), 1, 1000000)
-            # write
-            trajs_array = trajs_array.write(i, rho)
             return i + 1, rho, trajs_array
         cond = lambda i, *_: i < self.timesteps
         _, _, trajs_array = tf.while_loop(cond, body, (0, rho0, trajs_array))
