@@ -9,19 +9,28 @@ class TransitionMatrix:
         self.infectious_compartments = infectious_compartments
         self.transitions = []
         self.mat = None
-    def add_transition(self, name1, name2, time):
+    def add_transition(self, name1, name2, time, time_var):
         if name1 not in self.names or name2 not in self.names:
             raise ValueError('name not in compartment names')
         if name1 == name2:
             raise ValueError('self-loops are added automatically')
-        self.transitions.append([name1, name2, time])
+        self.transitions.append([name1, name2, time, time_var])
         self.mat = None
 
+    def prior_matrix(self):
+        C = len(self.names)
+        T1,T2 = np.zeros((C,C)),np.zeros((C,C))
+        for n1,n2,v,vv in self.transitions:
+            i = self.names.index(n1)
+            j = self.names.index(n2)
+            T1[i,j] = v
+            T2[i,j] = vv
+        return T1, T2
     def _make_matrix(self):
 
         C = len(self.names)
         T = np.zeros((C,C))
-        for n1,n2,v in self.transitions:
+        for n1,n2,v,vv in self.transitions:
             i = self.names.index(n1)
             j = self.names.index(n2)
             T[i,j] = 1 / v

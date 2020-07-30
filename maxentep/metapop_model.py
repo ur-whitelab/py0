@@ -59,7 +59,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
         lambda t: recip_norm_mat_dist(t[0,0], t[0,1]),
         name=name + '-dist')(x)
 
-def categorical_normal_layer(input, start_logits,  start_mean, start_scale, name):
+def categorical_normal_layer(input, start_logits, start_mean, start_scale, name):
     x = TrainableInputLayer(start_logits, name=name + '-start-logit-hypers')(input)
     y = tf.keras.layers.Dense(2,
         kernel_initializer=tf.constant_initializer(value=[start_mean, start_scale]),
@@ -67,11 +67,11 @@ def categorical_normal_layer(input, start_logits,  start_mean, start_scale, name
         dtype=x.dtype)(input)
     return tfp.layers.DistributionLambda(lambda t:
         tfd.JointDistributionSequential([
-            tfd.Multinomial(1, t[0]),
-            tfd.Normal(loc=t[1][...,0], scale=t[1][...,1]),
-            lambda b, n: tfd.Independent(tfd.Deterministic(loc=b * n), 1)
+            tfd.Independent(tfd.Multinomial(1, t[0]), 1),
+            tfd.Independent(tfd.Normal(loc=t[1][...,0], scale=t[1][...,1]),1),
+            lambda b, n: tfd.Independent(tfd.Deterministic(loc=b * n), 2)
             ])
-        )([x,y])
+        , name=name + '-dist')([x,y])
 
 def dirichlet_mat_layer(input, start, name):
     '''Dirichlet distributed trainable distribution (columns sum to 1). Zeros in starting matrix are preserved'''
@@ -94,13 +94,12 @@ def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
     x  = TrainableInputLayer(start_val, name=name + '-hypers', constraint=PositiveMaskedConstraint(start_val > 0))(input)
     x = tf.keras.layers.Lambda(lambda x: x + 1e-10 * np.mean(start), name=name + '-jitter')(x)
     return tfp.layers.DistributionLambda(
-            lambda t: tfd.TruncatedNormal(
+            lambda t: tfd.Independent(tfd.TruncatedNormal(
                 loc=t[0,0],
                 low=0.0,
                 high=clip_high,
-                scale=t[0,1]),
-                name=name + '-dist'
-        )(x)
+                scale=t[0,1]), 2),
+            name=name + '-dist')(x)
 
 class ParameterHypers:
     def __init__(self):
@@ -110,34 +109,43 @@ class ParameterHypers:
         self.start_high = 0.5
         self.start_var = 0.1
         self.R_var = 0.2
+        self.beta_start = 0.2
+        self.start_mean = 0.1
+        self.start_scale = 0.1
 
 class ParameterJoint(tf.keras.Model):
-    def __init__(self, start, mobility_matrix,
-                 compartment_matrix, beta,
+    def __init__(self, start_logits, mobility_matrix,
+                 transition_matrix,
                  name='', hypers=None):
-    '''Create trainable joint model for parameters'''
-    if hypers is None:
-        hypers = ParameterHypers()
-    i = tf.keras.layers.Input((1,))
-    # infection parameter first
-    beta_layer = tf.keras.layers.Dense(
-        1,
-        use_bias=False,
-        kernel_constraint=tf.keras.constraints.MinMaxNorm(hypers.beta_low, hypers.beta_high),
-        kernel_initializer = tf.keras.initializers.Constant(beta),
-        name='beta')
-    beta_dist = tfp.layers.DistributionLambda(
-        lambda b: tfd.TruncatedNormal(
-            loc=b,
-            scale=hypers.beta_var,
-            low=0.0,
-            high=hypers.beta_high + hypers.beta_var),
-        name='beta-dist'
-    )(beta_layer(i))
-    R_dist = normal_mat_layer(i, mobility_matrix,  start_var=hypers.R_var, name='R-dist')
-    T_dist =  dirichlet_mat_layer(i, compartment_matrix, name='T-dist')
-    start_dist = normal_mat_layer(i, start, start_var=hypers.start_var, clip_high=hypers.start_high, name='rho-dist')
-    super(ParameterJoint, self).__init__((inputs=i, outputs=[R_dist, T_dist, start_dist, beta_dist], name=name + '-model'))
+        '''Create trainable joint model for parameters'''
+        if hypers is None:
+            hypers = ParameterHypers()
+        i = tf.keras.layers.Input((1,))
+        # infection parameter first
+        beta_layer = tf.keras.layers.Dense(
+            1,
+            use_bias=False,
+            kernel_constraint=tf.keras.constraints.MinMaxNorm(hypers.beta_low, hypers.beta_high),
+            kernel_initializer = tf.keras.initializers.Constant(hypers.beta_start),
+            name='beta')
+        beta_dist = tfp.layers.DistributionLambda(
+            lambda b: tfd.Independent(tfd.TruncatedNormal(
+                loc=b[...,0],
+                scale=hypers.beta_var,
+                low=0.0,
+                high=hypers.beta_high + hypers.beta_var), 1),
+            name='beta-dist'
+        )(beta_layer(i))
+        R_dist = normal_mat_layer(i, mobility_matrix,  start_var=hypers.R_var, name='R-dist')
+        T_dist =  recip_norm_mat_layer(i, *transition_matrix.prior_matrix(), name='T-dist')
+        start_dist = categorical_normal_layer(i, start_logits, hypers.start_mean, hypers.start_scale, name='rho-dist')
+        self.output_count = 4
+        super(ParameterJoint, self).__init__(inputs=i, outputs=[R_dist, T_dist, start_dist, beta_dist], name=name + '-model')
+    def compile(self, optimizer, **kwargs):
+        if 'loss' in kwargs:
+            raise InvalidArgumentError('Do not set loss')
+        super(ParameterJoint, self).compile(optimizer, loss=self.output_count * [negloglik])
+
 
 class TrainableMetaModel(tf.keras.Model):
     def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
@@ -166,6 +174,7 @@ class TrainableMetaModel(tf.keras.Model):
     def fit(self, steps=100, **kwargs):
         super(TrainableMetaModel, self).fit(steps * [0.], steps * [0.], batch_size=1, **kwargs)
 
+
 class MetaModel(tf.keras.Model):
     def __init__(self, infect_func, timesteps):
         super(MetaModel, self).__init__()
@@ -183,6 +192,7 @@ class TrainableInputLayer(tf.keras.layers.Layer):
     def __init__(self, initial_value, constraint=None,regularizer=None, **kwargs):
         super(TrainableInputLayer, self).__init__(**kwargs)
         flat = initial_value.flatten()
+        self.initial_value = initial_value
         self.w = self.add_weight(
             'value',
             shape=initial_value.shape,
@@ -190,13 +200,12 @@ class TrainableInputLayer(tf.keras.layers.Layer):
             constraint=constraint,
             dtype=self.dtype,
             trainable=True)
-        self.trainable_flat = len(flat)
     def call(self, inputs):
         batch_dim = tf.shape(inputs)[:1]
         return tf.tile(self.w[tf.newaxis,...], tf.concat((batch_dim, tf.ones(tf.rank(self.w), dtype=tf.int32)), axis=0))
 
-class DeltaRegularizer(tf.keras.regularizers.Regularizer):
 
+class DeltaRegularizer(tf.keras.regularizers.Regularizer):
     def __init__(self, value, strength=1e-3):
         self.strength = strength
         self.value = value
