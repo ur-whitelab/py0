@@ -206,24 +206,22 @@ class HyperMaxentModel(MaxentModel):
     def fit(self, sample_batch_size = 256, final_batch_multiplier=4, outter_epochs=10, **kwargs):
         # TODO: Deal with callbacks/history
         for i in range(outter_epochs - 1):
-            joint = self.prior_model(tf.constant([1.]))
-            psample = [j.sample(sample_batch_size) for j in joint]
+            psample, y, joint = self.prior_model.sample(sample_batch_size, True)
             trajs = self.simulation(*psample)
-            rw = reweight(psample, self.unbiased_joint, joint)
+            rw = reweight(y, self.unbiased_joint, joint)
             # final training step we do maxent twice instead of another prior
             # heuristic to get better convergence
             super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
             fake_x = tf.constant(sample_batch_size * [1.])
-            self.prior_model.fit(fake_x, psample, sample_weight=self.traj_weights, **kwargs)
+            self.prior_model.fit(fake_x, y, sample_weight=self.traj_weights, **kwargs)
         # For final fit use more samples
         outs = []
         rws = []
         for i in range(final_batch_multiplier):
-            joint = self.prior_model(tf.constant([1.]))
-            psample = [j.sample(sample_batch_size) for j in joint]
+            psample, y, joint = self.prior_model.sample(sample_batch_size, True)
             trajs = self.simulation(*psample)
             outs.append(trajs)
-            rw = reweight(psample, self.unbiased_joint, joint)
+            rw = reweight(y, self.unbiased_joint, joint)
             rws.append(rw)
         trajs = np.concatenate(outs, axis=0)
         rw = np.concatenate(rws, axis=0)

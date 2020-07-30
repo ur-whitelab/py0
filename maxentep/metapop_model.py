@@ -20,67 +20,53 @@ def _compute_trans_diagonal(tri_values, indices, shape):
     diag = 1 - tf.reduce_sum(m, axis=-1)
     return diag
 
-def recip_norm_mat_dist(trans_times, trans_times_var):
-    # would like to do this check, but cannot
-    # since it makes this a dynamic layer
-    # if tf.rank(trans_times) != 2:
-    #    raise ValueError('Input must have shape (N, N)')
-    L = tf.shape(trans_times)[-1]
-    # This gets a mask ( > 0 ) that is batched
-    indices = tf.cast(tf.where(trans_times > 0), tf.int32)
-    diag_indices = tf.tile(tf.range(L)[:, tf.newaxis], [1, 2])
+def recip_norm_mat_dist(trans_times, trans_times_var, indices):
     values = tf.gather_nd(trans_times, indices)
     v_vars =  tf.gather_nd(trans_times_var, indices)
-    j = tfd.JointDistributionSequentialAutoBatched([
-        tfd.Independent(tfd.TransformedDistribution(
+    j = tfd.Independent(tfd.TransformedDistribution(
             tfd.TruncatedNormal(loc=values, scale=v_vars, low=1., high=1e10),
             bijector=tfb.Reciprocal()
-        ),1),
-        lambda v: tfd.Independent(
-            tfd.Deterministic(loc=_compute_trans_diagonal(v, indices, trans_times.shape))
-            ,1),
-        lambda d, v: tfd.Independent(
-            tfd.Deterministic(
-                loc=tf.scatter_nd(
-                    tf.concat((indices, diag_indices), axis=0),
-                    tf.concat((v, d), axis=0),
-                    trans_times.shape))
-            ,1),
-
-    ])
+        ),1)
     return j
 
 def recip_norm_mat_layer(input, time_means, time_vars, name):
     '''Column Normalized Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved'''
     # add extra row that we use for concentration
     combined = np.stack((time_means, time_vars))
+    indices = tf.cast(tf.where(time_means > 0), tf.int32)
     x  = TrainableInputLayer(combined, constraint=PositiveMaskedConstraint(combined > 0), name=name + '-hypers')(input)
-    return tfp.layers.DistributionLambda(
-        lambda t: recip_norm_mat_dist(t[0,0], t[0,1]),
-        name=name + '-dist')(x)
+    d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(t[0,0], t[0,1], indices), name=name + '-dist')(x)
+    def reshaper(x, L=time_means.shape[0], indices=indices):
+        if tf.rank(x) == 1:
+            x = x[tf.newaxis,...]
+        mat = tf.map_fn(lambda v: tf.scatter_nd(indices, v, (L,L)), x)
+        return tf.linalg.diag(1 - tf.reduce_sum(mat, axis=-1)) + mat
+    return d, reshaper
 
-def categorical_normal_layer(input, start_logits, start_mean, start_scale, name):
+def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, name):
+    L = start_logits.shape[0]
     x = TrainableInputLayer(start_logits, name=name + '-start-logit-hypers')(input)
     y = tf.keras.layers.Dense(2,
         kernel_initializer=tf.constant_initializer(value=[start_mean, start_scale]),
-        name=name + '-norm-logit-hypers',
+        name=name + '-norm-hypers',
+        use_bias=False,
         dtype=x.dtype)(input)
-    return tfp.layers.DistributionLambda(lambda t:
-        tfd.JointDistributionSequential([
-            tfd.Independent(tfd.Multinomial(1, t[0]), 1),
-            tfd.Independent(tfd.Normal(loc=t[1][...,0], scale=t[1][...,1]),1),
-            lambda b, n: tfd.Independent(tfd.Deterministic(loc=b * n), 2)
-            ])
+    d = tfp.layers.DistributionLambda(lambda t:
+            tfd.Blockwise(tfd.JointDistributionSequential([
+                tfd.Multinomial(1, t[0][0]),
+                tfd.Sample(
+                    tfd.TruncatedNormal(
+                        loc=t[1][0,0],
+                        scale=1e-3 + tf.math.sigmoid(t[1][0,1]),
+                        low=0.0,
+                        high=1.0)
+                    ,sample_shape=[L]),
+            ]))
         , name=name + '-dist')([x,y])
-
-def dirichlet_mat_layer(input, start, name):
-    '''Dirichlet distributed trainable distribution (columns sum to 1). Zeros in starting matrix are preserved'''
-    # add extra row that we use for concentration
-    start_aug = np.concatenate((start, np.zeros_like(start)))
-    start_aug[-1, -1] = 5.0
-    x  = TrainableInputLayer(start_aug, constraint=PositiveMaskedConstraint(start_aug > 0), name=name + '-hypers')(input)
-    x = tf.keras.layers.Lambda(lambda x: x +  1e-10 * np.mean(start), name=name + '-jitter')(x)
-    return tfp.layers.DistributionLambda(lambda t: tfd.Dirichlet((t[0,-1,-1] * t[0,:-1])), name=name + '-dist')(x)
+    def reshaper(x):
+        m = tf.squeeze(x[...,:L] * x[...,L:])
+        return tf.stack([m] + pad * [tf.zeros_like(m)], axis=-1)
+    return d, reshaper
 
 def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
     '''Normally distributed trainable distribution. Zeros in starting matrix are preserved'''
@@ -98,8 +84,8 @@ def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
                 loc=t[0,0],
                 low=0.0,
                 high=clip_high,
-                scale=t[0,1]), 2),
-            name=name + '-dist')(x)
+                scale=1e-3 + tf.math.sigmoid(t[0,1])), 2),
+            name=name + '-dist')(x), lambda x: x
 
 class ParameterHypers:
     def __init__(self):
@@ -109,7 +95,7 @@ class ParameterHypers:
         self.start_high = 0.5
         self.start_var = 0.1
         self.R_var = 0.2
-        self.beta_start = 0.2
+        self.beta_start = 0.1
         self.start_mean = 0.1
         self.start_scale = 0.1
 
@@ -138,14 +124,23 @@ class ParameterJoint(tf.keras.Model):
         )(beta_layer(i))
         R_dist = normal_mat_layer(i, mobility_matrix,  start_var=hypers.R_var, name='R-dist')
         T_dist =  recip_norm_mat_layer(i, *transition_matrix.prior_matrix(), name='T-dist')
-        start_dist = categorical_normal_layer(i, start_logits, hypers.start_mean, hypers.start_scale, name='rho-dist')
+        start_dist = categorical_normal_layer(
+            i, start_logits, hypers.start_mean, hypers.start_scale, len(transition_matrix.names) -1, name='rho-dist')
+        self.reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
         self.output_count = 4
-        super(ParameterJoint, self).__init__(inputs=i, outputs=[R_dist, T_dist, start_dist, beta_dist], name=name + '-model')
+        super(ParameterJoint, self).__init__(inputs=i, outputs=[R_dist[0], T_dist[0], start_dist[0], beta_dist], name=name + '-model')
     def compile(self, optimizer, **kwargs):
         if 'loss' in kwargs:
             raise InvalidArgumentError('Do not set loss')
         super(ParameterJoint, self).compile(optimizer, loss=self.output_count * [negloglik])
-
+    def sample(self, N, return_joint=False):
+        joint = self(tf.constant([1.]))
+        y = [j.sample(N) for j in joint]
+        v = [self.reshapers[i](s) for i,s in enumerate(y)]
+        if return_joint:
+            return v, y, joint
+        else:
+            return v
 
 class TrainableMetaModel(tf.keras.Model):
     def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
