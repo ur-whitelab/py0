@@ -1,6 +1,50 @@
 import numpy as np
+import scipy.stats as ss
 import matplotlib.pyplot as plt
 
+
+class TransitionMatrix:
+    def __init__(self, compartment_names, infectious_compartments):
+        self.names = compartment_names
+        self.infectious_compartments = infectious_compartments
+        self.transitions = []
+        self.mat = None
+    def add_transition(self, name1, name2, time, time_var):
+        if name1 not in self.names or name2 not in self.names:
+            raise ValueError('name not in compartment names')
+        if name1 == name2:
+            raise ValueError('self-loops are added automatically')
+        self.transitions.append([name1, name2, time, time_var])
+        self.mat = None
+
+    def prior_matrix(self):
+        C = len(self.names)
+        T1,T2 = np.zeros((C,C)),np.zeros((C,C))
+        for n1,n2,v,vv in self.transitions:
+            i = self.names.index(n1)
+            j = self.names.index(n2)
+            T1[i,j] = v
+            T2[i,j] = vv
+        return T1, T2
+    def _make_matrix(self):
+
+        C = len(self.names)
+        T = np.zeros((C,C))
+        for n1,n2,v,vv in self.transitions:
+            i = self.names.index(n1)
+            j = self.names.index(n2)
+            T[i,j] = 1 / v
+            # get what leaves
+        np.fill_diagonal(T, 1 - np.sum(T, axis=1))
+        self.mat = T
+
+    @property
+    def value(self):
+        '''Return matrix value
+        '''
+        if self.mat is None:
+            self._make_matrix()
+        return self.mat
 
 def _weighted_quantile(values, quantiles, sample_weight=None,
                        values_sorted=False, old_style=False):
