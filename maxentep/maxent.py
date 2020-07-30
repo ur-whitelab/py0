@@ -202,6 +202,8 @@ class HyperMaxentModel(MaxentModel):
         super(HyperMaxentModel, self).__init__(restraints=restraints,name=name, **kwargs)
         self.prior_model = prior_model
         self.unbiased_joint = prior_model(tf.constant([1.]))
+        if type(self.unbiased_joint) != list:
+            self.unbiased_joint = [self.unbiased_joint]
         self.simulation = simulation
     def fit(self, sample_batch_size = 256, final_batch_multiplier=4, outter_epochs=10, **kwargs):
         # TODO: Deal with callbacks/history

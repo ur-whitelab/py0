@@ -100,6 +100,27 @@ class ParameterHypers:
         self.start_scale = 0.1
 
 class ParameterJoint(tf.keras.Model):
+    def __init__(self, reshapers, **kwargs):
+        '''Create trainable joint model for parameters'''
+        self.reshapers = reshapers
+        self.output_count = len(reshapers)
+        super(ParameterJoint, self).__init__(**kwargs)
+    def compile(self, optimizer, **kwargs):
+        if 'loss' in kwargs:
+            raise ValueError('Do not set loss')
+        super(ParameterJoint, self).compile(optimizer, loss=self.output_count * [negloglik])
+    def sample(self, N, return_joint=False):
+        joint = self(tf.constant([1.]))
+        if type(joint) != list:
+            joint = [joint]
+        y = [j.sample(N) for j in joint]
+        v = [self.reshapers[i](s) for i,s in enumerate(y)]
+        if return_joint:
+            return v, y, joint
+        else:
+            return v
+
+class MetaParameterJoint(ParameterJoint):
     def __init__(self, start_logits, mobility_matrix,
                  transition_matrix,
                  name='', hypers=None):
@@ -125,21 +146,8 @@ class ParameterJoint(tf.keras.Model):
         T_dist =  recip_norm_mat_layer(i, *transition_matrix.prior_matrix(), name='T-dist')
         start_dist = categorical_normal_layer(
             i, start_logits, hypers.start_mean, hypers.start_scale, len(transition_matrix.names) -1, name='rho-dist')
-        self.reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
-        self.output_count = 4
-        super(ParameterJoint, self).__init__(inputs=i, outputs=[R_dist[0], T_dist[0], start_dist[0], beta_dist], name=name + '-model')
-    def compile(self, optimizer, **kwargs):
-        if 'loss' in kwargs:
-            raise InvalidArgumentError('Do not set loss')
-        super(ParameterJoint, self).compile(optimizer, loss=self.output_count * [negloglik])
-    def sample(self, N, return_joint=False):
-        joint = self(tf.constant([1.]))
-        y = [j.sample(N) for j in joint]
-        v = [self.reshapers[i](s) for i,s in enumerate(y)]
-        if return_joint:
-            return v, y, joint
-        else:
-            return v
+        reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
+        super(ParameterJoint, self).__init__(reshapers = reshapers, inputs=i, outputs=[R_dist[0], T_dist[0], start_dist[0], beta_dist], name=name + '-model')
 
 class TrainableMetaModel(tf.keras.Model):
     def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
