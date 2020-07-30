@@ -59,6 +59,20 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
         lambda t: recip_norm_mat_dist(t[0,0], t[0,1]),
         name=name + '-dist')(x)
 
+def categorical_normal_layer(input, start_logits,  start_mean, start_scale, name):
+    x = TrainableInputLayer(start_logits, name=name + '-start-logit-hypers')(input)
+    y = tf.keras.layers.Dense(2,
+        kernel_initializer=tf.constant_initializer(value=[start_mean, start_scale]),
+        name=name + '-norm-logit-hypers',
+        dtype=x.dtype)(input)
+    return tfp.layers.DistributionLambda(lambda t:
+        tfd.JointDistributionSequential([
+            tfd.Multinomial(1, t[0]),
+            tfd.Normal(loc=t[1][...,0], scale=t[1][...,1]),
+            lambda b, n: tfd.Independent(tfd.Deterministic(loc=b * n), 1)
+            ])
+        )([x,y])
+
 def dirichlet_mat_layer(input, start, name):
     '''Dirichlet distributed trainable distribution (columns sum to 1). Zeros in starting matrix are preserved'''
     # add extra row that we use for concentration
@@ -97,10 +111,10 @@ class ParameterHypers:
         self.start_var = 0.1
         self.R_var = 0.2
 
-def parameter_joint(
-    start, mobility_matrix,
-    compartment_matrix, beta,
-    name='', hypers=None):
+class ParameterJoint(tf.keras.Model):
+    def __init__(self, start, mobility_matrix,
+                 compartment_matrix, beta,
+                 name='', hypers=None):
     '''Create trainable joint model for parameters'''
     if hypers is None:
         hypers = ParameterHypers()
@@ -123,9 +137,7 @@ def parameter_joint(
     R_dist = normal_mat_layer(i, mobility_matrix,  start_var=hypers.R_var, name='R-dist')
     T_dist =  dirichlet_mat_layer(i, compartment_matrix, name='T-dist')
     start_dist = normal_mat_layer(i, start, start_var=hypers.start_var, clip_high=hypers.start_high, name='rho-dist')
-    model = tf.keras.Model(inputs=i, outputs=[R_dist, T_dist, start_dist, beta_dist], name=name + '-model')
-    return model
-
+    super(ParameterJoint, self).__init__((inputs=i, outputs=[R_dist, T_dist, start_dist, beta_dist], name=name + '-model'))
 
 class TrainableMetaModel(tf.keras.Model):
     def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
