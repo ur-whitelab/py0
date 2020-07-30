@@ -13,7 +13,7 @@ class TestFunctionality(unittest.TestCase):
         except ImportError as error:
             raise error
 
-class TestMethod(unittest.TestCase):
+class TestSIR(unittest.TestCase):
     def test_SIR_model(self):
         # Testing for zero epidemiology parameters
         from maxentep import SIRModel
@@ -38,7 +38,7 @@ class TestMetpop(unittest.TestCase):
         T[0,1] = -0.01
         T[1,0] = -0.01
         start = np.random.random(size=(3, 2)) * 0.1
-        model = MetaModel(start, R, T, lambda x: [0.1, 0.1, 0.1])
+        model = MetaModel(start, R, T, lambda *_: [0.1, 0.1, 0.1])
         t1 = model.run(10)
 if __name__ == '__main__':
     unittest.main()

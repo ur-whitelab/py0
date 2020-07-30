@@ -37,7 +37,8 @@ def _weighted_quantile(values, quantiles, sample_weight=None,
         weighted_quantiles /= np.sum(sample_weight)
     return np.interp(quantiles, weighted_quantiles, values)
 
-def patch_quantile(trajs, *args, figsize=(18, 18), **kw_args):
+
+def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args):
     '''does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments]
     '''
     NP = trajs.shape[2]
@@ -51,7 +52,13 @@ def patch_quantile(trajs, *args, figsize=(18, 18), **kw_args):
                 break
             traj_quantile(trajs[:, :, i * ncol + j, :], *args, ax=ax[i, j], add_legend=i == 0 and j == ncol - 1, **kw_args)
             ax[i, j].set_ylim(0,1)
-            ax[i, j].text(trajs.shape[1] // 2, 0.8, f'Patch {i * ncol + j}')
+            if patch_names is None:
+                ax[i, j].text(trajs.shape[1] // 2, 0.8,
+                              f'Patch {i * ncol + j}')
+            else:
+                patch_names = patch_names
+                ax[i, j].set_title(patch_names[i * ncol + j])
+                
             if j == 0 and i == nrow // 2:
                 ax[i, j].set_ylabel('Fraction')
             if i == nrow - 1 and j == ncol // 2:
@@ -59,7 +66,7 @@ def patch_quantile(trajs, *args, figsize=(18, 18), **kw_args):
     plt.tight_layout()
 
 
-def traj_quantile(trajs, weights = None, names=None, plot_means=True, ax=None, add_legend=True, alpha=0.2):
+def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=True, ax=None, add_legend=True, add_title=None, alpha=0.6):
     '''Make a plot of all the trajectories and the average trajectory based on
       parameter weights.'''
 
@@ -91,7 +98,7 @@ def traj_quantile(trajs, weights = None, names=None, plot_means=True, ax=None, a
     for i in range(trajs.shape[-1]):
         ax.plot(x, qtrajs[1, :, i], color=f'C{i}', label=f'Compartment {names[i]}')
         ax.fill_between(x, qtrajs[0, :, i], qtrajs[-1, :, i],
-                         color=f'C{i}', alpha=alpha)
+                         color=f'C{i}', alpha=alpha)     
     if not plot_means:
         ax.plot(x, np.sum(qtrajs[1, :, :], axis=1),
              color='gray', label='Total', linestyle=':')
@@ -100,3 +107,7 @@ def traj_quantile(trajs, weights = None, names=None, plot_means=True, ax=None, a
         # add margin for legend
         ax.set_xlim(0, max(x))
         ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
+
+    if add_title is not None:
+        add_title = add_title
+        plt.title(add_title,fontsize= 18)
