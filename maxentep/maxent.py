@@ -2,6 +2,8 @@ import numpy as np
 from scipy.special import softmax
 import tensorflow as tf
 from math import sqrt
+from .utils import merge_history
+
 EPS = np.finfo(np.float32).tiny
 
 def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7):
@@ -108,6 +110,10 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
         if input_weights is not None:
             weights = weights * tf.reshape(input_weights, (-1,))
             weights /= tf.reduce_sum(weights)
+        self.add_metric(
+            tf.reduce_sum(-weights * tf.math.log(weights)),
+            aggregation='mean',
+            name='weight-entropy')
         return weights
 
 class AvgLayer(tf.keras.layers.Layer):
@@ -138,6 +144,10 @@ class ReweightLayer(tf.keras.layers.Layer):
         if input_weights is not None:
             weights = weights * tf.reshape(input_weights, (-1,))
             weights /= tf.reduce_sum(weights)
+        self.add_metric(
+            tf.reduce_sum(-weights * tf.math.log(weights)),
+            aggregation='mean',
+            name='weight-entropy')
         return weights
 
 def _compute_restraints(trajs, restraints):
@@ -202,20 +212,28 @@ class HyperMaxentModel(MaxentModel):
         super(HyperMaxentModel, self).__init__(restraints=restraints,name=name, **kwargs)
         self.prior_model = prior_model
         self.unbiased_joint = prior_model(tf.constant([1.]))
-        if type(self.unbiased_joint) != list:
+        if hasattr(self.unbiased_joint, 'sample'):
             self.unbiased_joint = [self.unbiased_joint]
         self.simulation = simulation
     def fit(self, sample_batch_size = 256, final_batch_multiplier=4, outter_epochs=10, **kwargs):
         # TODO: Deal with callbacks/history
+        me_history, prior_history = None, None
         for i in range(outter_epochs - 1):
             psample, y, joint = self.prior_model.sample(sample_batch_size, True)
             trajs = self.simulation(*psample)
             rw = reweight(y, self.unbiased_joint, joint)
             # final training step we do maxent twice instead of another prior
             # heuristic to get better convergence
-            super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
+            hm = super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
             fake_x = tf.constant(sample_batch_size * [1.])
-            self.prior_model.fit(fake_x, y, sample_weight=self.traj_weights, **kwargs)
+            hp = self.prior_model.fit(fake_x, y, sample_weight=self.traj_weights, **kwargs)
+            if me_history is None:
+                me_history = hm
+                prior_history = hp
+            else:
+                me_history = merge_history(me_history, hm)
+                prior_history = merge_history(prior_history, hp)
+
         # For final fit use more samples
         outs = []
         rws = []
@@ -228,5 +246,7 @@ class HyperMaxentModel(MaxentModel):
         trajs = np.concatenate(outs, axis=0)
         rw = np.concatenate(rws, axis=0)
         self.trajs = trajs
-        result = super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
-        return result
+        hm = super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
+        me_history = merge_history(me_history, hm)
+        return merge_history(me_history, prior_history, 'prior-')
+

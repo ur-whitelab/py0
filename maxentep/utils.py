@@ -144,3 +144,11 @@ def traj_quantile(trajs, weights = None, names=None, plot_means=True, ax=None, a
         # add margin for legend
         ax.set_xlim(0, max(x))
         ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
+
+def merge_history(base, other, prefix=''):
+    for k,v in other.history.items():
+        if prefix + k in other.history:
+            base.history[prefix + k].extend(v)
+        else:
+            base.history[prefix + k] = v
+    return base
