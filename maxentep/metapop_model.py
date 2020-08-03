@@ -24,7 +24,7 @@ def recip_norm_mat_dist(trans_times, trans_times_var, indices):
     values = tf.gather_nd(trans_times, indices)
     v_vars =  tf.gather_nd(trans_times_var, indices)
     j = tfd.Independent(tfd.TransformedDistribution(
-            tfd.TruncatedNormal(loc=values, scale=v_vars, low=1., high=1e10),
+            tfd.TruncatedNormal(loc=tf.clip_by_value(values, 1 + 1e-3, 1e10), scale=v_vars, low=1., high=1e10),
             bijector=tfb.Reciprocal()
         ),1)
     return j
@@ -34,7 +34,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
     # add extra row that we use for concentration
     combined = np.stack((time_means, time_vars))
     indices = tf.cast(tf.where(time_means > 0), tf.int32)
-    x  = TrainableInputLayer(combined, constraint=PositiveMaskedConstraint(combined > 0), name=name + '-hypers')(input)
+    x  = TrainableInputLayer(combined, constraint=MinMaxConstraint(1e-3, 1e10), name=name + '-hypers')(input)
     d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(t[0,0], t[0,1], indices), name=name + '-dist')(x)
     def reshaper(x, L=time_means.shape[0], indices=indices):
         if tf.rank(x) == 1:
@@ -43,7 +43,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
         return tf.linalg.diag(1 - tf.reduce_sum(mat, axis=-1)) + mat
     return d, reshaper
 
-def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, name):
+def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, name, start_high=0.5):
     L = start_logits.shape[0]
     x = TrainableInputLayer(start_logits, name=name + '-start-logit-hypers')(input)
     y = tf.keras.layers.Dense(2,
@@ -56,10 +56,10 @@ def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, 
                 tfd.Independent(tfd.Bernoulli(logits=t[0][0], dtype=t[0].dtype),1),
                 tfd.Sample(
                     tfd.TruncatedNormal(
-                        loc=t[1][0,0],
+                        loc=tf.clip_by_value(t[1][0,0], 1e-3, start_high - 1e-3),
                         scale=1e-3 + tf.math.sigmoid(t[1][0,1]),
                         low=0.0,
-                        high=0.5)
+                        high=start_high)
                     ,sample_shape=[L]),
             ]))
         , name=name + '-dist')([x,y])
@@ -100,6 +100,27 @@ class ParameterHypers:
         self.start_scale = 0.1
 
 class ParameterJoint(tf.keras.Model):
+    def __init__(self, reshapers, **kwargs):
+        '''Create trainable joint model for parameters'''
+        self.reshapers = reshapers
+        self.output_count = len(reshapers)
+        super(ParameterJoint, self).__init__(**kwargs)
+    def compile(self, optimizer, **kwargs):
+        if 'loss' in kwargs:
+            raise ValueError('Do not set loss')
+        super(ParameterJoint, self).compile(optimizer, loss=self.output_count * [negloglik])
+    def sample(self, N, return_joint=False):
+        joint = self(tf.constant([1.]))
+        if type(joint) != list:
+            joint = [joint]
+        y = [j.sample(N) for j in joint]
+        v = [self.reshapers[i](s) for i,s in enumerate(y)]
+        if return_joint:
+            return v, y, joint
+        else:
+            return v
+
+class MetaParameterJoint(ParameterJoint):
     def __init__(self, start_logits, mobility_matrix,
                  transition_matrix,
                  name='', hypers=None):
@@ -115,31 +136,18 @@ class ParameterJoint(tf.keras.Model):
             name='beta')
         beta_dist = tfp.layers.DistributionLambda(
             lambda b: tfd.Independent(tfd.TruncatedNormal(
-                loc=tf.math.exp(b[...,0]),
+                loc=tf.clip_by_value(tf.math.sigmoid(b[...,0]), hypers.beta_low + 1e-3, hypers.beta_high - 1e-3),
                 scale=hypers.beta_var,
                 low=hypers.beta_low,
-                high=hypers.beta_high + hypers.beta_var), 1),
+                high=hypers.beta_high), 1),
             name='beta-dist'
         )(beta_layer(i))
         R_dist = normal_mat_layer(i, mobility_matrix,  start_var=hypers.R_var, name='R-dist')
         T_dist =  recip_norm_mat_layer(i, *transition_matrix.prior_matrix(), name='T-dist')
         start_dist = categorical_normal_layer(
             i, start_logits, hypers.start_mean, hypers.start_scale, len(transition_matrix.names) -1, name='rho-dist')
-        self.reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
-        self.output_count = 4
-        super(ParameterJoint, self).__init__(inputs=i, outputs=[R_dist[0], T_dist[0], start_dist[0], beta_dist], name=name + '-model')
-    def compile(self, optimizer, **kwargs):
-        if 'loss' in kwargs:
-            raise InvalidArgumentError('Do not set loss')
-        super(ParameterJoint, self).compile(optimizer, loss=self.output_count * [negloglik])
-    def sample(self, N, return_joint=False):
-        joint = self(tf.constant([1.]))
-        y = [j.sample(N) for j in joint]
-        v = [self.reshapers[i](s) for i,s in enumerate(y)]
-        if return_joint:
-            return v, y, joint
-        else:
-            return v
+        reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
+        super(MetaParameterJoint, self).__init__(reshapers = reshapers, inputs=i, outputs=[R_dist[0], T_dist[0], start_dist[0], beta_dist], name=name + '-model')
 
 class TrainableMetaModel(tf.keras.Model):
     def __init__(self, start, mobility_matrix, compartment_matrix, infect_func, timesteps, loss_fxn):
@@ -147,7 +155,7 @@ class TrainableMetaModel(tf.keras.Model):
         self.R_layer = TrainableInputLayer(mobility_matrix,
                                        constraint=NormalizationConstraint(1, mobility_matrix > 0))
         self.T_layer = TrainableInputLayer(compartment_matrix, NormalizationConstraint(1, compartment_matrix > 0))
-        self.start_layer = TrainableInputLayer(start, tf.keras.constraints.MinMaxNorm(min_value=0.0, rate=1.0, max_value=0.3, axis=-1))
+        self.start_layer = TrainableInputLayer(start, MinMaxConstraint(0., 0.3))
         self.metapop_layer = MetapopLayer(timesteps, infect_func)
         self.traj_layer = AddSusceptibleLayer(name='traj')
         self.agreement_layer = tf.keras.layers.Lambda(loss_fxn)
@@ -207,6 +215,15 @@ class DeltaRegularizer(tf.keras.regularizers.Regularizer):
     def __call__(self, x):
         return self.strength * tf.reduce_sum((x - self.value)**2)
 
+class MinMaxConstraint(tf.keras.constraints.Constraint):
+  ''' Makes weights normalized after reshape and applying mask'''
+
+  def __init__(self, min, max):
+    self.min = min
+    self.max = max
+
+  def __call__(self, w):
+    return tf.clip_by_value(w, self.min, self.max)
 
 class NormalizationConstraint(tf.keras.constraints.Constraint):
   ''' Makes weights normalized after reshape and applying mask'''

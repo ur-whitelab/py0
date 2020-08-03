@@ -152,6 +152,16 @@ def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=Tr
         ax.set_xlim(0, max(x))
         ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
 
+<<<<<<< HEAD
     if add_title is not None:
         add_title = add_title
         plt.title(add_title,fontsize= 18)
+=======
+def merge_history(base, other, prefix=''):
+    for k,v in other.history.items():
+        if prefix + k in other.history:
+            base.history[prefix + k].extend(v)
+        else:
+            base.history[prefix + k] = v
+    return base
+>>>>>>> 99c2ba9a241a67883b512e100747131bf7997594
