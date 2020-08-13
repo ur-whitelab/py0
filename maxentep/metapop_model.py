@@ -63,8 +63,9 @@ def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, 
                               dtype=x.dtype)(input)
     d = tfp.layers.DistributionLambda(lambda t:
                                       tfd.Blockwise(tfd.JointDistributionSequential([
-                                          tfd.Independent(tfd.Bernoulli(
-                                              logits=t[0][0], dtype=t[0].dtype), 1),
+                                          tfd.Multinomial(
+                                              total_count=1,
+                                              logits=t[0][0]),
                                           tfd.Sample(
                                               tfd.TruncatedNormal(
                                                   loc=tf.clip_by_value(

@@ -9,6 +9,7 @@ class TransitionMatrix:
         self.infectious_compartments = infectious_compartments
         self.transitions = []
         self.mat = None
+
     def add_transition(self, name1, name2, time, time_var):
         if name1 not in self.names or name2 not in self.names:
             raise ValueError('name not in compartment names')
@@ -19,21 +20,22 @@ class TransitionMatrix:
 
     def prior_matrix(self):
         C = len(self.names)
-        T1,T2 = np.zeros((C,C)),np.zeros((C,C))
-        for n1,n2,v,vv in self.transitions:
+        T1, T2 = np.zeros((C, C)), np.zeros((C, C))
+        for n1, n2, v, vv in self.transitions:
             i = self.names.index(n1)
             j = self.names.index(n2)
-            T1[i,j] = v
-            T2[i,j] = vv
+            T1[i, j] = v
+            T2[i, j] = vv
         return T1, T2
+
     def _make_matrix(self):
 
         C = len(self.names)
-        T = np.zeros((C,C))
-        for n1,n2,v,vv in self.transitions:
+        T = np.zeros((C, C))
+        for n1, n2, v, vv in self.transitions:
             i = self.names.index(n1)
             j = self.names.index(n2)
-            T[i,j] = 1 / v
+            T[i, j] = 1 / v
             # get what leaves
         np.fill_diagonal(T, 1 - np.sum(T, axis=1))
         self.mat = T
@@ -45,6 +47,7 @@ class TransitionMatrix:
         if self.mat is None:
             self._make_matrix()
         return self.mat
+
 
 def _weighted_quantile(values, quantiles, sample_weight=None,
                        values_sorted=False, old_style=False):
@@ -89,20 +92,22 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
     nrow = int(np.floor(np.sqrt(NP)))
     ncol = int(np.ceil(NP / nrow))
     print(f'Plotting {NP} patches in a {nrow} x {ncol} grid')
-    fig, ax = plt.subplots(nrow, ncol, sharex=True, sharey=True, figsize=figsize)
+    fig, ax = plt.subplots(nrow, ncol, sharex=True,
+                           sharey=True, figsize=figsize)
     for i in range(nrow):
         for j in range(ncol):
             if i * ncol + j == NP:
                 break
-            traj_quantile(trajs[:, :, i * ncol + j, :], *args, ax=ax[i, j], add_legend=i == 0 and j == ncol - 1, **kw_args)
-            ax[i, j].set_ylim(0,1)
+            traj_quantile(trajs[:, :, i * ncol + j, :], *args, ax=ax[i, j],
+                          add_legend=i == 0 and j == ncol - 1, **kw_args)
+            ax[i, j].set_ylim(0, 1)
             if patch_names is None:
                 ax[i, j].text(trajs.shape[1] // 2, 0.8,
                               f'Patch {i * ncol + j}')
             else:
                 patch_names = patch_names
                 ax[i, j].set_title(patch_names[i * ncol + j])
-                
+
             if j == 0 and i == nrow // 2:
                 ax[i, j].set_ylabel('Fraction')
             if i == nrow - 1 and j == ncol // 2:
@@ -132,28 +137,36 @@ def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=Tr
         # approximate quantiles as distance from median applied to mean
         # with clips
         mtrajs = np.sum(trajs * w[:, np.newaxis, np.newaxis], axis=0)
-        qtrajs[0, :, :] = np.clip(qtrajs[0, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
-        qtrajs[2, :, :] = np.clip(qtrajs[2, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
+        qtrajs[0, :, :] = np.clip(
+            qtrajs[0, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
+        qtrajs[2, :, :] = np.clip(
+            qtrajs[2, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
         qtrajs[1, :, :] = mtrajs
     if ax is None:
         ax = plt.gca()
         ax.set_xlabel('Timestep')
         ax.set_ylabel('Fraction of Population')
     for i in range(trajs.shape[-1]):
-        ax.plot(x, qtrajs[1, :, i], color=f'C{i}', label=f'Compartment {names[i]}')
+        ax.plot(x, qtrajs[1, :, i],
+                color=f'C{i}', label=f'Compartment {names[i]}')
         ax.fill_between(x, qtrajs[0, :, i], qtrajs[-1, :, i],
-                         color=f'C{i}', alpha=alpha)     
+                        color=f'C{i}', alpha=alpha)
     if not plot_means:
         ax.plot(x, np.sum(qtrajs[1, :, :], axis=1),
-             color='gray', label='Total', linestyle=':')
+                color='gray', label='Total', linestyle=':')
 
     if add_legend:
         # add margin for legend
         ax.set_xlim(0, max(x))
         ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
 
+
 def merge_history(base, other, prefix=''):
-    for k,v in other.history.items():
+    if base is None:
+        return other
+    if other is None:
+        return base
+    for k, v in other.history.items():
         if prefix + k in other.history:
             base.history[prefix + k].extend(v)
         else:
