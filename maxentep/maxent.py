@@ -210,6 +210,10 @@ class MaxentModel(tf.keras.Model):
         self.lambdas = self.weight_layer.l
         self.prior = prior
 
+    def reset_weights(self):
+        w = self.weight_layer.get_weights()
+        self.weight_layer.set_weights(tf.zeros_like(w))
+
     def call(self, inputs):
         input_weights = None
         if (type(inputs) == tuple or type(inputs) == list) and len(inputs) == 2:
@@ -257,17 +261,28 @@ class HyperMaxentModel(MaxentModel):
     def fit(self, sample_batch_size=256, final_batch_multiplier=4, param_epochs=None, outter_epochs=10, **kwargs):
         # TODO: Deal with callbacks/history
         me_history, prior_history = None, None
+
+        # we want to reset optimizer state each time we have
+        # new trajectories
+        # but compile, new object assignment both
+        # don't work.
+        # So I guess use SGD?
+        def new_optimizer():
+            return self.optimizer.__class__(**self.optimizer.get_config())
+
         if param_epochs is None:
             param_epochs = 10
             if 'epochs' in kwargs:
                 param_epochs = kwargs['epochs']
         for i in range(outter_epochs - 1):
+            # sample parameters
             psample, y, joint = self.prior_model.sample(
                 sample_batch_size, True)
             trajs = self.simulation(*psample)
+            # get reweight, so we keep original parameter
+            # probs
             rw = reweight(y, self.unbiased_joint, joint)
-            # final training step we do maxent twice instead of another prior
-            # heuristic to get better convergence
+            # TODO reset optimizer state
             if self.reweight:
                 hm = super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
             else:
@@ -295,6 +310,8 @@ class HyperMaxentModel(MaxentModel):
         trajs = np.concatenate(outs, axis=0)
         rw = np.concatenate(rws, axis=0)
         self.trajs = trajs
+        # TODO reset optimizer state
+        self.reset_weights()
         if self.reweight:
             hm = super(HyperMaxentModel, self).fit(trajs, rw, **kwargs)
         else:
