@@ -3,6 +3,7 @@ from scipy.special import softmax
 import tensorflow as tf
 from math import sqrt
 from .utils import merge_history
+from keras import backend
 
 EPS = np.finfo(np.float32).tiny
 
@@ -138,6 +139,11 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
             tf.reduce_sum(-weights * tf.math.log(weights)),
             aggregation='mean',
             name='weight-entropy')
+        # self.add_metric(
+        #     tf.reduce_sum(
+        #         (np.sum(self.trajs * weights[:, np.newaxis, np.newaxis], axis=0) - self.ref_traj)**2),
+        #                  aggregation='mean',
+        #                  name='loss-from-ref')
         return weights
 
 
@@ -248,7 +254,7 @@ def reweight(samples, unbiased_joint, joint):
 
 class HyperMaxentModel(MaxentModel):
     def __init__(self, restraints, prior_model, simulation, reweight=True,
-                 name='hyper-maxent-model', **kwargs):
+                 name='hyper-maxent-model',ref_traj = None, **kwargs):
         super(HyperMaxentModel, self).__init__(
             restraints=restraints, name=name, **kwargs)
         self.prior_model = prior_model
@@ -257,7 +263,9 @@ class HyperMaxentModel(MaxentModel):
         if hasattr(self.unbiased_joint, 'sample'):
             self.unbiased_joint = [self.unbiased_joint]
         self.simulation = simulation
-
+        if ref_traj is not None:
+            self.ref_traj = ref_traj
+            
     def fit(self, sample_batch_size=256, final_batch_multiplier=4, param_epochs=None, outter_epochs=10, **kwargs):
         # TODO: Deal with callbacks/history
         me_history, prior_history = None, None
@@ -309,7 +317,18 @@ class HyperMaxentModel(MaxentModel):
             rws.append(rw)
         trajs = np.concatenate(outs, axis=0)
         rw = np.concatenate(rws, axis=0)
+        self.weights_hyper = rw
         self.trajs = trajs
+
+
+
+        # loss_from_ref = tf.variable(
+        #     np.mean(loss_from_ref), trainable=False)
+        # print(loss_from_ref.shape)
+        
+        # self.add_metric(loss_from_ref,
+        #                 aggregation='mean',
+        #                 name='loss-from-ref')
         # TODO reset optimizer state
         self.reset_weights()
         if self.reweight:
@@ -318,3 +337,5 @@ class HyperMaxentModel(MaxentModel):
             hm = super(HyperMaxentModel, self).fit(trajs, **kwargs)
         me_history = merge_history(me_history, hm)
         return merge_history(me_history, prior_history, 'prior-')
+
+
