@@ -101,7 +101,7 @@ def normal_mat_layer(input, start, name, start_var=1, clip_high=100):
             low=0.0,
             high=clip_high,
             scale=1e-3 + tf.math.sigmoid(t[0, 1])), 2),
-        name=name + '-dist')(x), lambda x: x
+        name=name + '-dist')(x), lambda x: x/tf.reduce_sum(x, axis=2)[..., tf.newaxis]
 
 
 class ParameterHypers:
@@ -326,12 +326,16 @@ class MetapopLayer(tf.keras.layers.Layer):
         def body(i, prev_rho, trajs_array):
             # write first so we get starting rho
             trajs_array = trajs_array.write(i, prev_rho)
-            # compute effective pops
-            neff = self.populations[tf.newaxis, :, tf.newaxis, tf.newaxis] * tf.reshape(prev_rho, (-1, self.M, 1, self.C)) *\
-                tf.reshape(tf.transpose(R), (-1, self.M, self.M, 1))
-            ntot = self.populations[tf.newaxis, :] * tf.reduce_sum(R, axis=1)
+            pop = tf.convert_to_tensor(
+                self.populations, dtype=self.dtype)
+            neff = tf.matmul(pop[tf.newaxis, tf.newaxis, :], tf.reshape(
+                    R, (-1, self.M, self.M)))
+            neff = tf.squeeze(neff,axis =1)
+            ntot = tf.reduce_sum(neff)
+            neff_compartments = prev_rho * neff[..., tf.newaxis] 
             # compute infected prob
-            infect_prob = self.infect_func(neff, ntot, *infect_params)
+            infect_prob = self.infect_func(
+                neff_compartments, ntot, *infect_params)
             # infect them
             new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * \
                 tf.einsum('ijk,ik->ij', R, infect_prob)
@@ -373,13 +377,18 @@ def contact_infection_func(infectious_compartments, area=None):
         def density_fxn(n):
             return tf.ones_like(n)
 
-    def fxn(neff, ntot, beta, infectious_compartments=infectious_compartments):
-        ninf = tf.zeros_like(neff[:, :, 0])
+    def fxn(neff_compartments, ntot, beta, infectious_compartments=infectious_compartments):
+        ninf = tf.zeros(tf.shape(neff_compartments)[:-1])
+        neff = tf.reduce_sum(neff_compartments, axis=2)
+        s = ntot - neff
+        # k is the average number of contacts across the whole population
+        k = 100
+        z = ntot * k / tf.reduce_sum(neff * density_fxn(neff/s))
         for i in infectious_compartments:
-            ninf += neff[:, :, i]
+            ninf += neff_compartments[:, :, i]
         p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-                            * density_fxn(ntot)
-                            * tf.reduce_sum((ninf) / ntot[:, :, tf.newaxis], axis=2))
+                            * density_fxn(neff/s)
+                            * tf.math.divide_no_nan(ninf, neff))
         return p
     return fxn
 

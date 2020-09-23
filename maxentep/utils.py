@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.stats as ss
 import matplotlib.pyplot as plt
+import maxentep
 
 
 class TransitionMatrix:
@@ -172,3 +173,32 @@ def merge_history(base, other, prefix=''):
         else:
             base.history[prefix + k] = v
     return base
+
+
+def compartment_restrainer(restrained_patches, restrained_compartments, npoints, ref_traj, prior, noise=0, start_time=None, end_time=None, time_average=7):
+    number_of_restrained_compartments = len(restrained_compartments)
+    number_of_restrained_patches = len(restrained_patches)
+    M = ref_traj.shape[1]
+    T = ref_traj.shape[0]
+    if start_time is None:
+        start_time = 0
+    if end_time is None:
+        end_time = T//3
+    print('Restraints are set on this time range: [{}, {}]'.format(
+        start_time, end_time))
+    # restrained_patches = np.random.choice(
+    #     M, number_of_restrained_patches, replace=False)
+    if number_of_restrained_patches > M:
+        raise Exception(
+            'Number of patches to be restrained exceeeds the total number of patches')
+    restraints = []
+    plot_fxns_list = []
+    for i in range(number_of_restrained_patches):
+        plot_fxns = []
+        for j in range(number_of_restrained_compartments):
+            res, plfxn = maxentep.traj_to_restraints(ref_traj[start_time:end_time, :, :], [
+                restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average)
+            restraints += res
+            plot_fxns += plfxn
+        plot_fxns_list.append(plot_fxns)
+    return restraints, plot_fxns_list
