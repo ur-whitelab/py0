@@ -201,4 +201,10 @@ def compartment_restrainer(restrained_patches, restrained_compartments, npoints,
             restraints += res
             plot_fxns += plfxn
         plot_fxns_list.append(plot_fxns)
+<<<<<<< HEAD
     return restraints, plot_fxns_list
+=======
+    restraints_dict = {'npoints': npoints,
+                       'restrained_patches': list(restrained_patches), 'restrained_compartments': restrained_compartments}
+    return restraints, plot_fxns_list, restraints_dict
+>>>>>>> fitting
