@@ -289,28 +289,16 @@ def reweight(samples, unbiased_joint, joint):
 
 class HyperMaxentModel(MaxentModel):
     def __init__(self, restraints, prior_model, simulation, reweight=True,
-                 name='hyper-maxent-model', ref_traj=None, trajs=None, population_fraction=None, ** kwargs):
+                 name='hyper-maxent-model', ** kwargs):
         super(HyperMaxentModel, self).__init__(
-            restraints=restraints, name=name, **kwargs)
+             restraints=restraints, name=name, **kwargs)
         self.prior_model = prior_model
         self.reweight = reweight
         self.unbiased_joint = prior_model(tf.constant([1.]))
-        self.trajs = trajs
+        # self.trajs = trajs
         if hasattr(self.unbiased_joint, 'sample'):
             self.unbiased_joint = [self.unbiased_joint]
         self.simulation = simulation
-        if ref_traj is not None:
-            self.ref_traj = ref_traj
-            if population_fraction is not None:
-                self.population_fraction = population_fraction
-            else:
-                print ('No input for population fraction. Assuming equal distribution of population in all patches.')
-                self.population_fraction = 1 / \
-                    ref_traj.shape[2]*np.ones(ref_traj.shape[2])
-            self.traj_metric = RefErrorMetric(
-                ref_traj, population_fraction=population_fraction)
-        else:
-            self.traj_metric = None
             
     def fit(self, sample_batch_size=256, final_batch_multiplier=4, param_epochs=None, outter_epochs=10, **kwargs):
         # TODO: Deal with callbacks/history
