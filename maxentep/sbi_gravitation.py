@@ -3,11 +3,18 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
+
+#torch.set_default_tensor_type('torch.cuda.FloatTensor')
+
 from sbi.inference import infer
 import sbi.utils as utils
-import torch
+
+from torch.distributions.multivariate_normal import MultivariateNormal
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
+
+
 
 # colorline code from matplotlib examples https://nbviewer.jupyter.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
 # Data manipulation:
@@ -26,7 +33,7 @@ def make_segments(x, y):
 
 # Interface to LineCollection:
 
-def colorline(x, y, z=None, cmap=plt.get_cmap('copper'), norm=plt.Normalize(0.0, 1.0), linewidth=3, alpha=1.0):
+def colorline(x, y, z=None, cmap=plt.get_cmap('copper'), norm=plt.Normalize(0.0, 1.0), linewidth=3, alpha=1.0, linestyle=None, label=None):
     '''
     Plot a colored line with coordinates x and y
     Optionally specify colors in the array z
@@ -44,7 +51,7 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('copper'), norm=plt.Normalize(0.0,
     z = np.asarray(z)
     
     segments = make_segments(x, y)
-    lc = LineCollection(segments, array=z, cmap=cmap, norm=norm, linewidth=linewidth, alpha=alpha)
+    lc = LineCollection(segments, array=z, cmap=cmap, norm=norm, linewidth=linewidth, alpha=alpha, linestyle=linestyle, label=label)
     
     ax = plt.gca()
     ax.add_collection(lc)
@@ -52,30 +59,39 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('copper'), norm=plt.Normalize(0.0,
     return lc
 
 class GravitySimulator:
-    def __init__(self, m1, m2, v0, x0, G=1.90809e5, dt=1e-3, nsteps=20000, random_noise=False):
-        # only use one position/velocity, treat other body as origin --> do we need to correct for this?
-        self.m1, self.m2, self.v0, self.x0, self.G, self.dt, self.nsteps = np.array(m1), np.array(m2), np.array(v0), np.array(x0), G, dt, nsteps
+    def __init__(self, m1=45, m2=33, m3=60, v0=[50., 0.], G=1.90809e5, dt=1e-3, nsteps=100, random_noise=False):
+        # always start at origin
+        self.m0 = 1.
+        self.m1, self.m2, self.m3, self.v0, self.G, self.dt, self.nsteps = np.array(m1), np.array(m2), np.array(m3), np.array(v0), G, dt, nsteps
+        self.masses = [self.m1, self.m2, self.m3]
         self.positions = np.zeros([self.nsteps, 2])
-        self.positions[0] = self.x0
+        self.attractor_positions = np.array([[20., 20.], [50., -15.], [80., 25.]])
         # first step special case
-        self.positions[1] = self.x0 + self.v0 * self.dt + 0.5 * self.dt**2 * self.A(self.x0)
+        self.positions[1] = self.positions[0] + self.v0 * self.dt + 0.5 * self.dt**2 * self.A(self.positions[0])
         self.iter_idx = 2
         self.random_noise = random_noise
+        
 
-    def rsquare(self, x):
-        # square of distance between a point and origin
-        return(x[0]**2 + x[1]**2)
+    def rsquare(self, x1, x2):
+        # square of distance between two points --> only square dist matters for gravity
+        return np.linalg.norm(x1 - x2)
 
     def A(self, x):
+        '''Take the position of the small particle, x, and return 
+           the sum of forces on it from the three attractors.'''
         # acceleration = Force/mass
         # F = G * m1 * m2 / r^2 + R(t) --> add random noise to force
-        force = self.G * self.m1 * self.m2 / self.rsquare(x)
-        # random force proportional to current magnitude
-        # force += np.random.normal(loc=0., scale=np.abs(force)/500.) 
-        # force is attractive, so multiply by unit vector toward origin
-        force *= -1. * x / np.sqrt(np.sum(x**2))
-        # compensate for one point always being at [0,0]
-        return force / self.m2 - force/self.m1 
+        forces = np.zeros([3, 2])
+        for i, mass in enumerate(self.masses):
+            # since the small particle has unit mass, just G * m
+            dist = self.rsquare(x, self.attractor_positions[i])
+            force = self.G * mass / dist
+            unit_vec = (self.attractor_positions[i] - x) / dist
+            # point the force in the correct direction (attractive)
+            force *= unit_vec
+            forces[i] = force
+        # sum up the three force vectors
+        return np.sum(forces, axis=0)
     
     def run(self):
         while(self.iter_idx < self.nsteps):
@@ -91,56 +107,84 @@ class GravitySimulator:
         self.positions[self.iter_idx] = 2 * last_x - last_last_x + self.A(last_x) * self.dt**2
         self.iter_idx += 1
 
-    def plot_traj(self, name='trajectory.png', fig=None, axes=None, save=True, alpha=0.5):
+    def plot_traj(self,
+                  name='trajectory.png',
+                  fig=None,
+                  axes=None,
+                  save=True,
+                  make_colorbar=False,
+                  alpha=0.5,
+                  cmap=plt.get_cmap('Blues').reversed(),
+                  color='blue',
+                  fade_lines=True,
+                  linestyle='-',
+                  label=None,
+                  label_attractors=False):
         if fig is None and axes is None:
             fig, axes = plt.subplots()
         x, y =self.positions[:,0], self.positions[:,1]
-        lc = colorline(x, y, alpha=alpha, cmap=plt.get_cmap('copper'))
-        fig.colorbar(lc)
-        plt.xlim(x.min(), x.max())
-        plt.ylim(y.min(), y.max())
-        #plt.scatter(self.positions[:,0], self.positions[:,1], s=0.2)
+        if fade_lines:
+            lc = colorline(x, y, alpha=alpha, cmap=cmap, linestyle=linestyle, label=label)
+        else:
+            axes.plot(x, y, alpha=alpha, color=color, linestyle=linestyle, label=label)
+        if make_colorbar:
+            fig.colorbar(lc)
+        xmin = min(x.min(), np.min(self.attractor_positions[0,:]) - 0.1 * abs(np.min(self.attractor_positions[0,:])))
+        xmax = max(x.max(), np.max(self.attractor_positions[0,:]) + 0.1 * np.max(self.attractor_positions[0,:]))
+        plt.xlim(xmin, xmax)
+        ymin = min(y.min(), np.min(self.attractor_positions[1,:]) - 0.1 * abs(np.min(self.attractor_positions[1,:])))
+        ymax = max(y.max(), np.max(self.attractor_positions[1,:]) + 0.1 * np.max(self.attractor_positions[1,:]))
+        plt.ylim(ymin, ymax)
+        plt.scatter(self.attractor_positions[:,0],
+                    self.attractor_positions[:,1],
+                    color='black',
+                    label=('Attractors' if label_attractors else None))
         if save:
             plt.savefig(name)
 
     def set_traj(self, trajectory):
         self.positions = trajectory
 
-if __name__ == 'main':
-
-    m1 = 100. #solar masses
-    m2 = 50. #solar masses
-    G = 1.90809e5 #solar radius / solar mass * (km/s)^2
-    # F = G * m1 * m2 / r^2
-
-    v0 = np.array([100.,-70.]) # km/s (?)
-    x0 = np.array([50.,30.5]) #solar radii
-
-    sim = GravitySimulator(m1, m2, v0, x0, random_noise=True)
-    traj = sim.run()
-    print(traj)
-    np.savetxt('trajectory.txt', traj)
-    sim.plot_traj()
-
-    observation_summary_stats = traj[:3001:500].flatten() # every 100th point in time only
-
-    def sim_wrapper(params_list):
-        '''params_list should be: m1, m2, v0[0], v0[1], x0[0], x0[1] in that order'''
-        m1, m2 = float(params_list[0]), float(params_list[1])
-        #v0 = v0#np.array([params_list[2], params_list[3]], dtype=np.float64)
-        #x0 = x0#np.array([params_list[4], params_list[5]], dtype=np.float64)
-        this_sim = GravitySimulator(m1, m2, v0, x0)
+def sim_wrapper(params_list):
+        '''params_list should be: m1, m2, m3, v0[0], v0[1] in that order'''
+        m1, m2, m3 = float(params_list[0]), float(params_list[1]), float(params_list[2])
+        v0 = np.array([params_list[3], params_list[4]], dtype=np.float64)
+        this_sim = GravitySimulator(m1, m2, m3, v0, random_noise=True)
         this_traj = this_sim.run()
-        summary_stats = torch.tensor(this_traj[:3001:500].flatten())
+        summary_stats = torch.as_tensor(this_traj[:101:20].flatten())
         return summary_stats
 
-    prior_mins =  [10., 10., -100., -100., 10., 10.]#[10., 10.]#-150. * np.ones(40)
-    prior_maxes =  [200., 200., 200., 200., 100., 100.]#150. * np.ones(40)#[200., 200.]
+if __name__ == '__main__':
+    
+    # set up parameters
+    m1 = 100. #solar masses
+    m2 = 50. #solar masses
+    m3 = 75
+    G = 1.90809e5 #solar radius / solar mass * (km/s)^2
+    v0 = np.array([15.,-40.]) # km/s (?)
 
-    prior = utils.torchutils.BoxUniform(low=torch.as_tensor(prior_mins, dtype=torch.float64),
-                                        high=torch.as_tensor(prior_maxes, dtype=torch.float64))
+    # make "true" path
+    sim = GravitySimulator(m1, m2, m3, v0)
+    traj = sim.run()
+    print(traj)
+    np.savetxt('true_trajectory.txt', traj)
+    sim.plot_traj()
 
-    posterior = infer(sim_wrapper, prior, method='SNLE', num_simulations=400, num_workers=16)
+    sim = GravitySimulator(m1, m2, m3, v0, random_noise=True)
+    traj = sim.run()
+    print(traj)
+    np.savetxt('noisy_trajectory.txt', traj)
+    sim.plot_traj()
+
+    observation_summary_stats = traj[:101:20].flatten() # every 100th point in time only
+    prior_means = [85., 40., 70., 12., -30.]
+
+    prior = MultivariateNormal(loc=torch.as_tensor(prior_means),
+                                covariance_matrix=torch.as_tensor(torch.eye(5)*2.5))
+    # prior = utils.torchutils.BoxUniform(low=torch.as_tensor(prior_mins, dtype=torch.float64),
+    #                                     high=torch.as_tensor(prior_maxes, dtype=torch.float64))
+
+    posterior = infer(sim_wrapper, prior, method='SNLE', num_simulations=400)#, num_workers=16)
 
     print('inference done, starting sampling...')
 
@@ -152,4 +196,4 @@ if __name__ == 'main':
     print('samlping done, plotting.')
 
     fig, axes = utils.pairplot(samples)
-    plt.savefig('pairplot.png')
+    plt.savefig('pairplot.svg')
