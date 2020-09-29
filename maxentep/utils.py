@@ -50,7 +50,7 @@ class TransitionMatrix:
         return self.mat
 
 
-def _weighted_quantile(values, quantiles, sample_weight=None,
+def weighted_quantile(values, quantiles, sample_weight=None,
                        values_sorted=False, old_style=False):
     """ Very close to numpy.percentile, but supports weights.
     NOTE: quantiles should be in [0, 1]!
@@ -132,7 +132,7 @@ def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=Tr
 
     # weighted quantiles doesn't support axis
     # fake it using apply_along
-    qtrajs = np.apply_along_axis(lambda x: _weighted_quantile(
+    qtrajs = np.apply_along_axis(lambda x: weighted_quantile(
         x, [1/3, 1/2, 2/3], sample_weight=w), 0, trajs)
     if plot_means:
         # approximate quantiles as distance from median applied to mean
