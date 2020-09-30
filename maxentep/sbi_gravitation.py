@@ -16,8 +16,10 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 prior_means = [85., 40., 70., 12., -30.]
 
+TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR = 200.
+
 def get_observation_points(traj):
-    return traj[19:101:20] / 500.
+    return traj[19:101:20] / TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR
 
 # colorline code from matplotlib examples https://nbviewer.jupyter.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
 # Data manipulation:

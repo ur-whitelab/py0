@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pyabc
 from pyabc import ABCSMC
-from sbi_gravitation import GravitySimulator, get_observation_points
+from sbi_gravitation import GravitySimulator, get_observation_points, TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR
 from abc_gravitation import db_path, distance, model, prior
 
 import seaborn as sns
@@ -98,7 +98,8 @@ extrema = get_extrema(mean_sbi_path, extrema)
 alpha_val = 0.7
 #axes.set_facecolor((0.9,0.9,0.9))
 
-axes.scatter(observed_points[:,0]*500., observed_points[:,1]*500., color='black', zorder=10, marker='*', label='Observed Points')
+adjustment_factor = TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR
+axes.scatter(observed_points[:,0]*adjustment_factor, observed_points[:,1]*adjustment_factor, color='black', zorder=10, marker='*', label='Observed Points')
 sim.set_traj(prior_means_path)
 sim.plot_traj(fig=fig,
               axes=axes,

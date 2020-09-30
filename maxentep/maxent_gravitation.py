@@ -4,7 +4,7 @@ from tqdm import tqdm
 import tensorflow as tf
 import maxentep
 import matplotlib.pyplot as plt
-from sbi_gravitation import GravitySimulator, sim_wrapper, get_observation_points, prior_means
+from sbi_gravitation import GravitySimulator, sim_wrapper, get_observation_points, prior_means,TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR
 
 true_path = np.genfromtxt('true_trajectory.txt')
 noisy_path = np.genfromtxt('noisy_trajectory.txt')
@@ -16,7 +16,7 @@ restraints = []
 for i, point in enumerate(observed_points):
     value1 = point[0]
     value2 = point[1]
-    uncertainty = 0.1
+    uncertainty = 25
     index = 20 * i
     restraints.append([value1, uncertainty, index, 0])
     restraints.append([value2, uncertainty, index, 1])
@@ -31,7 +31,7 @@ for i in range(len(restraints)):
     uncertainty = restraints[i][1]
     #p = maxentep.Laplace(uncertainty)
     p = maxentep.EmptyPrior()
-    r = maxentep.Restraint(lambda traj, i=traj_index: traj[i]/500., value, p)
+    r = maxentep.Restraint(lambda traj, i=traj_index: traj[i]/TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR, value, p)
     laplace_restraints.append(r)
 
 true_params = [100., 50., 75., 15.,-40.]
@@ -60,14 +60,10 @@ np.save('maxent_raw_trajectories.npy', trajs)
 batch_size = 10000
 
 model = maxentep.MaxentModel(laplace_restraints)
-model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_squared_error')
+model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_absolute_error')
 h = model.fit(trajs, batch_size=batch_size, epochs=15000, verbose=1)
-# model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_squared_error')
-# h = model.fit(trajs, batch_size=batch_size, epochs=10000, verbose=1)
-model.compile(tf.keras.optimizers.Adam(1e-1), 'mean_squared_error')
-h = model.fit(trajs, batch_size=batch_size, epochs=10, verbose=1)
-model.compile(tf.keras.optimizers.Adam(1e-3), 'mean_squared_error')
-h = model.fit(trajs, batch_size=batch_size, epochs=3000, verbose=1)
+model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_absolute_error')
+h = model.fit(trajs, batch_size=batch_size, epochs=5000, verbose=1)
 np.savetxt('maxent_loss.txt', h.history['loss'])
 plt.plot(h.history['loss'])
 plt.savefig('maxent_loss.png')
