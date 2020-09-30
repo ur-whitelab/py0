@@ -2,10 +2,8 @@ import pyabc
 import numpy as np
 import os
 import tempfile
-from sbi_gravitation import GravitySimulator
+from sbi_gravitation import GravitySimulator, get_observation_points, prior_means
 from sbi_gravitation import sim_wrapper
-
-prior_means = [85., 40., 70., 12., -30.]
 
 prior = pyabc.Distribution(m1=pyabc.RV('norm', prior_means[0], 2.5),
                             m2=pyabc.RV('norm', prior_means[1], 2.5),
@@ -22,7 +20,7 @@ def model(parameter):
         v0 = np.array([parameter['v0x'], parameter['v0y']])
         this_sim = GravitySimulator(m1, m2, m3, v0, random_noise=True)
         this_traj = this_sim.run()
-        summary_stats = this_traj[:101:20]
+        summary_stats = get_observation_points(this_traj)
         return {'data': summary_stats}
 
 db_path = 'sqlite:///' + os.path.join(os.getcwd(), 'abc_gravitation.db')        
@@ -33,7 +31,7 @@ if __name__ == '__main__':
 
     observed_traj = np.genfromtxt('noisy_trajectory.txt')
 
-    observation = observed_traj[:101:20]
+    observation = get_observation_points(observed_traj)
 
     abc.new(db_path, {'data': observation})
 

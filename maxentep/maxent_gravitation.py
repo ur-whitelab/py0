@@ -4,11 +4,11 @@ from tqdm import tqdm
 import tensorflow as tf
 import maxentep
 import matplotlib.pyplot as plt
-from sbi_gravitation import GravitySimulator, sim_wrapper
+from sbi_gravitation import GravitySimulator, sim_wrapper, get_observation_points, prior_means
 
 true_path = np.genfromtxt('true_trajectory.txt')
 noisy_path = np.genfromtxt('noisy_trajectory.txt')
-observed_points = true_path[:101:20]#noisy_path[:101:20]
+observed_points = get_observation_points(noisy_path)
 print(observed_points, observed_points.shape)
 
 # restraint structure: [value, uncertainty, indices... ]
@@ -29,18 +29,16 @@ for i in range(len(restraints)):
     traj_index = tuple(restraints[i][2:])
     value = restraints[i][0]
     uncertainty = restraints[i][1]
-    p = maxentep.Laplace(uncertainty)
-    #p = maxentep.EmptyPrior()
-    r = maxentep.Restraint(lambda traj, i=traj_index: traj[i], value, p)
+    #p = maxentep.Laplace(uncertainty)
+    p = maxentep.EmptyPrior()
+    r = maxentep.Restraint(lambda traj, i=traj_index: traj[i]/500., value, p)
     laplace_restraints.append(r)
 
 true_params = [100., 50., 75., 15.,-40.]
 
-prior_means = [85., 40., 70., 12., -30.]#[99.9, 49.9, 75.1, 14.9, -39.9]
-
 prior_cov = np.eye(5) * 2.5
 
-prior_dist = np.random.multivariate_normal(prior_means, prior_cov, size=3000)
+prior_dist = np.random.normal(loc=prior_means, scale=np.ones(len(prior_means))*2.5, size=[10000, len(prior_means)])#np.random.multivariate_normal(prior_means, prior_cov, size=10000)
 
 print(prior_dist, prior_dist.shape)
 print(f'the average of 10k samples from numpy is {np.mean(prior_dist, axis=0)}')
@@ -53,19 +51,31 @@ else:
     print('sampling trajectories...')
     for i, sample in enumerate(tqdm(prior_dist)):
         m1, m2, m3, v0 = sample[0], sample[1], sample[2], sample[3:]
-        sim = GravitySimulator(m1, m2, m3, v0)
+        sim = GravitySimulator(m1, m2, m3, v0, random_noise=False)
         traj = sim.run()
         trajs[i] = traj
 
 np.save('maxent_raw_trajectories.npy', trajs)    
 
+batch_size = 10000
+
 model = maxentep.MaxentModel(laplace_restraints)
-model.compile(tf.keras.optimizers.Adam(1e-5), 'mean_squared_error')
-h = model.fit(trajs, batch_size=128, epochs=10000, verbose=1)
+model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_squared_error')
+h = model.fit(trajs, batch_size=batch_size, epochs=15000, verbose=1)
+# model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_squared_error')
+# h = model.fit(trajs, batch_size=batch_size, epochs=10000, verbose=1)
+model.compile(tf.keras.optimizers.Adam(1e-1), 'mean_squared_error')
+h = model.fit(trajs, batch_size=batch_size, epochs=10, verbose=1)
+model.compile(tf.keras.optimizers.Adam(1e-3), 'mean_squared_error')
+h = model.fit(trajs, batch_size=batch_size, epochs=3000, verbose=1)
+np.savetxt('maxent_loss.txt', h.history['loss'])
 plt.plot(h.history['loss'])
 plt.savefig('maxent_loss.png')
 
 weights = model.traj_weights
+
+weighted_average_params = np.average(prior_dist, axis=0, weights=weights)
+np.savetxt('maxent_weighted_average_params.txt', weighted_average_params)
 
 print(weights)
 

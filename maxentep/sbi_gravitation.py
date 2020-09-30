@@ -14,7 +14,10 @@ from torch.distributions.multivariate_normal import MultivariateNormal
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 
+prior_means = [85., 40., 70., 12., -30.]
 
+def get_observation_points(traj):
+    return traj[19:101:20] / 500.
 
 # colorline code from matplotlib examples https://nbviewer.jupyter.org/github/dpsanders/matplotlib-examples/blob/master/colorline.ipynb
 # Data manipulation:
@@ -59,7 +62,7 @@ def colorline(x, y, z=None, cmap=plt.get_cmap('copper'), norm=plt.Normalize(0.0,
     return lc
 
 class GravitySimulator:
-    def __init__(self, m1=45, m2=33, m3=60, v0=[50., 0.], G=1.90809e5, dt=1e-3, nsteps=100, random_noise=False):
+    def __init__(self, m1=45, m2=33, m3=60, v0=[50., 0.], G=1.90809e5, dt=1e-3, nsteps=100, random_noise=False, noise_size=3.):
         # always start at origin
         self.m0 = 1.
         self.m1, self.m2, self.m3, self.v0, self.G, self.dt, self.nsteps = np.array(m1), np.array(m2), np.array(m3), np.array(v0), G, dt, nsteps
@@ -70,6 +73,7 @@ class GravitySimulator:
         self.positions[1] = self.positions[0] + self.v0 * self.dt + 0.5 * self.dt**2 * self.A(self.positions[0])
         self.iter_idx = 2
         self.random_noise = random_noise
+        self.noise_size = noise_size
         
 
     def rsquare(self, x1, x2):
@@ -97,7 +101,7 @@ class GravitySimulator:
         while(self.iter_idx < self.nsteps):
             self.step()
         if self.random_noise:
-            self.positions = np.random.normal(self.positions, 0.8)
+            self.positions = np.random.normal(self.positions, self.noise_size)
         return self.positions
 
     def step(self):
@@ -118,15 +122,16 @@ class GravitySimulator:
                   color='blue',
                   fade_lines=True,
                   linestyle='-',
+                  linewidth=2,
                   label=None,
                   label_attractors=False):
         if fig is None and axes is None:
             fig, axes = plt.subplots()
         x, y =self.positions[:,0], self.positions[:,1]
         if fade_lines:
-            lc = colorline(x, y, alpha=alpha, cmap=cmap, linestyle=linestyle, label=label)
+            lc = colorline(x, y, alpha=alpha, cmap=cmap, linestyle=linestyle, linewidth=linewidth, label=label)
         else:
-            axes.plot(x, y, alpha=alpha, color=color, linestyle=linestyle, label=label)
+            axes.plot(x, y, alpha=alpha, color=color, linestyle=linestyle, linewidth=linewidth, label=label)
         if make_colorbar:
             fig.colorbar(lc)
         xmin = min(x.min(), np.min(self.attractor_positions[0,:]) - 0.1 * abs(np.min(self.attractor_positions[0,:])))
@@ -135,7 +140,7 @@ class GravitySimulator:
         ymin = min(y.min(), np.min(self.attractor_positions[1,:]) - 0.1 * abs(np.min(self.attractor_positions[1,:])))
         ymax = max(y.max(), np.max(self.attractor_positions[1,:]) + 0.1 * np.max(self.attractor_positions[1,:]))
         plt.ylim(ymin, ymax)
-        plt.scatter(self.attractor_positions[:,0],
+        axes.scatter(self.attractor_positions[:,0],
                     self.attractor_positions[:,1],
                     color='black',
                     label=('Attractors' if label_attractors else None))
@@ -151,7 +156,7 @@ def sim_wrapper(params_list):
         v0 = np.array([params_list[3], params_list[4]], dtype=np.float64)
         this_sim = GravitySimulator(m1, m2, m3, v0, random_noise=True)
         this_traj = this_sim.run()
-        summary_stats = torch.as_tensor(this_traj[:101:20].flatten())
+        summary_stats = torch.as_tensor(get_observation_points(this_traj).flatten())
         return summary_stats
 
 if __name__ == '__main__':
@@ -164,27 +169,24 @@ if __name__ == '__main__':
     v0 = np.array([15.,-40.]) # km/s (?)
 
     # make "true" path
-    sim = GravitySimulator(m1, m2, m3, v0)
+    sim = GravitySimulator(m1, m2, m3, v0, random_noise=False)
     traj = sim.run()
-    print(traj)
     np.savetxt('true_trajectory.txt', traj)
     sim.plot_traj()
 
     sim = GravitySimulator(m1, m2, m3, v0, random_noise=True)
     traj = sim.run()
-    print(traj)
     np.savetxt('noisy_trajectory.txt', traj)
     sim.plot_traj()
 
-    observation_summary_stats = traj[:101:20].flatten() # every 100th point in time only
-    prior_means = [85., 40., 70., 12., -30.]
+    observation_summary_stats = get_observation_points(traj).flatten()
 
     prior = MultivariateNormal(loc=torch.as_tensor(prior_means),
                                 covariance_matrix=torch.as_tensor(torch.eye(5)*2.5))
     # prior = utils.torchutils.BoxUniform(low=torch.as_tensor(prior_mins, dtype=torch.float64),
     #                                     high=torch.as_tensor(prior_maxes, dtype=torch.float64))
 
-    posterior = infer(sim_wrapper, prior, method='SNLE', num_simulations=400)#, num_workers=16)
+    posterior = infer(sim_wrapper, prior, method='SNLE', num_simulations=400, num_workers=8)#, num_workers=16)
 
     print('inference done, starting sampling...')
 
