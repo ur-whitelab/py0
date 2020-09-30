@@ -3,6 +3,7 @@ from scipy.special import softmax
 import tensorflow as tf
 from math import sqrt
 from .utils import merge_history
+from keras import backend
 
 EPS = np.finfo(np.float32).tiny
 
@@ -31,9 +32,10 @@ def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_averag
               np.mean(traj[s], axis=0)[inner_slice], v)
         # need to make a multiline lambda, so fake it with tuple
         plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
-            ax.plot(i * time_average + time_average // 2, v, 'o', color=color),
+            ax.plot(i * time_average + time_average // 2,
+                    v, 'o', color=color, markersize=3),
             ax.errorbar(i * time_average + time_average // 2, v, xerr=time_average //
-                        2, yerr=prior.expected(float(l)), color=color, capsize=8)
+                        2, yerr=prior.expected(float(l)), color=color, capsize=3, ms=20)
         )
         r = Restraint(fxn, v, prior)
         restraints.append(r)
@@ -187,11 +189,31 @@ def _compute_restraints(trajs, restraints):
         gk[i, :] = [r(trajs[i]) for r in restraints]
     return gk
 
+class RefErrorMetric(tf.keras.metrics.Metric):
+    def __init__(self, ref_traj, population_fraction=None, **kwargs):
+        super(RefErrorMetric, self).__init__(name='ref-error-metric',**kwargs)
+        if type(ref_traj) is np.ndarray:
+            ref_traj = tf.convert_to_tensor(ref_traj, 'float32')
+        self.ref_traj = ref_traj
+        self.error = self.add_weight(name='ref-error', initializer='zeros')
+        self.population_fraction = population_fraction
+    
+    def update_state(self, trajs, weights, sample_weight=None):
+        mean_traj = tf.reduce_sum(
+            trajs * weights[:, tf.newaxis, tf.newaxis, tf.newaxis], axis=0)
+        diff = (mean_traj - self.ref_traj)**2
+        patch_mean_diff = tf.reduce_mean(tf.reduce_sum(diff * self.population_fraction[tf.newaxis, :, tf.newaxis], axis =1))
+        self.error.assign(patch_mean_diff)
+    def result(self):
+        return self.error
+    def reset_states(self):
+        self.error.assign(0.)
 
 class MaxentModel(tf.keras.Model):
-    def __init__(self, restraints, use_cov=False, name='maxent-model', **kwargs):
+    def __init__(self, restraints, use_cov=False, name='maxent-model', ref_traj=None, trajs=None, population_fraction=None, ** kwargs):
         super(MaxentModel, self).__init__(name=name, **kwargs)
         self.restraints = restraints
+        self.trajs = trajs
         restraint_dim = len(restraints)
         # identify prior
         prior = type(restraints[0].prior)
@@ -209,6 +231,18 @@ class MaxentModel(tf.keras.Model):
             self.avg_layer = AvgLayer(self.weight_layer)
         self.lambdas = self.weight_layer.l
         self.prior = prior
+        if ref_traj is not None:
+            self.ref_traj = ref_traj
+            if population_fraction is not None:
+                self.population_fraction = population_fraction
+            else:
+                print ('No input for population fraction. Assuming equal distribution of population in all patches.')
+                self.population_fraction = 1 / \
+                    ref_traj.shape[2]*np.ones(ref_traj.shape[2])
+            self.traj_metric = RefErrorMetric(
+                ref_traj, population_fraction=population_fraction)
+        else:
+            self.traj_metric = None
 
     def reset_weights(self):
         w = self.weight_layer.get_weights()
@@ -221,6 +255,13 @@ class MaxentModel(tf.keras.Model):
             inputs = inputs[0]
         weights = self.weight_layer(inputs, input_weights=input_weights)
         wgk = self.avg_layer(inputs, weights)
+        if self.traj_metric is not None:
+            self.traj_metric.update_state(
+                self.trajs, weights)
+            self.add_metric(
+                self.traj_metric.result(),
+                aggregation='mean',
+                name='ref-error')
         return wgk
 
     def fit(self, trajs, input_weights=None, **kwargs):
@@ -248,16 +289,17 @@ def reweight(samples, unbiased_joint, joint):
 
 class HyperMaxentModel(MaxentModel):
     def __init__(self, restraints, prior_model, simulation, reweight=True,
-                 name='hyper-maxent-model', **kwargs):
+                 name='hyper-maxent-model', ** kwargs):
         super(HyperMaxentModel, self).__init__(
-            restraints=restraints, name=name, **kwargs)
+             restraints=restraints, name=name, **kwargs)
         self.prior_model = prior_model
         self.reweight = reweight
         self.unbiased_joint = prior_model(tf.constant([1.]))
+        # self.trajs = trajs
         if hasattr(self.unbiased_joint, 'sample'):
             self.unbiased_joint = [self.unbiased_joint]
         self.simulation = simulation
-
+            
     def fit(self, sample_batch_size=256, final_batch_multiplier=4, param_epochs=None, outter_epochs=10, **kwargs):
         # TODO: Deal with callbacks/history
         me_history, prior_history = None, None
@@ -309,7 +351,11 @@ class HyperMaxentModel(MaxentModel):
             rws.append(rw)
         trajs = np.concatenate(outs, axis=0)
         rw = np.concatenate(rws, axis=0)
+        self.weights_hyper = rw
         self.trajs = trajs
+
+
+
         # TODO reset optimizer state
         self.reset_weights()
         if self.reweight:
@@ -318,3 +364,5 @@ class HyperMaxentModel(MaxentModel):
             hm = super(HyperMaxentModel, self).fit(trajs, **kwargs)
         me_history = merge_history(me_history, hm)
         return merge_history(me_history, prior_history, 'prior-')
+
+
