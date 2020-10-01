@@ -1,9 +1,11 @@
 from tqdm import tqdm
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import pyabc
 from pyabc import ABCSMC
-from sbi_gravitation import GravitySimulator, get_observation_points, TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR
+from sbi_gravitation import GravitySimulator, get_observation_points, TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR, prior_means
 from abc_gravitation import db_path, distance, model, prior
 
 import seaborn as sns
@@ -13,6 +15,7 @@ sns.set_style('white',  {'xtick.bottom':True, 'ytick.left':True, 'xtick.color': 
 plt.rcParams["mathtext.fontset"] = "dejavuserif"
 colors = ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e']
 
+true_params = [100., 50., 75., 15., -40.]
 
 true_path = np.genfromtxt('true_trajectory.txt')
 noisy_path = np.genfromtxt('noisy_trajectory.txt')
@@ -53,8 +56,6 @@ sbi_paths = np.zeros([sbi_data.shape[0], noisy_path.shape[0], noisy_path.shape[1
 
 observed_points = get_observation_points(noisy_path)
 
-prior_means = [85., 40., 70., 12., -30.]#[99.9, 49.9, 75.1, 14.9, -39.9]
-
 sim = GravitySimulator(prior_means[0], prior_means[1], prior_means[2], prior_means[3:])
 prior_means_path = sim.run()
 
@@ -63,14 +64,15 @@ extrema = get_extrema(prior_means_path, extrema)
 abc_continued = ABCSMC(model, prior, distance)
 abc_continued.load(db_path)
 history = abc_continued.history
-df, w = history.get_distribution(m=0, t=history.max_t)
+df, abc_weights = history.get_distribution(m=0, t=history.max_t)
 param_means = []
-#TODO: recover and plot the posteriors from each method (maxent: just re-weight the probs)
 #TODO: compute the cross-entropy of prior vs posterior for all methods -> P*ln(Q), P is prior, Q is posterior.
 abc_trajs = np.zeros((len(df), 100, 2))
+abc_dist = []
 print('Simulating ABC paths from sampled parameters...')
 for i, row in enumerate(tqdm(np.array(df))):
     m1, m2, m3, v0 = row[0], row[1], row[2], [row[3], row[4]]
+    abc_dist.append([row[0], row[1], row[2], row[3], row[4]])
     sim = GravitySimulator(m1, m2, m3, v0) # no random noise on samples
     traj = sim.run()
     abc_trajs[i] = traj
@@ -79,14 +81,11 @@ abc_mean_path = np.mean(abc_trajs, axis=0)
 
 extrema = get_extrema(abc_mean_path, extrema)
 
-abc_dist = []
-
 fig, axes = plt.subplots(figsize=(5,3), dpi=300)
 # mean_sbi_params = np.mean(sbi_data, axis=0)
 print('Simulating SBI paths from sampled parameters...')
 for i, sample in enumerate(tqdm(sbi_data)):
     m1, m2, m3, v0 = sample[0], sample[1], sample[2], [sample[3], sample[4]]
-    abc_dist.append([m1, m2, m3, v0[0], v0[1]])
     sim = GravitySimulator(m1, m2, m3, v0) # no random noise on samples
     traj = sim.run()
     sbi_paths[i] = traj
@@ -167,21 +166,69 @@ sim.plot_traj(fig=fig,
 axes.set_xlim(-5, 130)# plt.xlim(extrema[0], extrema[1])
 axes.set_ylim(-30, 75)# plt.ylim(extrema[2], extrema[3])
 
+column_names = ['m1', 'm2', 'm3', 'v0x', 'v0y']
 # plot the posterior distributions
 abc_dist = np.array(abc_dist)
+abc_frame = pd.DataFrame(abc_dist, columns = column_names)
 sbi_dist = np.array(sbi_data)
+sbi_frame = pd.DataFrame(sbi_dist, columns = column_names)
 maxent_dist = np.load('maxent_prior_samples.npy')
+maxent_frame = pd.DataFrame(maxent_dist, columns = column_names)
 
 plt.legend(loc='upper left', bbox_to_anchor=(1.05,1.))
 plt.tight_layout()
 plt.savefig('paths_compare.png')
+plt.savefig('paths_compare.svg')
 
-fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(5,3), dpi=300, sharex=True)
+fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(5,5), dpi=300, sharex=True)
 
 # iterate over the five parameters
-for i in range(abc_dist.shape[1]):
-    sns.histplot(abc_dist.T[i], ax=axes[i], color='blue', stat='probability', bins=100, kde=True, legend=False, x='m1')
-    sns.histplot(sbi_dist.T[i], ax=axes[i], color='green', stat='probability', bins=100, kde=True, legend=False, x='m1')
-    sns.histplot(maxent_dist.T[i], ax=axes[i], color='red', stat='probability', bins=100, kde=True, legend=False, weights=maxent_weights, x='m1')
+legend = False
+n_bins = 30
+for i, key in enumerate(column_names):
+    if i == len(column_names) - 1:
+        legend = True
+    sns.histplot(data=sbi_frame, x=key, ax=axes[i], color=colors[0],  stat='probability', element='step', kde=True, fill=False, bins=n_bins, lw=0.0)
+    sns.histplot(data=abc_frame, x=key, ax=axes[i], color=colors[1], stat='probability', element='step', kde=True, fill=False, bins=n_bins, weights=abc_weights, lw=0.)
+    sns.histplot(data=maxent_frame, x=key, ax=axes[i], color=colors[2],  stat='probability', element='step', kde=True, fill=False, bins=n_bins, weights=maxent_weights, lw=0.0)
+    axes[i].axvline(prior_means[i], ls='-.', color='grey', lw=1.2)
+    axes[i].axvline(true_params[i], ls='--', color='black', lw=1.2)
+    axes[i].set_xlabel(key)
+custom_lines = [Line2D([0], [0], color=colors[0], lw=4),
+                Line2D([0], [0], color=colors[1], lw=4),
+                Line2D([0], [0], color=colors[2], lw=4),
+                Line2D([0], [0], color='black', ls='--', lw=4),
+                Line2D([0], [0], color='grey', ls='-.', lw=4)]
+axes[0].legend(custom_lines, ['SPLE', 'ABC', 'MaxEnt', 'True Parameter', 'Prior Mean'], loc='upper left', bbox_to_anchor=(1.05,1.))
+plt.tight_layout()
 
 plt.savefig('posterior_compare.png')
+plt.savefig('posterior_compare.svg')
+
+
+# time for cross-entropies
+
+def get_crossent(prior_samples, posterior_samples, epsilon = 1e-7, x_range=[-100, 100], nbins=40, post_weights=None):
+    prior_dists = []
+    posterior_dists = []
+    crossents = []
+    for i in range(5):
+        prior_dist, _ = np.histogram(prior_samples[:,i], bins=nbins, range=x_range, density=True)
+        prior_dists.append(prior_dist)
+        posterior_dist, _ = np.histogram(posterior_samples[:,i], bins=nbins, range=x_range, density=True, weights=post_weights)
+        posterior_dists.append(posterior_dist)
+        crossents.append( np.log(posterior_dist+epsilon) * (prior_dist + epsilon) )
+    return -np.sum(crossents)
+
+
+abc_prior = np.random.multivariate_normal(mean=prior_means, cov=np.eye(5)*2.5, size=abc_dist.shape[0])
+abc_crossent = get_crossent(abc_prior, abc_dist, post_weights=abc_weights)
+
+sbi_prior = np.random.multivariate_normal(mean=prior_means, cov=np.eye(5)*2.5, size=sbi_dist.shape[0])
+sbi_crossent = get_crossent(sbi_prior, sbi_dist)
+
+maxent_prior = np.random.multivariate_normal(prior_means, np.eye(5)*50, size=2048)
+maxent_crossent = get_crossent(maxent_prior, maxent_prior, post_weights=maxent_weights)
+print(f'CROSS-ENTROPY:\nABC: {abc_crossent}\nSBI: {sbi_crossent}\nMaxEnt: {maxent_crossent}')
+crossent_values = [abc_crossent, sbi_crossent, maxent_crossent]
+np.savetxt('crossent_values.txt', np.array(crossent_values), header='ABC, SBI, MaxEnt')
