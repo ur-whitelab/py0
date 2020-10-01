@@ -65,6 +65,7 @@ abc_continued = ABCSMC(model, prior, distance)
 abc_continued.load(db_path)
 history = abc_continued.history
 df, abc_weights = history.get_distribution(m=0, t=history.max_t)
+print(abc_weights)
 param_means = []
 #TODO: compute the cross-entropy of prior vs posterior for all methods -> P*ln(Q), P is prior, Q is posterior.
 abc_trajs = np.zeros((len(df), 100, 2))
@@ -77,7 +78,7 @@ for i, row in enumerate(tqdm(np.array(df))):
     traj = sim.run()
     abc_trajs[i] = traj
 
-abc_mean_path = np.mean(abc_trajs, axis=0)
+abc_mean_path = np.sum(abc_trajs * abc_weights[:,np.newaxis,np.newaxis], axis=0)
 
 extrema = get_extrema(abc_mean_path, extrema)
 
