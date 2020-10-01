@@ -26,7 +26,7 @@ plt.plot(maxent_weights)
 plt.savefig('maxent_weights.png')
 plt.close()
 
-maxent_weighted_average_path = np.average(maxent_paths, axis=0, weights=maxent_weights)
+maxent_weighted_average_path = np.genfromtxt('maxent_avg_traj.txt')#np.sum(maxent_paths * maxent_weights[:, np.newaxis, np.newaxis], axis=0)#np.average(maxent_paths, axis=0, weights=maxent_weights)
 # maxent_weighted_average_params = np.genfromtxt('maxent_weighted_average_params.txt')
 # sim = GravitySimulator(maxent_weighted_average_params[0], maxent_weighted_average_params[1], maxent_weighted_average_params[2], [maxent_weighted_average_params[3], maxent_weighted_average_params[4]])
 # maxent_weighted_average_path = sim.run()
@@ -65,6 +65,7 @@ abc_continued.load(db_path)
 history = abc_continued.history
 df, w = history.get_distribution(m=0, t=history.max_t)
 param_means = []
+#TODO: recover and plot the posteriors from each method (maxent: just re-weight the probs)
 #TODO: compute the cross-entropy of prior vs posterior for all methods -> P*ln(Q), P is prior, Q is posterior.
 abc_trajs = np.zeros((len(df), 100, 2))
 print('Simulating ABC paths from sampled parameters...')
@@ -78,12 +79,14 @@ abc_mean_path = np.mean(abc_trajs, axis=0)
 
 extrema = get_extrema(abc_mean_path, extrema)
 
+abc_dist = []
 
 fig, axes = plt.subplots(figsize=(5,3), dpi=300)
 # mean_sbi_params = np.mean(sbi_data, axis=0)
 print('Simulating SBI paths from sampled parameters...')
 for i, sample in enumerate(tqdm(sbi_data)):
     m1, m2, m3, v0 = sample[0], sample[1], sample[2], [sample[3], sample[4]]
+    abc_dist.append([m1, m2, m3, v0[0], v0[1]])
     sim = GravitySimulator(m1, m2, m3, v0) # no random noise on samples
     traj = sim.run()
     sbi_paths[i] = traj
@@ -161,8 +164,24 @@ sim.plot_traj(fig=fig,
               label='MaxEnt',
               label_attractors=True)
 
-plt.xlim(-5, 130)# plt.xlim(extrema[0], extrema[1])
-plt.ylim(-30, 75)# plt.ylim(extrema[2], extrema[3])
+axes.set_xlim(-5, 130)# plt.xlim(extrema[0], extrema[1])
+axes.set_ylim(-30, 75)# plt.ylim(extrema[2], extrema[3])
+
+# plot the posterior distributions
+abc_dist = np.array(abc_dist)
+sbi_dist = np.array(sbi_data)
+maxent_dist = np.load('maxent_prior_samples.npy')
+
 plt.legend(loc='upper left', bbox_to_anchor=(1.05,1.))
 plt.tight_layout()
 plt.savefig('paths_compare.png')
+
+fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(5,3), dpi=300, sharex=True)
+
+# iterate over the five parameters
+for i in range(abc_dist.shape[1]):
+    sns.histplot(abc_dist.T[i], ax=axes[i], color='blue', stat='probability', bins=100, kde=True, legend=False, x='m1')
+    sns.histplot(sbi_dist.T[i], ax=axes[i], color='green', stat='probability', bins=100, kde=True, legend=False, x='m1')
+    sns.histplot(maxent_dist.T[i], ax=axes[i], color='red', stat='probability', bins=100, kde=True, legend=False, weights=maxent_weights, x='m1')
+
+plt.savefig('posterior_compare.png')

@@ -17,7 +17,7 @@ for i, point in enumerate(observed_points):
     value1 = point[0]
     value2 = point[1]
     uncertainty = 25
-    index = 20 * i
+    index = 20 * i + 19
     restraints.append([value1, uncertainty, index, 0])
     restraints.append([value2, uncertainty, index, 1])
 print(f'restraint length: {len(restraints)}')
@@ -36,43 +36,42 @@ for i in range(len(restraints)):
 
 true_params = [100., 50., 75., 15.,-40.]
 
-prior_cov = np.eye(5) * 2.5
+prior_cov = np.eye(5) * 50
 
-prior_dist = np.random.normal(loc=prior_means, scale=np.ones(len(prior_means))*2.5, size=[10000, len(prior_means)])#np.random.multivariate_normal(prior_means, prior_cov, size=10000)
+np.random.seed(12656)
+prior_dist = np.random.multivariate_normal(prior_means, prior_cov, size=2048)
+np.save('maxent_prior_samples.npy', prior_dist)
 
 print(prior_dist, prior_dist.shape)
 print(f'the average of 10k samples from numpy is {np.mean(prior_dist, axis=0)}')
 
 trajs = np.zeros([prior_dist.shape[0], 100, 2])
 
-if os.path.exists('maxent_raw_trajectories.npy'):
-    trajs = np.load('maxent_raw_trajectories.npy')
-else:
-    print('sampling trajectories...')
-    for i, sample in enumerate(tqdm(prior_dist)):
-        m1, m2, m3, v0 = sample[0], sample[1], sample[2], sample[3:]
-        sim = GravitySimulator(m1, m2, m3, v0, random_noise=False)
-        traj = sim.run()
-        trajs[i] = traj
+for i, sample in enumerate(tqdm(prior_dist)):
+    m1, m2, m3, v0 = sample[0], sample[1], sample[2], sample[3:]
+    sim = GravitySimulator(m1, m2, m3, v0, random_noise=False)
+    traj = sim.run()
+    trajs[i] = traj
 
-np.save('maxent_raw_trajectories.npy', trajs)    
+np.save('maxent_raw_trajectories.npy', trajs)
 
-batch_size = 10000
+batch_size = prior_dist.shape[0]
 
 model = maxentep.MaxentModel(laplace_restraints)
-model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_absolute_error')
-h = model.fit(trajs, batch_size=batch_size, epochs=15000, verbose=1)
-model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_absolute_error')
+model.compile(tf.keras.optimizers.Adam(1e-4), 'mean_squared_error')
 h = model.fit(trajs, batch_size=batch_size, epochs=5000, verbose=1)
+h = model.fit(trajs, batch_size=batch_size, epochs=25000, verbose=1)
+# model.compile(tf.keras.optimizers.Adam(1e-2), 'mean_absolute_error')
+# h = model.fit(trajs, batch_size=batch_size, epochs=5000, verbose=1)
 np.savetxt('maxent_loss.txt', h.history['loss'])
 plt.plot(h.history['loss'])
 plt.savefig('maxent_loss.png')
 
 weights = model.traj_weights
 
-weighted_average_params = np.average(prior_dist, axis=0, weights=weights)
-np.savetxt('maxent_weighted_average_params.txt', weighted_average_params)
-
 print(weights)
 
 np.savetxt('maxent_traj_weights.txt', weights)
+
+avg_traj = np.sum(trajs * model.traj_weights[:, np.newaxis, np.newaxis], axis=0)
+np.savetxt('maxent_avg_traj.txt', avg_traj)

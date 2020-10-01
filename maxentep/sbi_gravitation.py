@@ -16,7 +16,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 prior_means = [85., 40., 70., 12., -30.]
 
-TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR = 200.
+TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR = 1.
 
 def get_observation_points(traj):
     return traj[19:101:20] / TRAJECTORY_MAGNITUDE_ADJUSTMENT_FACTOR
