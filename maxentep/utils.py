@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as ss
 import matplotlib.pyplot as plt
 import maxentep
+import tensorflow as tf
 
 
 class TransitionMatrix:
@@ -50,7 +51,7 @@ class TransitionMatrix:
         return self.mat
 
 
-def _weighted_quantile(values, quantiles, sample_weight=None,
+def weighted_quantile(values, quantiles, sample_weight=None,
                        values_sorted=False, old_style=False):
     """ Very close to numpy.percentile, but supports weights.
     NOTE: quantiles should be in [0, 1]!
@@ -113,6 +114,9 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
                 ax[i, j].set_ylabel('Fraction')
             if i == nrow - 1 and j == ncol // 2:
                 ax[i, j].set_xlabel('Time')
+            if j >= NP % ncol:
+                ax[nrow-1, j].set_visible(False)
+        
     plt.tight_layout()
 
 
@@ -132,7 +136,7 @@ def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=Tr
 
     # weighted quantiles doesn't support axis
     # fake it using apply_along
-    qtrajs = np.apply_along_axis(lambda x: _weighted_quantile(
+    qtrajs = np.apply_along_axis(lambda x: weighted_quantile(
         x, [1/3, 1/2, 2/3], sample_weight=w), 0, trajs)
     if plot_means:
         # approximate quantiles as distance from median applied to mean
@@ -175,30 +179,187 @@ def merge_history(base, other, prefix=''):
     return base
 
 
-def compartment_restrainer(restrained_patches, restrained_compartments, npoints, ref_traj, prior, noise=0, start_time=None, end_time=None, time_average=7):
-    number_of_restrained_compartments = len(restrained_compartments)
+# def compartment_restrainer(restrained_patches, restrained_compartments, npoints, ref_traj, prior, noise=0, start_time=None, end_time=None, time_average=7):
+#     number_of_restrained_compartments = len(restrained_compartments)
+#     number_of_restrained_patches = len(restrained_patches)
+#     M = ref_traj.shape[1]
+#     T = ref_traj.shape[0]
+#     if start_time is None:
+#         start_time = 0
+#     if end_time is None:
+#         end_time = T//3
+#     print('Restraints are set on this time range: [{}, {}]'.format(
+#         start_time, end_time))
+#     # restrained_patches = np.random.choice(
+#     #     M, number_of_restrained_patches, replace=False)
+#     if number_of_restrained_patches > M:
+#         raise Exception(
+#             'Number of patches to be restrained exceeeds the total number of patches')
+#     restraints = []
+#     plot_fxns_list = []
+#     for i in range(number_of_restrained_patches):
+#         plot_fxns = []
+#         for j in range(number_of_restrained_compartments):
+#             res, plfxn = maxentep.traj_to_restraints(ref_traj[start_time:end_time, :, :], [
+#                 restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average)
+#             restraints += res
+#             plot_fxns += plfxn
+#         plot_fxns_list.append(plot_fxns)
+#     restraints_dict = {'npoints': npoints,
+#                        'restrained_patches': list(restrained_patches), 'restrained_compartments': restrained_compartments}
+#     return restraints, plot_fxns_list, restraints_dict
+
+
+def exposed_finder(sampled_trajs):
+    R'''
+    Finds the initial exposed patch (t=0) for trajs
+    '''
+    if len(sampled_trajs.shape) < 4:
+        sampled_trajs = sampled_trajs[np.newaxis, ...]
+    exposed_sampled_trajs = sampled_trajs[:, 0, :, 1]
+    return np.where(exposed_sampled_trajs > 0)[:][1]
+
+
+def weighted_exposed_prob_finder(prior_exposed_patch, meta_pop_size, weights=None):
+    R'''
+    Finds the weighted probabiity of being exposed in every patch at time zero across all the sample trajs
+    '''
+    if weights is None:
+        weights = np.ones_like(prior_exposed_patch)
+    posterior_exposed = np.zeros((meta_pop_size))
+    for i, m in enumerate(prior_exposed_patch):
+        posterior_exposed[m] += weights[i]
+    posterior_exposed /= np.sum(posterior_exposed)
+    return posterior_exposed
+
+
+def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, title=None,
+           choropleth=False, geojson=None, fontsize=12, figsize=(15, 8)):
+    R'''
+    Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
+    on a choropleth map (this requires geopandas and geoplot packages).
+    '''
+    weighted_exposed_prob = maxentep.weighted_exposed_prob_finder(
+        prior_exposed_patch, meta_pop_size, weights=weights)
+    if choropleth:
+        import geopandas as gpd
+        import geoplot as gplt
+        import geoplot.crs as gcrs
+
+        census_geo = gpd.read_file(geojson).sort_values(by=['fips']).assign(
+            prob_exposed_initial=weighted_exposed_prob)
+        ax = gplt.choropleth(
+            census_geo,
+            hue='prob_exposed_initial',
+            cmap='Reds', linewidth=0.5,
+            edgecolor='k',
+            legend=True,
+            projection=gcrs.AlbersEqualArea(),
+            figsize=figsize,
+        )
+        plt.title(title, fontsize=fontsize)
+    else:
+        nrow = int(np.floor(np.sqrt(meta_pop_size)))
+        ncol = int(np.ceil(meta_pop_size / nrow))
+        z = weighted_exposed_prob
+        for i in range(meta_pop_size % ncol):
+            z = np.append(z, 0)
+        z = z.reshape(nrow, ncol)
+        if patch_names is None:
+            patch_names = np.arange(meta_pop_size)
+            for i in range(meta_pop_size % ncol):
+                patch_names = np.append(patch_names, ' ')
+            patch_names = patch_names.reshape(nrow, ncol)
+        else:
+            for i in range(meta_pop_size % ncol):
+                patch_names = np.append(patch_names, ' ')
+            # [:-7] is to remove 'County' from string
+            patch_names = np.array([m[:-7]
+                                    for m in patch_names]).reshape(nrow, ncol)
+
+        fig, ax = plt.subplots(figsize=figsize)
+        c = ax.pcolor(z, edgecolors='k', linewidths=0.4,
+                      linestyle='-', cmap='Reds')
+        plt.gca().set_aspect("equal")
+        plt.gcf().set_size_inches(figsize)
+
+        for i in range(nrow):
+            for j in range(ncol):
+                if i * ncol + j == meta_pop_size:
+                    break
+                plt.text(j+0.38, i+0.38,
+                         patch_names[i, j], color="#2480c7", fontsize=fontsize)
+        fig.colorbar(c, ax=ax)
+        ax.set_title(title, fontsize=fontsize+10)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        plt.tight_layout()
+
+
+def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj, prior, npoints=5, noise=0, start_time=0, end_time=None, time_average=7):
+    R'''
+    Adds restraints to reference traj based on selected patches in selected compartments
+    '''
+    if tf.rank(ref_traj).numpy() != 4:
+        ref_traj = ref_traj[tf.newaxis, ...]
+    M = ref_traj.shape[2]
     number_of_restrained_patches = len(restrained_patches)
-    M = ref_traj.shape[1]
-    T = ref_traj.shape[0]
-    if start_time is None:
-        start_time = 0
-    if end_time is None:
-        end_time = T//3
-    print('Restraints are set on this time range: [{}, {}]'.format(
-        start_time, end_time))
-    # restrained_patches = np.random.choice(
-    #     M, number_of_restrained_patches, replace=False)
+    number_of_restrained_compartments = len(restrained_compartments)
     if number_of_restrained_patches > M:
-        raise Exception(
-            'Number of patches to be restrained exceeeds the total number of patches')
+        raise ValueError(
+            "Oops! Number of patches to be restrained exceeeds the total number of patches.")
+    if end_time is None:
+        end_time = ref_traj.shape[1]//2
+    print(f'Restraints are set in this time range: [{start_time}, {end_time}]')
+    # example if number_of_restraint_patches = 2 : (recovered and infected patch)
     restraints = []
     plot_fxns_list = []
     for i in range(number_of_restrained_patches):
         plot_fxns = []
         for j in range(number_of_restrained_compartments):
-            res, plfxn = maxentep.traj_to_restraints(ref_traj[start_time:end_time, :, :], [
-                restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average)
+            res, plfxn = maxentep.traj_to_restraints(ref_traj[0, start_time:end_time, :, :], [
+                restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average, start_time=start_time)
             restraints += res
             plot_fxns += plfxn
         plot_fxns_list.append(plot_fxns)
     return restraints, plot_fxns_list
+
+
+def get_dist(prior_prams, compartments=['E', 'A', 'I', 'R']):
+    R_dist = []
+    T_dist = []
+    start_dist = []
+    beta_dist = []
+    for i in range(len(prior_prams)):
+        param_batch = prior_prams[i]
+        R_dist.append(param_batch[0])
+        T_dist.append(param_batch[1])
+        start_dist.append(param_batch[2])
+        beta_dist.append(param_batch[3])
+    R_dist = tf.concat(R_dist, axis=0)
+    T_dist = tf.concat(T_dist, axis=0)
+    start_dist = tf.concat(start_dist, axis=0)
+    beta_dist = tf.concat(beta_dist, axis=0)
+    # get eta
+    E_A = 1/T_dist[:, compartments.index('E'), compartments.index('A')].numpy()
+    # get alpha
+    A_I = 1/T_dist[:, compartments.index('A'), compartments.index('I')].numpy()
+    # get mu
+    I_R = 1/T_dist[:, compartments.index('I'), compartments.index('R')].numpy()
+    # Getting starting exposed fraction
+    mask = tf.greater(start_dist, 0)
+    start_exposed_dist = tf.boolean_mask(start_dist, mask).numpy()
+    return [R_dist, E_A, A_I, I_R, start_exposed_dist, beta_dist]
+
+
+def plot_dist(R_dist, E_A, A_I, I_R, start_exposed_dist, beta_dist, name='prior'):
+    import seaborn as sns
+    fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(18, 6), dpi=200)
+    fig.suptitle(f'Parameter {name} distributions', fontsize=20, y=1.00)
+    sns.distplot(x=beta_dist, ax=axs[0, 0], axlabel='Beta')
+    sns.distplot(x=start_exposed_dist,
+                 ax=axs[0, 1], axlabel='Exposed start fraction')
+    sns.distplot(x=R_dist, ax=axs[0, 2], axlabel='Mobility matrix')
+    sns.distplot(x=E_A, ax=axs[1, 0], axlabel=r'$\eta^{-1}$ : E->A (days)')
+    sns.distplot(x=A_I, ax=axs[1, 1], axlabel=r'$\alpha ^{-1}$ : A->I (days)')
+    sns.distplot(x=I_R, ax=axs[1, 2], axlabel=r'$\mu^{-1}$ : I->R (days)')

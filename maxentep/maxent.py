@@ -7,7 +7,7 @@ from .utils import merge_history
 EPS = np.finfo(np.float32).tiny
 
 
-def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7):
+def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7, start_time=0):
     '''Creates npoints restraints based on given trajectory with noise and time averaging.
     For example, it could be weekly averages with some noise.
 
@@ -27,13 +27,13 @@ def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_averag
 
         def fxn(x, s=s, j=inner_slice):
             return tf.reduce_mean(x[s], axis=0)[j]
-        print(i * time_average + time_average // 2,
+        print(i * time_average + time_average // 2 + start_time,
               np.mean(traj[s], axis=0)[inner_slice], v)
         # need to make a multiline lambda, so fake it with tuple
         plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
-            ax.plot(i * time_average + time_average // 2,
+            ax.plot(i * time_average + time_average // 2 + start_time,
                     v, 'o', color=color, markersize=3),
-            ax.errorbar(i * time_average + time_average // 2, v, xerr=time_average //
+            ax.errorbar(i * time_average + time_average // 2 + start_time, v, xerr=time_average //
                         2, yerr=prior.expected(float(l)), color=color, capsize=3, ms=20)
         )
         r = Restraint(fxn, v, prior)
