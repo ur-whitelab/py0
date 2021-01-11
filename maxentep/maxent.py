@@ -3,7 +3,6 @@ from scipy.special import softmax
 import tensorflow as tf
 from math import sqrt
 from .utils import merge_history
-from keras import backend
 
 EPS = np.finfo(np.float32).tiny
 
