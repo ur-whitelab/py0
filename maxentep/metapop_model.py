@@ -101,7 +101,7 @@ def normal_mat_layer(input, start, name, start_var=1, clip_high=1e10):
             low=0.0,
             high=clip_high,
             scale=1e-3 + tf.math.sigmoid(t[0, 1])), 2),
-        name=name + '-dist')(x), lambda x: x/tf.reduce_sum(x, axis=-1, keepdims=True)#[..., tf.newaxis]
+        name=name + '-dist')(x), lambda x: x/tf.reduce_sum(x, axis=-1, keepdims=True)
 
 
 class ParameterHypers:
@@ -222,8 +222,8 @@ class MetaModel(tf.keras.Model):
         self.traj_layer = AddSusceptibleLayer(name='traj')
 
     def call(self, R, T, rho, params):
-        #making sure R is normalized
-        R /= tf.reduce_sum(R, axis=-1 , keepdims=True)
+        # making sure R is normalized
+        R /= tf.reduce_sum(R, axis=-1, keepdims=True)
         if tf.rank(R) == 2:
             R, T, rho = R[tf.newaxis, ...], T[tf.newaxis, ...], rho[tf.newaxis, ...]
         x = self.metapop_layer([R, T, rho, params])
@@ -318,89 +318,41 @@ class MetapopLayer(tf.keras.layers.Layer):
         self.N, self.M, self.C = input_shape[2]
         if self.populations is None:
             self.populations = tf.ones((self.M, ), dtype=self.dtype)
-        # else:
-        #     eff_pop0 = tf.convert_to_tensor(
-        #         self.populations, dtype=self.dtype)[tf.newaxis, ...]
-        #     self.eff_pop0 = tf.repeat(eff_pop0, self.N, axis=0)
-        #     # print('eff_pop0 shape', eff_pop0.shape)
 
     def call(self, inputs):
         R, T, rho0 = inputs[:3]
-        # infect_params = [tf.cast(_, dtype=self.dtype) for _ in inputs[3:]]
         infect_params = inputs[3:]
         trajs_array = tf.TensorArray(size=self.timesteps, element_shape=(
             self.N, self.M, self.C), dtype=self.dtype)
 
         def body(i, prev_rho, trajs_array):
-            # print(i)
-            # print('T', T)
-            # pre_eff_pop = tf.reshape(pre_eff_pop, (1, self.M))
             # write first so we get starting rho
             trajs_array = trajs_array.write(i, prev_rho)
             pop = tf.convert_to_tensor(
                 self.populations, dtype=self.dtype)[tf.newaxis, ...]
             batched_pop = tf.repeat(pop, self.N, axis=0)
-            
             # compute effective pops
-            # print(
-            #     'self.eff_pop0[tf.newaxis, :, tf.newaxis, tf.newaxis] shape', self.eff_pop0.shape)
             neff = batched_pop[:, tf.newaxis, :] @  R
-            # print('neff shape', neff.shape)
-            
-            # neff_compartments = tf.reshape(batched_pop, (-1, self.M, 1, 1)) * tf.reshape(prev_rho, (-1, self.M, 1, self.C)) *\
-            #     tf.reshape(tf.transpose(
-            #         R, perm=[0, 2, 1]), (-1, self.M, self.M, 1))
-            # neff_compartments = tf.tensordot(neff[..., tf.newaxis], prev_rho, axes = 1)  # [..., tf.newaxis, tf.newaxis]
-            # almost match
-            # neff_compartments = self.eff_pop0[:, :, tf.newaxis, tf.newaxis] * \
-            #     prev_rho[:, :, tf.newaxis, :] * R[..., tf.newaxis]
-
-            # #new
-            # neff_compartments = self.eff_pop0[:, tf.newaxis, :, tf.newaxis] * \
-            #     tf.reshape(prev_rho, (-1, self.M, 1, self.C)) * \
-            #     R[..., tf.newaxis]
-            
             neff_compartments = tf.reshape(batched_pop, (-1, self.M, 1, 1)) * tf.reshape(prev_rho, (-1, self.M, 1, self.C)) *\
-                                    R[..., tf.newaxis]
-                                
+                R[..., tf.newaxis]
+
             neff = tf.squeeze(neff, axis=1)
-            # print('R shape', R.shape)
-            # tf.print('neff_compartments ', neff_compartments[0,2,:], summarize=-1)
-            # neff = self.eff_pop0[tf.newaxis, :] * tf.reduce_sum(R, axis=2)
-            # ntot =tf.reduce_sum(ntot)
-            # compute infected prob
-            # infect_params = [tf.cast(_,dtype=self.dtype) for _ in infect_params]
-            # tf.print('infect_params', [n.dtype for n in infect_params])
             infect_prob = self.infect_func(
                 neff_compartments, neff, * infect_params)
-            # tf.print('infect_prob', infect_prob, summarize=-1)
             # infect them
             new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * \
                 tf.einsum('ijk,ik->ij', R, infect_prob)
-            # tf.print('old new_infected shape', new_infected.shape)
-            # tf.print(' shape before', (1 - tf.reduce_sum(prev_rho, axis=-1)).shape)
-            # new_infected = tf.reshape((1 - tf.reduce_sum(prev_rho, axis=-1)), (-1, 1, self.M)) * \
-            #                         tf.reshape(infect_prob,(-1, 1, self.M)) @ tf.transpose(R, perm=[0, 2, 1])
-            # # # tf.print(' new_infected shape', new_infected.shape)
-            # new_infected = tf.squeeze(new_infected, axis=1)
-            
             # create new compartment values
             rho = tf.einsum('ijk,ikl->ijl', prev_rho, T) + \
                 new_infected[:, :, tf.newaxis] * tf.constant([1] +
                                                              [0 for _ in range(self.C - 1)], dtype=self.dtype)
             # project back to allowable values
             rho = tf.clip_by_value(rho, 0, 1)
-            # tf.print('rho: ',
-                    #  rho.shape, summarize=-1)
-            # tf.print('rho :', rho)
-            #rho /= tf.clip_by_value(tf.reduce_sum(rho, axis=-1, keepdims=True), 1, 1000000)
             return i + 1, rho, trajs_array
         cond = lambda i, *_: i < self.timesteps
         _, _, trajs_array = tf.while_loop(
             cond, body, (0, rho0, trajs_array))
         return tf.cast(trajs_array.stack(), tf.float32)
-
-
 
 
 class ContactInfectionLayer(tf.keras.layers.Layer):
@@ -417,7 +369,8 @@ class ContactInfectionLayer(tf.keras.layers.Layer):
         self.area = area
 
     def call(self, neff_compartments, neff):
-        fxn = contact_infection_func(self.infectious_compartments, area =self.area)
+        fxn = contact_infection_func(
+            self.infectious_compartments, area=self.area)
         p = fxn(neff_compartments, neff, self.beta)
         return p
 
@@ -432,197 +385,24 @@ def contact_infection_func(infectious_compartments, area=None, dtype=tf.float64)
 
     def fxn(neff_compartments, neff,  beta, infectious_compartments=infectious_compartments):
         if neff_compartments.dtype != dtype:
-            neff_compartments = tf.cast(neff_compartments, dtype= dtype)
+            neff_compartments = tf.cast(neff_compartments, dtype=dtype)
         ninf = tf.zeros_like(neff_compartments[:, :, :, 0])
-        # ninf.shape is [batch_size, M, M]
-        
         # k is the average number of contacts across the whole population
-        ntot = tf.reduce_sum(neff, axis =1)
-        # tf.print('ntot', ntot)
+        ntot = tf.reduce_sum(neff, axis=1)
         k = 10.
         z = ntot * k / tf.reduce_sum(neff * density_fxn(neff), axis=1)
         for i in infectious_compartments:
             ninf += neff_compartments[:, :, :, i]
-        # tf.print('density_fxn', density_fxn(neff), summarize=-1)
-        # tf.print('ninf', ninf, summarize=-1)
-        # tf.print('z ', z, summarize=-1)
-        # tf.print('sum axis 1', tf.reduce_sum(ninf, axis=1), summarize=-1)
-        # getting infected and asymptomatic in double percision
-        # sum_inf = tfp.math.reduce_kahan_sum(ninf, axis=1)
-        # sum_inf = sum_inf.total - sum_inf.correction
-        # tf.print('sum_inf', sum_inf, summarize=-1)
 
         p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-                            * density_fxn(neff) * z[..., tf.newaxis] 
+                            * density_fxn(neff) * z[..., tf.newaxis]
                             * tf.reduce_sum(ninf, axis=1) / neff)
 
-        # p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-        #                             * density_fxn(neff) * z[..., tf.newaxis]
-        #                             * tf.math.exp(tf.math.log(tf.reduce_sum(ninf * 1e3, axis=1)) + tf.math.log(1/neff * 1e3) - tf.math.log(1e6)))
-        # tf.print(p, summarize=-1)
-        # p = 1. - tf.math.pow(1. - tf.reshape(beta, (-1, 1)),  density_fxn(neff) * z *
-        #                     tf.reduce_sum(ninf, axis=1) / neff)
-        # tf.print('P_0',   1. - tf.pow(1. - tf.reshape(beta, (-1, 1))[0,0],  density_fxn(neff)[0,0] * tf.reshape(z, (-1, 1))[0,0] * \
-        #                                tf.math.divide_no_nan(tf.math.reduce_sum(ninf, axis=1)[0, 0], neff[0, 0])), summarize=-1)
-
-        # p = 1 - tf.reduce_prod(tf.math.exp((tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-        #                     * density_fxn(neff) * z[..., tf.newaxis]
-        #                     * ninf/ neff)), axis =2)
         return p
     return fxn
-
-
-
-## Mine
-
-# def contact_infection_func(infectious_compartments, area=None, noise=None):
-#     if area is not None:
-#         def density_fxn(n, area=area, xi=0.005):
-#             return 2 - tf.math.exp(-xi * n / area)
-#     else:
-#         def density_fxn(n):
-#             return tf.ones_like(n)
-
-#     def fxn(neff_compartments, neff, beta, infectious_compartments=infectious_compartments):
-#         ninf = tf.zeros(tf.shape(neff_compartments)[:-1])
-#         ntot = tf.reduce_sum(neff, axis=1)
-#         # k is the average number of contacts across the whole population
-#         k = 10
-#         z = ntot * k / tf.reduce_sum(neff * density_fxn(neff), axis=1)
-#         for i in infectious_compartments:
-#             ninf += neff_compartments[:, :, i]
-#         # tf. print('neff shape', neff.shape, summarize=-1)
-#         # tf.print('ninf', ninf, summarize=-1)
-#         # tf.print('ntot', ntot,  summarize=-1)
-#         p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-#                             * density_fxn(neff) * z[..., tf.newaxis]
-#                             * tf.math.divide_no_nan(ninf, neff))
-#         # tf.print('z', z)
-#         if noise:
-#             # adding noise
-#             noised_p = p *\
-#                 (tf.random.uniform(
-#                     shape=tf.shape(p), minval=1.0 - noise, maxval=1.0 + noise))
-#             return noised_p
-#         else:
-#             return p
-#     return fxn
-
 
 
 def negloglik(y, rv_y):
     logp = rv_y.log_prob(y + EPS)
     logp = tf.reduce_sum(tf.reshape(logp, (tf.shape(y)[0], -1)), axis=1)
     return -logp
-
-
-## Mine
-# class MetapopLayer(tf.keras.layers.Layer):
-#     def __init__(self, timesteps, infect_func, populations=None, dtype=tf.float32):
-#         super(MetapopLayer, self).__init__(dtype=dtype)
-#         self.infect_func = infect_func
-#         self.timesteps = timesteps
-#         self.populations = populations
-
-#     def build(self, input_shape):
-#         self.N, self.M, self.C = input_shape[2]
-#         if self.populations is None:
-#             self.populations = tf.ones((self.M, ))
-
-#     def call(self, inputs):
-#         R, T, rho0 = inputs[:3]
-#         infect_params = inputs[3:]
-#         trajs_array = tf.TensorArray(size=self.timesteps, element_shape=(
-#             self.N, self.M, self.C), dtype=self.dtype)
-#         eff_pop0 = tf.convert_to_tensor(
-#             self.populations, dtype=self.dtype)[tf.newaxis, tf.newaxis, :]
-#         eff_pop0 = tf.repeat(eff_pop0, self.N, axis=0)
-
-#         def body(i, prev_rho, trajs_array):
-#             # print(i)
-#             # print('T', T)
-#             # pre_eff_pop = tf.reshape(pre_eff_pop, (1, self.M))
-#             # write first so we get starting rho
-#             trajs_array = trajs_array.write(i, prev_rho)
-#             # pop = tf.convert_to_tensor(
-#             #     self.populations, dtype=self.dtype)
-#             # neff = tf.reduce_sum(pre_eff_pop[tf.newaxis, :] * tf.reshape(
-#             #     tf.transpose(R), (-1, self.M, self.M)), axis = 2)
-#             # neff = pre_eff_pop[tf.newaxis, :] * tf.reduce_sum(R, axis=1)
-#             # print(i)
-#             # tf.print('pre_eff_pop', pre_eff_pop, summarize=-1)
-#             # tf.print('R :',R,summarize=-1)
-#             # tf.print('and')
-#             # tf.print('R.T', tf.transpose(R, perm=[0, 2, 1]) , summarize=-1)
-#             # tf.print('tf.transpose(R) shape',
-#             #          tf.transpose(R, perm=[0, 2, 1]).shape, summarize=-1)
-#             # neff = tf.tensordot(pre_eff_pop,  tf.transpose(R, perm=[0, 2, 1]), axes = [[0,1],[1]])
-
-#             neff = eff_pop0 @  R
-#             # neff = tf.matmul(pre_eff_pop, tf.transpose(R, perm=[0, 2, 1]))
-#             # neff = tf.tensordot(pre_eff_pop, tf.transpose(R, perm=[0, 2, 1]), axes =((0), (1,0)))
-#             # neff = tf.einsum('ij,ijj->ij', pre_eff_pop,
-#             #                  tf.transpose(R, perm=[0, 2, 1]))
-#             # neff = tf.matmul(pre_eff_pop[tf.newaxis, tf.newaxis, :], tf.reshape(
-#             #     R, (-1, self.M, self.M)))
-#             neff = tf.squeeze(neff, axis=1)
-#             # neff = eff_pop0 * \
-#             #     tf.reshape(tf.transpose(
-#             #         R, perm=[0, 2, 1]), (-1, self.M, self.M))
-#             # tf.print('neff', neff.shape, summarize=-1)
-#             ntot = tf.reduce_sum(neff, axis=1)
-#             # tf.print('ntot', ntot, summarize=-1)
-#             # neff = tf.squeeze(neff)
-
-#             # neff = tf.reshape(neff, (-1, self.M))
-#             # neff = tf.reduce_sum(pop[ :, tf.newaxis] *\
-#             #     tf.reshape(tf.transpose(R), (-1, self.M, self.M)), axis = 1)
-#             # tf.print('neff_body: ', neff.shape, summarize=-1)
-
-#             # tf.print('neff', neff.shape, summarize=-1)
-#             # tf.print('eff_pop0', tf.squeeze(eff_pop0, axis=0).shape)
-#             # pop0 = tf.squeeze(eff_pop0, axis=0)
-#             neff_compartments = prev_rho * \
-#                 neff[..., tf.newaxis]  # pop0[..., tf.newaxis]  #
-#             # tf.print('neff_compartments_body shape: ',
-#             #          neff_compartments.shape, summarize=-1)
-#             # compute infected prob
-#             infect_prob = self.infect_func(
-#                 neff_compartments, neff, *infect_params)
-#             tf.print('infect_prob ', infect_prob, summarize=-1)
-#             # infect them
-#             new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * \
-#                 tf.einsum('ijk,ik->ij', R, infect_prob)
-#             # tf.print('new_infected old shape', new_infected.shape)
-#             # new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)
-#             #      )[:, tf.newaxis, :] * R @ infect_prob[..., tf.newaxis]
-
-#             # new_infected = (1 - tf.reduce_sum(prev_rho, axis=-1)) * \
-#             #                             infect_prob @ tf.transpose(R, perm=[0, 2, 1])
-#             # tf.print('new_infected new shape', new_infected.shape)
-#             # new_infected = tf.squeeze(new_infected, axis=-1)
-#             # tf.print('bfore', (1 - tf.reduce_sum(prev_rho, axis=-1)).shape)
-#             # tf.print('tf.einsum(ijk, ik -> ij, R, infect_prob)',
-#             #          tf.einsum('ijk,ik->ij', R, infect_prob).shape)
-#             # tf.print('R @ tf.transpose(infect_prob)',
-#             #          (R @ tf.transpose(infect_prob)).shape)
-#             # a = (1 - tf.reduce_sum(prev_rho, axis=-1))[:,tf.newaxis,:] * R @ tf.transpose(infect_prob)
-
-#             # new_infected = tf.squeeze(new_infected, axis=-1)
-#             # tf.print('new_infected', new_infected.shape, summarize=-1)
-
-#             # tf.print('T', T.shape, summarize=-1)
-#             new_infected = tf.clip_by_value(new_infected, 0, 1e10)
-#             # create new compartment values
-#             rho = tf.einsum('ijk,ikl->ijl', prev_rho, T) + \
-#                 new_infected[:, :, tf.newaxis] * tf.constant([1] +
-#                                                              [0 for _ in range(self.C - 1)], dtype=self.dtype)
-#             # tf.print('rho ', rho, summarize=-1)
-#             # project back to allowable values
-#             # rho = tf.clip_by_value(rho, 0, 1)
-#             #rho /= tf.clip_by_value(tf.reduce_sum(rho, axis=-1, keepdims=True), 1, 1000000)
-#             return i + 1, rho, trajs_array
-#         cond = lambda i, *_: i < self.timesteps
-#         _, _, trajs_array = tf.while_loop(
-#             cond, body, (0, rho0, trajs_array))
-#         return trajs_array.stack()
