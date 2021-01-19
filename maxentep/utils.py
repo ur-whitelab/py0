@@ -331,3 +331,73 @@ def plot_dist(R_dist, E_A, A_I, I_R, start_exposed_dist, beta_dist, name='prior'
     sns.distplot(x=E_A, ax=axs[1, 0], axlabel=r'$\eta^{-1}$ : E->A (days)')
     sns.distplot(x=A_I, ax=axs[1, 1], axlabel=r'$\alpha ^{-1}$ : A->I (days)')
     sns.distplot(x=I_R, ax=axs[1, 2], axlabel=r'$\mu^{-1}$ : I->R (days)')
+
+
+def graph_dof(edge_list, node_list):
+    R'''
+    Returns degree-of-freedom of a network graph based in edge and node list inputs
+    '''
+    dof = len(edge_list)/len(node_list)
+    return dof
+
+def gen_graph(M, weights=None):
+    R'''
+    Returns a dense node-weighted networkx graph of size M, edge list and node list
+    '''
+    import networkx as nx
+    if weights is None:
+        weights = np.ones(M)/M
+    G = nx.DiGraph()
+    edge_list = []
+    k = 0
+    i = 0
+    node_list = range(M)
+    for k in range(M):
+        G.add_nodes_from([node_list[k]], weight=weights[k])
+        for i in range(M):
+            edge_list.append((i, k))
+    G.add_edges_from(edge_list)
+    return G, edge_list, node_list
+
+
+def draw_graph(graph, heatmap=False, title=None, dpi=150):
+    R'''
+    Plots networkx graph. Heatmap option changes node color based on node weights.
+    '''
+    import networkx as nx
+    if heatmap:
+        options = {
+            'width': 0.7,
+            'edge_color': '#1d4463',
+            'font_color': '#827c60',
+            'node_size': 500,
+        }
+        w_dict = dict(graph.nodes(data='weight'))
+        weights = w_dict.values()
+        max_weight = float(max(weights))
+        node_colors = [plt.cm.Reds(weight/max_weight) for weight in weights]
+        colors_unscaled = [tuple(map(lambda x: max_weight*x, y))
+                           for y in node_colors]
+        # Creating a dummy colormap
+        heatmap = plt.pcolor(colors_unscaled, cmap=plt.cm.Reds)
+        plt.close()
+        fig, ax = plt.subplots(dpi=dpi)
+        graph_plt = nx.draw(graph, with_labels=True, pos=nx.shell_layout(graph), font_weight='bold',
+                            node_color=node_colors, ax=ax, **options, cmap='Reds')
+        cbar = plt.colorbar(heatmap)
+        cbar.ax.set_ylabel('Patient-zero Probability',
+                           labelpad=15, rotation=90)
+    else:
+        fig, ax = plt.subplots(dpi=dpi)
+        options = {
+            'node_color': '#0a708c',
+            'width': 0.7,
+            'edge_color': '#555555',
+            'font_color': '#ffffff',
+            'node_size': 500,
+        }
+        nx.draw(graph, with_labels=True, pos=nx.shell_layout(
+            graph), font_weight='bold', ax=ax, **options)
+    if title:
+        plt.title(title, fontsize=20)
+    return
