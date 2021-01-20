@@ -340,27 +340,25 @@ def graph_dof(edge_list, node_list):
     dof = len(edge_list)/len(node_list)
     return dof
 
-def gen_graph(M, weights=None):
+def gen_graph(M):
     R'''
-    Returns a dense node-weighted networkx graph of size M, edge list and node list
+    Returns a dense networkx graph of size M, edge list and node list
     '''
     import networkx as nx
-    if weights is None:
-        weights = np.ones(M)/M
     G = nx.DiGraph()
     edge_list = []
     k = 0
     i = 0
     node_list = range(M)
     for k in range(M):
-        G.add_nodes_from([node_list[k]], weight=weights[k])
+        G.add_nodes_from([node_list[k]])
         for i in range(M):
             edge_list.append((i, k))
     G.add_edges_from(edge_list)
     return G, edge_list, node_list
 
 
-def draw_graph(graph, heatmap=False, title=None, dpi=150):
+def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150):
     R'''
     Plots networkx graph. Heatmap option changes node color based on node weights.
     '''
@@ -372,8 +370,9 @@ def draw_graph(graph, heatmap=False, title=None, dpi=150):
             'font_color': '#827c60',
             'node_size': 500,
         }
-        w_dict = dict(graph.nodes(data='weight'))
-        weights = w_dict.values()
+        if weights is None:
+            M = len(graph.nodes)
+            weights = np.ones(M)/M
         max_weight = float(max(weights))
         node_colors = [plt.cm.Reds(weight/max_weight) for weight in weights]
         colors_unscaled = [tuple(map(lambda x: max_weight*x, y))
