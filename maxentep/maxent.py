@@ -7,33 +7,38 @@ from .utils import merge_history
 EPS = np.finfo(np.float32).tiny
 
 
-def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7, start_time=0):
+def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7, start_time=0, end_time=None):
     '''Creates npoints restraints based on given trajectory with noise and time averaging.
     For example, it could be weekly averages with some noise.
 
     Returns: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it
     '''
+    if end_time is None:
+        end_time = len(traj)
     restraints = []
     plots = []
     # make sure it's a tuple
     inner_slice = tuple(inner_slice)
-    slices = np.random.choice(
-        range(0, len(traj) // time_average), replace=False, size=npoints)
+    try:
+        slices = np.random.choice(
+            range(start_time // time_average, end_time // time_average), replace=False, size=npoints)
+    except ValueError:
+        print(f'Only {len(traj) // time_average - start_time // time_average} points are possible given the input time_average = {time_average}.')
     for i in slices:
         # pick random time period
-        s = slice(i * time_average, i * time_average + time_average)
+        s = slice(i * time_average,
+                  i * time_average + time_average)
         v = np.clip(np.mean(traj[s], axis=0)[
                     inner_slice] + np.random.normal(scale=noise), 0, 1)
-
         def fxn(x, s=s, j=inner_slice):
             return tf.reduce_mean(x[s], axis=0)[j]
-        print(i * time_average + time_average // 2 + start_time,
+        print(i * time_average + time_average // 2 ,
               np.mean(traj[s], axis=0)[inner_slice], v)
         # need to make a multiline lambda, so fake it with tuple
         plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
-            ax.plot(i * time_average + time_average // 2 + start_time,
+            ax.plot(i * time_average + time_average // 2 ,
                     v, 'o', color=color, markersize=3),
-            ax.errorbar(i * time_average + time_average // 2 + start_time, v, xerr=time_average //
+            ax.errorbar(i * time_average + time_average // 2 , v, xerr=time_average //
                         2, yerr=prior.expected(float(l)), color=color, capsize=3, ms=20)
         )
         r = Restraint(fxn, v, prior)

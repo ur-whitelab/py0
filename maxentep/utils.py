@@ -178,38 +178,6 @@ def merge_history(base, other, prefix=''):
             base.history[prefix + k] = v
     return base
 
-
-# def compartment_restrainer(restrained_patches, restrained_compartments, npoints, ref_traj, prior, noise=0, start_time=None, end_time=None, time_average=7):
-#     number_of_restrained_compartments = len(restrained_compartments)
-#     number_of_restrained_patches = len(restrained_patches)
-#     M = ref_traj.shape[1]
-#     T = ref_traj.shape[0]
-#     if start_time is None:
-#         start_time = 0
-#     if end_time is None:
-#         end_time = T//3
-#     print('Restraints are set on this time range: [{}, {}]'.format(
-#         start_time, end_time))
-#     # restrained_patches = np.random.choice(
-#     #     M, number_of_restrained_patches, replace=False)
-#     if number_of_restrained_patches > M:
-#         raise Exception(
-#             'Number of patches to be restrained exceeeds the total number of patches')
-#     restraints = []
-#     plot_fxns_list = []
-#     for i in range(number_of_restrained_patches):
-#         plot_fxns = []
-#         for j in range(number_of_restrained_compartments):
-#             res, plfxn = maxentep.traj_to_restraints(ref_traj[start_time:end_time, :, :], [
-#                 restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average)
-#             restraints += res
-#             plot_fxns += plfxn
-#         plot_fxns_list.append(plot_fxns)
-#     restraints_dict = {'npoints': npoints,
-#                        'restrained_patches': list(restrained_patches), 'restrained_compartments': restrained_compartments}
-#     return restraints, plot_fxns_list, restraints_dict
-
-
 def exposed_finder(sampled_trajs):
     R'''
     Finds the initial exposed patch (t=0) for trajs
@@ -298,7 +266,7 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
 
 def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj, prior, npoints=5, noise=0, start_time=0, end_time=None, time_average=7):
     R'''
-    Adds restraints to reference traj based on selected patches in selected compartments
+    Adds restraints to reference traj based on selected compartments of selected patches 
     '''
     if tf.rank(ref_traj).numpy() != 4:
         ref_traj = ref_traj[tf.newaxis, ...]
@@ -317,8 +285,8 @@ def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj
     for i in range(number_of_restrained_patches):
         plot_fxns = []
         for j in range(number_of_restrained_compartments):
-            res, plfxn = maxentep.traj_to_restraints(ref_traj[0, start_time:end_time, :, :], [
-                restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average, start_time=start_time)
+            res, plfxn = maxentep.traj_to_restraints(ref_traj[0, :, :, :], [
+                restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average, start_time=start_time, end_time=end_time)
             restraints += res
             plot_fxns += plfxn
         plot_fxns_list.append(plot_fxns)
@@ -363,3 +331,72 @@ def plot_dist(R_dist, E_A, A_I, I_R, start_exposed_dist, beta_dist, name='prior'
     sns.distplot(x=E_A, ax=axs[1, 0], axlabel=r'$\eta^{-1}$ : E->A (days)')
     sns.distplot(x=A_I, ax=axs[1, 1], axlabel=r'$\alpha ^{-1}$ : A->I (days)')
     sns.distplot(x=I_R, ax=axs[1, 2], axlabel=r'$\mu^{-1}$ : I->R (days)')
+
+
+def graph_dof(edge_list, node_list):
+    R'''
+    Returns degree-of-freedom of a network graph based in edge and node list inputs
+    '''
+    dof = len(edge_list)/len(node_list)
+    return dof
+
+def gen_graph(M):
+    R'''
+    Returns a dense networkx graph of size M, edge list and node list
+    '''
+    import networkx as nx
+    G = nx.DiGraph()
+    edge_list = []
+    k = 0
+    i = 0
+    node_list = range(M)
+    for k in range(M):
+        G.add_nodes_from([node_list[k]])
+        for i in range(M):
+            edge_list.append((i, k))
+    G.add_edges_from(edge_list)
+    return G, edge_list, node_list
+
+
+def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150):
+    R'''
+    Plots networkx graph. Heatmap option changes node color based on node weights.
+    '''
+    import networkx as nx
+    if heatmap:
+        options = {
+            'width': 0.7,
+            'edge_color': '#1d4463',
+            'font_color': '#827c60',
+            'node_size': 500,
+        }
+        if weights is None:
+            M = len(graph.nodes)
+            weights = np.ones(M)/M
+        max_weight = float(max(weights))
+        node_colors = [plt.cm.Reds(weight/max_weight) for weight in weights]
+        colors_unscaled = [tuple(map(lambda x: max_weight*x, y))
+                           for y in node_colors]
+        # Creating a dummy colormap
+        heatmap = plt.pcolor(colors_unscaled, cmap=plt.cm.Reds)
+        plt.close()
+        fig, ax = plt.subplots(dpi=dpi)
+        graph_plt = nx.draw(graph, with_labels=True, pos=nx.shell_layout(graph), font_weight='bold',
+                            node_color=node_colors, ax=ax, **options, cmap='Reds')
+        cbar = plt.colorbar(heatmap)
+        cbar.ax.set_ylabel('Patient-zero Probability',
+                           labelpad=15, rotation=90)
+    else:
+        fig, ax = plt.subplots(dpi=dpi)
+        options = {
+            'node_color': '#0a708c',
+            'width': 0.7,
+            'edge_color': '#555555',
+            'font_color': '#ffffff',
+            'node_size': 500,
+        }
+        nx.draw(graph, with_labels=True, pos=nx.shell_layout(
+            graph), font_weight='bold', ax=ax, **options)
+    if title:
+        plt.title(title, fontsize=20)
+    return
