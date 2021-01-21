@@ -6,8 +6,8 @@ Installation
 ------------
 1. Clone the repository and change direcotry to maxentep:
 ```bash
-git clone git@github.com:ur-whitelab/maxent-epidemiology.git
-cd maxentep
+git clone https://github.com/ur-whitelab/maxent-epidemiology.git
+cd maxent-epidemiology
 ```
 
 2. Install the module using pip:
@@ -18,7 +18,7 @@ pip install .
 
 License
 -------
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
 Authors
 -------
