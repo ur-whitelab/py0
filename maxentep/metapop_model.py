@@ -181,6 +181,7 @@ class MetaParameterJoint(ParameterJoint):
         reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
         super(MetaParameterJoint, self).__init__(reshapers=reshapers, inputs=i, outputs=[
             R_dist[0], T_dist[0], start_dist[0], beta_dist], name=name + '-model')
+        tf.print('beta_dist',beta_dist.shape)
 
 
 class TrainableMetaModel(tf.keras.Model):
@@ -390,18 +391,44 @@ def contact_infection_func(infectious_compartments, area=None, dtype=tf.float64)
             return tf.ones_like(n)
 
     def fxn(neff_compartments, neff,  beta, infectious_compartments=infectious_compartments):
+        # Given multiple infectious_compartments, if there is only one input for infectivity, consider same infectivilty for all.
+        if tf.rank(beta) == 0:
+            beta = tf.reshape(beta,(-1,1))
+        # tf.print('beta.shape 1',beta.shape[0])
+        # if beta.shape == ():
+        #     beta = tf.repeat(beta[tf.newaxis,:], len(infectious_compartments), axis =1)
+        if beta.shape[0] != len(infectious_compartments):
+            beta = tf.repeat(beta, len(
+                infectious_compartments), axis=1)
+        tf.print('beta 1', beta[0])
+        tf.print('beta 2', beta[1])
+        # tf.print('beta.shape 3', beta.shape)
+        beta = tf.reshape(beta, (-1, len(infectious_compartments)))
+        # tf.print('beta.shape 4', beta.shape)
         if neff_compartments.dtype != dtype:
             neff_compartments = tf.cast(neff_compartments, dtype=dtype)
-        ninf = tf.zeros_like(neff_compartments[:, :, :, 0])
         # k is the average number of contacts across the whole population
         ntot = tf.reduce_sum(neff, axis=1)
         k = 10.
         z = ntot * k / tf.reduce_sum(neff * density_fxn(neff), axis=1)
-        for i in infectious_compartments:
-            ninf += neff_compartments[:, :, :, i]
-        p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-                            * density_fxn(neff) * z[..., tf.newaxis]
-                            * tf.reduce_sum(ninf, axis=1) / neff)
+        p_getting_infected_in_patch_infectious_compartments = []
+        for i, infected_compartment in enumerate(infectious_compartments):
+            ninf = tf.zeros_like(neff_compartments[:, :, :, 0])
+            # tf.print(' tf.reduce_sum(ninf, axis=1)',
+            #          tf.reduce_sum(ninf, axis=1).shape)
+            # tf.print('  beta[:,i]',
+            #          beta[:, i].shape)
+            ninf += neff_compartments[:, :, :, infected_compartment]
+            p_getting_infected_in_patch = tf.math.exp(tf.math.log(1 - beta[:,i,tf.newaxis])
+                                                      * density_fxn(neff) * z[..., tf.newaxis]
+                                                      * tf.reduce_sum(ninf, axis=1) / neff)
+            p_getting_infected_in_patch_infectious_compartments.append(
+                p_getting_infected_in_patch)
+        # print('len',len(p_getting_infected_in_patch_infectious_compartments))
+        # print('shape', p_getting_infected_in_patch_infectious_compartments[0].shape)
+        p_getting_infected_in_patch_infectious_compartments = tf.cast(
+            p_getting_infected_in_patch_infectious_compartments, dtype=dtype)
+        p = 1 - tf.reduce_prod(p_getting_infected_in_patch_infectious_compartments, axis=0)
         return p
     return fxn
 
