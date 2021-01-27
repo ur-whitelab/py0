@@ -22,14 +22,19 @@ def _compute_trans_diagonal(tri_values, indices, shape):
     return diag
 
 
-def recip_norm_mat_dist(trans_times, trans_times_var, indices):
+def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True):
     values = tf.gather_nd(trans_times, indices)
     v_vars = tf.gather_nd(trans_times_var, indices)
-    j = tfd.Independent(tfd.TransformedDistribution(
-        tfd.TruncatedNormal(loc=tf.clip_by_value(
-            values, 1 + 1e-3, 1e10), scale=v_vars, low=1., high=1e10),
-        bijector=tfb.Reciprocal()
-    ), 1)
+    if sample_R:
+        j = tfd.Independent(
+            tfd.TruncatedNormal(loc=tf.clip_by_value(
+                values, 1 + 1e-3, 1e10), scale=v_vars, low=0, high=1e10))
+    else:
+        j = tfd.Independent(tfd.TransformedDistribution(
+            tfd.TruncatedNormal(loc=tf.clip_by_value(
+                values, 1 + 1e-3, 1e10), scale=v_vars, low=1., high=1e10),
+            bijector=tfb.Reciprocal()
+        ), 1)
     return j
 
 
@@ -41,7 +46,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
     x = TrainableInputLayer(combined, constraint=MinMaxConstraint(
         1e-3, 1e10), name=name + '-hypers')(input)
     d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(
-        t[0, 0], t[0, 1], indices), name=name + '-dist')(x)
+        t[0, 0], t[0, 1], indices, sample_R=False), name=name + '-dist')(x)
 
     def reshaper(x, L=time_means.shape[0], indices=indices):
         if tf.rank(x) == 1:
@@ -83,32 +88,33 @@ def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, 
 
 
 def normal_mat_layer(input, start, name, start_var=1, clip_high=1e10):
-    '''Normally distributed trainable distribution. Zeros in starting matrix are preserved'''
+    '''Normally distributed trainable distribution. Zeros in mobility matrix are preserved'''
     # stack variance
     start_val = np.concatenate((
         start[np.newaxis, ...],
         np.tile(start_var, start.shape)[np.newaxis, ...]
     ))
-    # zero-out variance of zeroed starts
-    start_val[1] = start_val[1] * (start_val[0] > 0)
+    indices = tf.cast(tf.where(start > 0), tf.int32)
     x = TrainableInputLayer(start_val, name=name + '-hypers',
                             constraint=PositiveMaskedConstraint(start_val > 0))(input)
     x = tf.keras.layers.Lambda(
         lambda x: x + 1e-10 * np.mean(start), name=name + '-jitter')(x)
-    return tfp.layers.DistributionLambda(
-        lambda t: tfd.Independent(tfd.TruncatedNormal(
-            loc=t[0, 0],
-            low=0.0,
-            high=clip_high,
-            scale=1e-3 + tf.math.sigmoid(t[0, 1])), 2),
-        name=name + '-dist')(x), lambda x: x/tf.reduce_sum(x, axis=-1, keepdims=True)
+    d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(
+        t[0, 0], t[0, 1], indices), name=name + '-dist')(x)
+
+    def reshaper(x, L=start.shape[0], indices=indices):
+        if tf.rank(x) == 1:
+            x = x[tf.newaxis, ...]
+        mat = tf.map_fn(lambda v: tf.scatter_nd(indices, v, (L, L)), x)
+        return mat/tf.reduce_sum(mat, axis=-1, keepdims=True)
+    return d, reshaper
 
 
 class ParameterHypers:
     def __init__(self):
-        self.beta_low = 0.01
-        self.beta_high = 0.7
-        self.beta_var = 0.05
+        self.beta_low = [0.01] * 3
+        self.beta_high = [0.7] * 3
+        self.beta_var = [0.05] *3
         self.start_high = 0.5
         self.start_var = 0.1
         self.R_var = 0.2
@@ -145,25 +151,32 @@ class ParameterJoint(tf.keras.Model):
 class MetaParameterJoint(ParameterJoint):
     def __init__(self, start_logits, mobility_matrix,
                  transition_matrix,
-                 name='', hypers=None):
+                 name='', hypers=None, n_infectious_compartments=1):
         '''Create trainable joint model for parameters'''
         if hypers is None:
             hypers = ParameterHypers()
+        dense_layer_size = n_infectious_compartments
+        beta_low = hypers.beta_low[0:dense_layer_size]
+        beta_high = hypers.beta_high[0:dense_layer_size]
+        beta_var = hypers.beta_var[0:dense_layer_size]
         i = tf.keras.layers.Input((1,))
         # infection parameter first
         beta_layer = tf.keras.layers.Dense(
-            1,
+            dense_layer_size,
             use_bias=False,
             kernel_initializer=tf.keras.initializers.Constant(
                 tf.math.log(hypers.beta_start)),
             name='beta')
+        # if multi_infectivity:
+            
+        # else:
         beta_dist = tfp.layers.DistributionLambda(
             lambda b: tfd.Independent(tfd.TruncatedNormal(
                 loc=tf.clip_by_value(tf.math.sigmoid(
-                    b[..., 0]), hypers.beta_low + 1e-3, hypers.beta_high - 1e-3),
-                scale=hypers.beta_var,
-                low=hypers.beta_low,
-                high=hypers.beta_high), 1),
+                    b[..., 0:n_infectious_compartments]), beta_low, beta_high),
+                scale=beta_var,
+                low=beta_low,
+                high=beta_high), 1),
             name='beta-dist'
         )(beta_layer(i))
         R_dist = normal_mat_layer(
@@ -384,18 +397,31 @@ def contact_infection_func(infectious_compartments, area=None, dtype=tf.float64)
             return tf.ones_like(n)
 
     def fxn(neff_compartments, neff,  beta, infectious_compartments=infectious_compartments):
+        # Given multiple infectious_compartments, if there is only one input for infectivity, consider same infectivilty for all.
+        if tf.rank(beta) == 0:
+            beta = tf.reshape(beta,(-1,1))
+        if beta.shape[-1] != len(infectious_compartments):
+            beta = tf.repeat(beta, len(
+                infectious_compartments), axis=1)
+        beta = tf.reshape(beta, (-1, len(infectious_compartments)))
         if neff_compartments.dtype != dtype:
             neff_compartments = tf.cast(neff_compartments, dtype=dtype)
-        ninf = tf.zeros_like(neff_compartments[:, :, :, 0])
         # k is the average number of contacts across the whole population
         ntot = tf.reduce_sum(neff, axis=1)
         k = 10.
         z = ntot * k / tf.reduce_sum(neff * density_fxn(neff), axis=1)
-        for i in infectious_compartments:
-            ninf += neff_compartments[:, :, :, i]
-        p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-                            * density_fxn(neff) * z[..., tf.newaxis]
-                            * tf.reduce_sum(ninf, axis=1) / neff)
+        p_getting_infected_in_patch_infectious_compartments = []
+        for i, infected_compartment in enumerate(infectious_compartments):
+            ninf = tf.zeros_like(neff_compartments[:, :, :, 0])
+            ninf += neff_compartments[:, :, :, infected_compartment]
+            p_getting_infected_in_patch = tf.math.exp(tf.math.log(1 - beta[:,i,tf.newaxis])
+                                                      * density_fxn(neff) * z[..., tf.newaxis]
+                                                      * tf.reduce_sum(ninf, axis=1) / neff)
+            p_getting_infected_in_patch_infectious_compartments.append(
+                p_getting_infected_in_patch)
+        p_getting_infected_in_patch_infectious_compartments = tf.cast(
+            p_getting_infected_in_patch_infectious_compartments, dtype=dtype)
+        p = 1 - tf.reduce_prod(p_getting_infected_in_patch_infectious_compartments, axis=0)
         return p
     return fxn
 
