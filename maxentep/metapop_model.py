@@ -113,8 +113,17 @@ def normal_mat_layer(input, start, name, start_var=1, clip_high=1e10):
 class ParameterHypers:
     def __init__(self):
         self.beta_low = 0.01
+        self.beta_low_1 = 0.01
+        self.beta_low_2 = 0.01
+        self.beta_low_3 = 0.01
         self.beta_high = 0.7
+        self.beta_high_1 = 0.7
+        self.beta_high_2 = 0.7
+        self.beta_high_3 = 0.7
         self.beta_var = 0.05
+        self.beta_var_1 = 0.05
+        self.beta_var_2 = 0.05
+        self.beta_var_3 = 0.05
         self.start_high = 0.5
         self.start_var = 0.1
         self.R_var = 0.2
@@ -151,25 +160,35 @@ class ParameterJoint(tf.keras.Model):
 class MetaParameterJoint(ParameterJoint):
     def __init__(self, start_logits, mobility_matrix,
                  transition_matrix,
-                 name='', hypers=None):
+                 name='', hypers=None, n_infectious_compartments=1):
         '''Create trainable joint model for parameters'''
         if hypers is None:
             hypers = ParameterHypers()
+        dense_layer_size = n_infectious_compartments
+        beta_low = [hypers.beta_low_1,
+                    hypers.beta_low_2, hypers.beta_low_3][0:dense_layer_size]
+        beta_high = [hypers.beta_high_1,
+                        hypers.beta_high_2, hypers.beta_high_3][0:dense_layer_size]
+        beta_var = [hypers.beta_var_1,
+                    hypers.beta_var_2, hypers.beta_var_3][0:dense_layer_size]
         i = tf.keras.layers.Input((1,))
         # infection parameter first
         beta_layer = tf.keras.layers.Dense(
-            1,
+            dense_layer_size,
             use_bias=False,
             kernel_initializer=tf.keras.initializers.Constant(
                 tf.math.log(hypers.beta_start)),
             name='beta')
+        # if multi_infectivity:
+            
+        # else:
         beta_dist = tfp.layers.DistributionLambda(
             lambda b: tfd.Independent(tfd.TruncatedNormal(
                 loc=tf.clip_by_value(tf.math.sigmoid(
-                    b[..., 0]), hypers.beta_low + 1e-3, hypers.beta_high - 1e-3),
-                scale=hypers.beta_var,
-                low=hypers.beta_low,
-                high=hypers.beta_high), 1),
+                    b[..., :]), beta_low, beta_high),
+                scale=beta_var,
+                low=beta_low,
+                high=beta_high), 1),
             name='beta-dist'
         )(beta_layer(i))
         R_dist = normal_mat_layer(
@@ -181,7 +200,6 @@ class MetaParameterJoint(ParameterJoint):
         reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
         super(MetaParameterJoint, self).__init__(reshapers=reshapers, inputs=i, outputs=[
             R_dist[0], T_dist[0], start_dist[0], beta_dist], name=name + '-model')
-        tf.print('beta_dist',beta_dist.shape)
 
 
 class TrainableMetaModel(tf.keras.Model):
@@ -392,18 +410,20 @@ def contact_infection_func(infectious_compartments, area=None, dtype=tf.float64)
 
     def fxn(neff_compartments, neff,  beta, infectious_compartments=infectious_compartments):
         # Given multiple infectious_compartments, if there is only one input for infectivity, consider same infectivilty for all.
+        # tf.print('beta 1', beta.shape)
         if tf.rank(beta) == 0:
             beta = tf.reshape(beta,(-1,1))
+        # tf.print('beta 2', beta.shape)
         # tf.print('beta.shape 1',beta.shape[0])
         # if beta.shape == ():
         #     beta = tf.repeat(beta[tf.newaxis,:], len(infectious_compartments), axis =1)
-        if beta.shape[0] != len(infectious_compartments):
+        if beta.shape[-1] != len(infectious_compartments):
             beta = tf.repeat(beta, len(
                 infectious_compartments), axis=1)
-        tf.print('beta 1', beta[0])
-        tf.print('beta 2', beta[1])
+        # tf.print('beta 3', beta.shape)
         # tf.print('beta.shape 3', beta.shape)
         beta = tf.reshape(beta, (-1, len(infectious_compartments)))
+        # tf.print('beta 4', beta.shape)
         # tf.print('beta.shape 4', beta.shape)
         if neff_compartments.dtype != dtype:
             neff_compartments = tf.cast(neff_compartments, dtype=dtype)
