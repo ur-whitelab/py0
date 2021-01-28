@@ -22,14 +22,19 @@ def _compute_trans_diagonal(tri_values, indices, shape):
     return diag
 
 
-def recip_norm_mat_dist(trans_times, trans_times_var, indices):
+def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True):
     values = tf.gather_nd(trans_times, indices)
     v_vars = tf.gather_nd(trans_times_var, indices)
-    j = tfd.Independent(tfd.TransformedDistribution(
-        tfd.TruncatedNormal(loc=tf.clip_by_value(
-            values, 1 + 1e-3, 1e10), scale=v_vars, low=1., high=1e10),
-        bijector=tfb.Reciprocal()
-    ), 1)
+    if sample_R:
+        j = tfd.Independent(
+            tfd.TruncatedNormal(loc=tf.clip_by_value(
+                values, 1 + 1e-3, 1e10), scale=v_vars, low=0, high=1e10))
+    else:
+        j = tfd.Independent(tfd.TransformedDistribution(
+            tfd.TruncatedNormal(loc=tf.clip_by_value(
+                values, 1 + 1e-3, 1e10), scale=v_vars, low=1., high=1e10),
+            bijector=tfb.Reciprocal()
+        ), 1)
     return j
 
 
@@ -41,7 +46,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
     x = TrainableInputLayer(combined, constraint=MinMaxConstraint(
         1e-3, 1e10), name=name + '-hypers')(input)
     d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(
-        t[0, 0], t[0, 1], indices), name=name + '-dist')(x)
+        t[0, 0], t[0, 1], indices, sample_R=False), name=name + '-dist')(x)
 
     def reshaper(x, L=time_means.shape[0], indices=indices):
         if tf.rank(x) == 1:
@@ -83,25 +88,26 @@ def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, 
 
 
 def normal_mat_layer(input, start, name, start_var=1, clip_high=1e10):
-    '''Normally distributed trainable distribution. Zeros in starting matrix are preserved'''
+    '''Normally distributed trainable distribution. Zeros in mobility matrix are preserved'''
     # stack variance
     start_val = np.concatenate((
         start[np.newaxis, ...],
         np.tile(start_var, start.shape)[np.newaxis, ...]
     ))
-    # zero-out variance of zeroed starts
-    start_val[1] = start_val[1] * (start_val[0] > 0)
+    indices = tf.cast(tf.where(start > 0), tf.int32)
     x = TrainableInputLayer(start_val, name=name + '-hypers',
                             constraint=PositiveMaskedConstraint(start_val > 0))(input)
     x = tf.keras.layers.Lambda(
         lambda x: x + 1e-10 * np.mean(start), name=name + '-jitter')(x)
-    return tfp.layers.DistributionLambda(
-        lambda t: tfd.Independent(tfd.TruncatedNormal(
-            loc=t[0, 0],
-            low=0.0,
-            high=clip_high,
-            scale=1e-3 + tf.math.sigmoid(t[0, 1])), 2),
-        name=name + '-dist')(x), lambda x: x/tf.reduce_sum(x, axis=-1, keepdims=True)
+    d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(
+        t[0, 0], t[0, 1], indices), name=name + '-dist')(x)
+
+    def reshaper(x, L=start.shape[0], indices=indices):
+        if tf.rank(x) == 1:
+            x = x[tf.newaxis, ...]
+        mat = tf.map_fn(lambda v: tf.scatter_nd(indices, v, (L, L)), x)
+        return mat/tf.reduce_sum(mat, axis=-1, keepdims=True)
+    return d, reshaper
 
 
 class ParameterHypers:
