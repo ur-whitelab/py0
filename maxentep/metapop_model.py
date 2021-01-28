@@ -167,9 +167,6 @@ class MetaParameterJoint(ParameterJoint):
             kernel_initializer=tf.keras.initializers.Constant(
                 tf.math.log(hypers.beta_start)),
             name='beta')
-        # if multi_infectivity:
-            
-        # else:
         beta_dist = tfp.layers.DistributionLambda(
             lambda b: tfd.Independent(tfd.TruncatedNormal(
                 loc=tf.clip_by_value(tf.math.sigmoid(
@@ -397,12 +394,6 @@ def contact_infection_func(infectious_compartments, area=None, dtype=tf.float64)
             return tf.ones_like(n)
 
     def fxn(neff_compartments, neff,  beta, infectious_compartments=infectious_compartments):
-        # Given multiple infectious_compartments, if there is only one input for infectivity, consider same infectivilty for all.
-        if tf.rank(beta) == 0:
-            beta = tf.reshape(beta,(-1,1))
-        if beta.shape[-1] != len(infectious_compartments):
-            beta = tf.repeat(beta, len(
-                infectious_compartments), axis=1)
         beta = tf.reshape(beta, (-1, len(infectious_compartments)))
         if neff_compartments.dtype != dtype:
             neff_compartments = tf.cast(neff_compartments, dtype=dtype)
