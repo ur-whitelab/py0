@@ -400,3 +400,25 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150):
     if title:
         plt.title(title, fontsize=20)
     return
+
+
+def p0_loss(trajs, weights, true_p0_node):
+    R'''Returns cross-entropy loss for p0 based on sampled trajs and maxent weights, size of meta-population and ground-truth p0 node inputs'''
+    M = trajs.shape[2]
+    prior_exposed_patch = maxentep.exposed_finder(trajs)
+    weighted_exposed_prob = maxentep.weighted_exposed_prob_finder(
+        prior_exposed_patch, M, weights=weights)
+    loss = -np.log(weighted_exposed_prob[true_p0_node])
+    return loss
+
+
+def traj_loss(ref_traj, trajs, weights):
+    R'''Returns KL divergence loss for predicted traj based on ref_traj, sampled trajs and maxent weights inputs'''
+    M = trajs.shape[2]
+    Time = trajs.shape[1]
+    weights /= tf.reduce_sum(weights)
+    mtrajs_counties = tf.reduce_sum(
+        trajs * weights[:, tf.newaxis, tf.newaxis, tf.newaxis], axis=0)
+    loss = -tf.reduce_sum(ref_traj*tf.math.log(
+        tf.math.divide_no_nan(mtrajs_counties, ref_traj) + 1e-10))/M/Time
+    return loss
