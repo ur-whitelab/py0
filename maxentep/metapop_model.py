@@ -112,9 +112,9 @@ def normal_mat_layer(input, start, name, start_var=1, clip_high=1e10):
 
 class ParameterHypers:
     def __init__(self):
-        self.beta_low = 0.01
-        self.beta_high = 0.7
-        self.beta_var = 0.05
+        self.beta_low = [0.01] * 3
+        self.beta_high = [0.7] * 3
+        self.beta_var = [0.05] *3
         self.start_high = 0.5
         self.start_var = 0.1
         self.R_var = 0.2
@@ -151,14 +151,18 @@ class ParameterJoint(tf.keras.Model):
 class MetaParameterJoint(ParameterJoint):
     def __init__(self, start_logits, mobility_matrix,
                  transition_matrix,
-                 name='', hypers=None):
+                 name='', hypers=None, n_infectious_compartments=1):
         '''Create trainable joint model for parameters'''
         if hypers is None:
             hypers = ParameterHypers()
+        dense_layer_size = n_infectious_compartments
+        beta_low = hypers.beta_low[0:dense_layer_size]
+        beta_high = hypers.beta_high[0:dense_layer_size]
+        beta_var = hypers.beta_var[0:dense_layer_size]
         i = tf.keras.layers.Input((1,))
         # infection parameter first
         beta_layer = tf.keras.layers.Dense(
-            1,
+            dense_layer_size,
             use_bias=False,
             kernel_initializer=tf.keras.initializers.Constant(
                 tf.math.log(hypers.beta_start)),
@@ -166,10 +170,10 @@ class MetaParameterJoint(ParameterJoint):
         beta_dist = tfp.layers.DistributionLambda(
             lambda b: tfd.Independent(tfd.TruncatedNormal(
                 loc=tf.clip_by_value(tf.math.sigmoid(
-                    b[..., 0]), hypers.beta_low + 1e-3, hypers.beta_high - 1e-3),
-                scale=hypers.beta_var,
-                low=hypers.beta_low,
-                high=hypers.beta_high), 1),
+                    b[..., 0:n_infectious_compartments]), beta_low, beta_high),
+                scale=beta_var,
+                low=beta_low,
+                high=beta_high), 1),
             name='beta-dist'
         )(beta_layer(i))
         R_dist = normal_mat_layer(
@@ -390,18 +394,25 @@ def contact_infection_func(infectious_compartments, area=None, dtype=tf.float64)
             return tf.ones_like(n)
 
     def fxn(neff_compartments, neff,  beta, infectious_compartments=infectious_compartments):
+        beta = tf.reshape(beta, (-1, len(infectious_compartments)))
         if neff_compartments.dtype != dtype:
             neff_compartments = tf.cast(neff_compartments, dtype=dtype)
-        ninf = tf.zeros_like(neff_compartments[:, :, :, 0])
         # k is the average number of contacts across the whole population
         ntot = tf.reduce_sum(neff, axis=1)
         k = 10.
         z = ntot * k / tf.reduce_sum(neff * density_fxn(neff), axis=1)
-        for i in infectious_compartments:
-            ninf += neff_compartments[:, :, :, i]
-        p = 1 - tf.math.exp(tf.math.log(1 - tf.reshape(beta, (-1, 1)))
-                            * density_fxn(neff) * z[..., tf.newaxis]
-                            * tf.reduce_sum(ninf, axis=1) / neff)
+        p_getting_infected_in_patch_infectious_compartments = []
+        for i, infected_compartment in enumerate(infectious_compartments):
+            ninf = tf.zeros_like(neff_compartments[:, :, :, 0])
+            ninf += neff_compartments[:, :, :, infected_compartment]
+            p_getting_infected_in_patch = tf.math.exp(tf.math.log(1 - beta[:,i,tf.newaxis])
+                                                      * density_fxn(neff) * z[..., tf.newaxis]
+                                                      * tf.reduce_sum(ninf, axis=1) / neff)
+            p_getting_infected_in_patch_infectious_compartments.append(
+                p_getting_infected_in_patch)
+        p_getting_infected_in_patch_infectious_compartments = tf.cast(
+            p_getting_infected_in_patch_infectious_compartments, dtype=dtype)
+        p = 1 - tf.reduce_prod(p_getting_infected_in_patch_infectious_compartments, axis=0)
         return p
     return fxn
 
