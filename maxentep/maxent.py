@@ -131,7 +131,7 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
         two_sig = tf.math.divide_no_nan(sqrt(2), self.sigmas)
         prior_term = mask * tf.math.log(
             tf.clip_by_value(1. / (self.l + two_sig) + 1. / (two_sig - self.l),
-                             1e-8, 1e8))
+                             1e-20, 1e8))
         # sum-up constraint terms
         logits = tf.reduce_sum(-self.l[tf.newaxis, :]
                                * gk + prior_term[tf.newaxis, :], axis=1)
@@ -141,7 +141,7 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
             weights = weights * tf.reshape(input_weights, (-1,))
             weights /= tf.reduce_sum(weights)
         self.add_metric(
-            tf.reduce_sum(-weights * tf.math.log(weights)),
+            tf.reduce_sum(-weights * tf.math.log(weights + 1e-30)),
             aggregation='mean',
             name='weight-entropy')
         return weights
@@ -179,7 +179,7 @@ class ReweightLayer(tf.keras.layers.Layer):
             weights = weights * tf.reshape(input_weights, (-1,))
             weights /= tf.reduce_sum(weights)
         self.add_metric(
-            tf.reduce_sum(-weights * tf.math.log(weights)),
+            tf.reduce_sum(-weights * tf.math.log(weights + 1e-30)),
             aggregation='mean',
             name='weight-entropy')
         return weights
