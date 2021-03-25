@@ -28,17 +28,17 @@ def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_averag
         # pick random time period
         s = slice(i * time_average,
                   i * time_average + time_average)
-        v = np.clip(np.mean(traj[s], axis=0)[
-                    inner_slice] + np.random.normal(scale=noise), 0, 1)
+        v = np.log(np.clip(np.mean(traj[s], axis=0)[
+                    inner_slice] * np.random.normal(loc=1.0, scale=noise), 0, 1) + 1e-15)
         def fxn(x, s=s, j=inner_slice):
-            return tf.reduce_mean(x[s], axis=0)[j]
+            return tf.math.log(tf.reduce_mean(x[s], axis=0)[j] + 1e-15)
         print(i * time_average + time_average // 2 ,
-              np.mean(traj[s], axis=0)[inner_slice], v)
+              np.mean(traj[s], axis=0)[inner_slice], np.exp(v))
         # need to make a multiline lambda, so fake it with tuple
         plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
             ax.plot(i * time_average + time_average // 2 ,
-                    v, 'o', color=color, markersize=3),
-            ax.errorbar(i * time_average + time_average // 2 , v, xerr=time_average //
+                    np.exp(v), 'o', color=color, markersize=3),
+            ax.errorbar(i * time_average + time_average // 2 , np.exp(v), xerr=time_average //
                         2, yerr=prior.expected(float(l)), color=color, capsize=3, ms=20)
         )
         r = Restraint(fxn, v, prior)
