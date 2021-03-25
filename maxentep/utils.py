@@ -214,7 +214,7 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
         import geoplot as gplt
         import geoplot.crs as gcrs
 
-        census_geo = gpd.read_file(geojson).sort_values(by=['fips']).assign(
+        census_geo = gpd.read_file(geojson).sort_values(by=['county']).assign(
             prob_exposed_initial=weighted_exposed_prob)
         ax = gplt.choropleth(
             census_geo,
