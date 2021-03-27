@@ -22,7 +22,7 @@ def _compute_trans_diagonal(tri_values, indices, shape):
     return diag
 
 
-def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True, n_infectious_compartments=1):
+def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True, low=1):
     values = tf.gather_nd(trans_times, indices)
     v_vars = tf.gather_nd(trans_times_var, indices)
     if sample_R:
@@ -32,7 +32,7 @@ def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True, n_
     else:
         j = tfd.Independent(tfd.TransformedDistribution(
             tfd.TruncatedNormal(loc=tf.clip_by_value(
-                values, 1 + 1e-3, 1e10), scale=v_vars, low=n_infectious_compartments, high=1e10),
+                values, 1 + 1e-3, 1e10), scale=v_vars, low=low, high=1e10),
             bijector=tfb.Reciprocal()
         ), 1)
     return j
@@ -46,7 +46,7 @@ def recip_norm_mat_layer(input, time_means, time_vars, name, n_infectious_compar
     x = TrainableInputLayer(combined, constraint=MinMaxConstraint(
         1e-3, 1e10), name=name + '-hypers')(input)
     d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(
-        t[0, 0], t[0, 1], indices, sample_R=False, n_infectious_compartments=n_infectious_compartments), name=name + '-dist')(x)
+        t[0, 0], t[0, 1], indices, sample_R=False, low=n_infectious_compartments), name=name + '-dist')(x)
 
     def reshaper(x, L=time_means.shape[0], indices=indices):
         if tf.rank(x) == 1:
