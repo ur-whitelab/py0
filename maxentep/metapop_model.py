@@ -22,7 +22,7 @@ def _compute_trans_diagonal(tri_values, indices, shape):
     return diag
 
 
-def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True):
+def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True, low=1):
     values = tf.gather_nd(trans_times, indices)
     v_vars = tf.gather_nd(trans_times_var, indices)
     if sample_R:
@@ -32,13 +32,13 @@ def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True):
     else:
         j = tfd.Independent(tfd.TransformedDistribution(
             tfd.TruncatedNormal(loc=tf.clip_by_value(
-                values, 1 + 1e-3, 1e10), scale=v_vars, low=1., high=1e10),
+                values, 1 + 1e-3, 1e10), scale=v_vars, low=low, high=1e10),
             bijector=tfb.Reciprocal()
         ), 1)
     return j
 
 
-def recip_norm_mat_layer(input, time_means, time_vars, name):
+def recip_norm_mat_layer(input, time_means, time_vars, name, n_infectious_compartments=1):
     '''Column Normalized Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved'''
     # add extra row that we use for concentration
     combined = np.stack((time_means, time_vars))
@@ -46,13 +46,20 @@ def recip_norm_mat_layer(input, time_means, time_vars, name):
     x = TrainableInputLayer(combined, constraint=MinMaxConstraint(
         1e-3, 1e10), name=name + '-hypers')(input)
     d = tfp.layers.DistributionLambda(lambda t: recip_norm_mat_dist(
-        t[0, 0], t[0, 1], indices, sample_R=False), name=name + '-dist')(x)
+        t[0, 0], t[0, 1], indices, sample_R=False, low=n_infectious_compartments), name=name + '-dist')(x)
 
     def reshaper(x, L=time_means.shape[0], indices=indices):
         if tf.rank(x) == 1:
             x = x[tf.newaxis, ...]
         mat = tf.map_fn(lambda v: tf.scatter_nd(indices, v, (L, L)), x)
-        return tf.linalg.diag(1 - tf.reduce_sum(mat, axis=-1)) + mat
+        tmat_sample = tf.linalg.diag(
+            1 - tf.reduce_sum(mat, axis=-1)) + mat
+        # making sure sampled values are valid
+        tf.debugging.assert_non_negative(tmat_sample,
+                                         message='Sampled transition matrix seems to have negative values. If you have multiple infectious'
+                                         ' compartments, please change n_infectious_compartments'
+                                         ' based on your epidemiology model.')
+        return tmat_sample
     return d, reshaper
 
 
@@ -179,7 +186,7 @@ class MetaParameterJoint(ParameterJoint):
         R_dist = normal_mat_layer(
             i, mobility_matrix,  start_var=hypers.R_var, name='R-dist')
         T_dist = recip_norm_mat_layer(
-            i, *transition_matrix.prior_matrix(), name='T-dist')
+            i, *transition_matrix.prior_matrix(), name='T-dist', n_infectious_compartments=n_infectious_compartments)
         start_dist = categorical_normal_layer(
             i, start_logits, hypers.start_mean, hypers.start_scale, len(transition_matrix.names) - 1, name='rho-dist', start_high=hypers.start_high)
         reshapers = [R_dist[1], T_dist[1], start_dist[1], lambda x: x]
