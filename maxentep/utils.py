@@ -202,7 +202,8 @@ def weighted_exposed_prob_finder(prior_exposed_patch, meta_pop_size, weights=Non
 
 
 def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, title=None,
-           choropleth=False, geojson=None, fontsize=12, figsize=(15, 8)):
+           choropleth=False, geojson=None, fontsize=12, figsize=(15, 8), vmin=None, vmax=None,
+           restrained_patches=None, true_origin=None, obs_size=5, obs_color='C0', org_color='C8', colormap='Reds'):
     R'''
     Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
     on a choropleth map (this requires geopandas and geoplot packages).
@@ -213,19 +214,51 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
         import geopandas as gpd
         import geoplot as gplt
         import geoplot.crs as gcrs
-
+        import matplotlib as mpl
+        if vmax is None:
+            vmax = max(weighted_exposed_prob)
+        if vmin is None:
+            vmin = min(weighted_exposed_prob)
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        cmap = mpl.cm.ScalarMappable(norm=norm, cmap=colormap).cmap
         census_geo = gpd.read_file(geojson).sort_values(by=['county']).assign(
             prob_exposed_initial=weighted_exposed_prob)
+        total_bounds = census_geo.total_bounds + np.array([0, -0.2, 0, 0])
         ax = gplt.choropleth(
             census_geo,
             hue='prob_exposed_initial',
-            cmap='Reds', linewidth=0.5,
+            cmap=cmap, norm=norm, linewidth=0.5,
             edgecolor='k',
             legend=True,
             projection=gcrs.AlbersEqualArea(),
             figsize=figsize,
+            zorder=0, extent=total_bounds
         )
-        plt.title(title, fontsize=fontsize)
+        ax.set_facecolor('w')
+        # scatter plot the observations on the map
+        if restrained_patches is not None:
+            restrained_patches_names = [' '.join(patch_names[i].split()[:-1])
+                                        for i in restrained_patches]
+            census_geo_points = census_geo.copy()
+            census_geo_points['geometry'] = census_geo_points['geometry'].centroid
+            obs = census_geo_points.query(
+                'county == @restrained_patches_names')
+            gplt.pointplot(obs, ax=ax,
+                           marker='o', s=obs_size, color=obs_color, zorder=2, extent=total_bounds, edgecolor='#ebebeb', alpha=0.9)
+            if true_origin is not None:
+                origin_name = patch_names[true_origin]
+                origin_name = ' '.join(origin_name.split()[:-1])
+                org = census_geo_points.query('county == @origin_name')
+                gplt.pointplot(org, ax=ax,
+                               marker='v', s=obs_size+6, color=org_color, zorder=1, extent=total_bounds, edgecolor='#ebebeb', alpha=0.9)
+        fig = ax.figure
+        cb_ax = fig.axes[1]
+        cb_ax.tick_params(labelsize=fontsize)
+        if title:
+            plt.title(title, fontsize=fontsize)
+
+
+            
     else:
         nrow = int(np.floor(np.sqrt(meta_pop_size)))
         ncol = int(np.ceil(meta_pop_size / nrow))
@@ -333,16 +366,16 @@ def plot_dist(R_dist, E_A, A_I, I_R, start_exposed_dist, beta_dist, name='prior'
     sns.distplot(x=I_R, ax=axs[1, 2], axlabel=r'$\mu^{-1}$ : I->R (days)')
 
 
-def graph_dof(edge_list, node_list):
+def graph_degree(graph):
     R'''
-    Returns degree-of-freedom of a network graph based in edge and node list inputs
+    Returns degree-of-freedom of a network graph based on networkx graph
     '''
-    dof = len(edge_list)/len(node_list)
-    return dof
+    degree = len(list(graph.edges))/len(list(graph.nodes))
+    return degree
 
 def gen_graph(M):
     R'''
-    Returns a dense networkx graph of size M, edge list and node list
+    Returns a fully connected dense networkx graph of size M, edge list and node list
     '''
     import networkx as nx
     G = nx.DiGraph()
@@ -357,8 +390,19 @@ def gen_graph(M):
     G.add_edges_from(edge_list)
     return G, edge_list, node_list
 
+def gen_random_graph(M, p=1.0):
+    R'''
+    Returns a random networkx graph of size M with connection probability p
+    '''
+    import networkx as nx
+    graph = nx.fast_gnp_random_graph(M, p, directed=True)
+    # adding self-connection
+    edge_list = [(i, i) for i in range(M)]
+    graph.add_edges_from(edge_list)
+    return graph
 
-def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150):
+
+def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_origin=None):
     R'''
     Plots networkx graph. Heatmap option changes node color based on node weights.
     '''
@@ -368,13 +412,18 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150):
             'width': 0.7,
             'edge_color': '#1d4463',
             'font_color': '#827c60',
-            'node_size': 500,
+            'node_size': 500
         }
         if weights is None:
             M = len(graph.nodes)
             weights = np.ones(M)/M
         max_weight = float(max(weights))
         node_colors = [plt.cm.Reds(weight/max_weight) for weight in weights]
+        edge_colors = ['k'] * len(weights)
+        line_widths = [0.5] * len(weights)
+        if true_origin:
+            edge_colors[true_origin] = '#e8c900'
+            line_widths[true_origin] = 2.5
         colors_unscaled = [tuple(map(lambda x: max_weight*x, y))
                            for y in node_colors]
         # Creating a dummy colormap
@@ -382,7 +431,10 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150):
         plt.close()
         fig, ax = plt.subplots(dpi=dpi)
         graph_plt = nx.draw(graph, with_labels=True, pos=nx.shell_layout(graph), font_weight='bold',
-                            node_color=node_colors, ax=ax, **options, cmap='Reds')
+                            node_color=node_colors, linewidths=line_widths, ax=ax, **options, cmap='Reds')
+        ax = plt.gca()  # to get the current axis
+        ax.collections[0].set_edgecolor(edge_colors)
+        ax.collections[0].set_linewidths(line_widths)
         cbar = plt.colorbar(heatmap)
         cbar.ax.set_ylabel('Patient-zero Probability',
                            labelpad=15, rotation=90)
@@ -400,6 +452,18 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150):
     if title:
         plt.title(title, fontsize=20)
     return
+
+
+def sparse_graph_mobility(sparse_graph, fully_connected_mobility_matrix):
+    R'''
+    Generates a sprase mobility matrix based on sparse graph and a fully connected mobility matrix inputs.
+    For a fully connected graph, the output mobility matrix remains the same.
+    '''
+    sparse_mobility_matrix = np.zeros_like(fully_connected_mobility_matrix)
+    for i, edge in enumerate(sparse_graph.edges()):
+        sparse_mobility_matrix[edge[0], edge[1]
+                               ] = fully_connected_mobility_matrix[edge[0], edge[1]]
+    return sparse_mobility_matrix
 
 
 def p0_loss(trajs, weights, true_p0_node):

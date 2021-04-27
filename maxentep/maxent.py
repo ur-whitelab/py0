@@ -28,18 +28,18 @@ def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_averag
         # pick random time period
         s = slice(i * time_average,
                   i * time_average + time_average)
-        v = np.clip(np.mean(traj[s], axis=0)[
-                    inner_slice] + np.random.normal(scale=noise), 0, 1)
+        v = np.log(np.clip(np.mean(traj[s], axis=0)[
+                    inner_slice] * np.random.normal(loc=1.0, scale=noise), 0, 1) + 1e-15)
         def fxn(x, s=s, j=inner_slice):
-            return tf.reduce_mean(x[s], axis=0)[j]
+            return tf.math.log(tf.reduce_mean(x[s], axis=0)[j] + 1e-15)
         print(i * time_average + time_average // 2 ,
-              np.mean(traj[s], axis=0)[inner_slice], v)
+              np.mean(traj[s], axis=0)[inner_slice], np.exp(v))
         # need to make a multiline lambda, so fake it with tuple
         plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
             ax.plot(i * time_average + time_average // 2 ,
-                    v, 'o', color=color, markersize=3),
-            ax.errorbar(i * time_average + time_average // 2 , v, xerr=time_average //
-                        2, yerr=prior.expected(float(l)), color=color, capsize=3, ms=20)
+                    np.exp(v), 'o', color=color, markersize=3),
+            ax.errorbar(i * time_average + time_average // 2 , np.exp(v), xerr=time_average //
+                        2, yerr=np.exp(prior.expected(float(l))), color=color, capsize=3, ms=20)
         )
         r = Restraint(fxn, v, prior)
         restraints.append(r)
@@ -131,7 +131,7 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
         two_sig = tf.math.divide_no_nan(sqrt(2), self.sigmas)
         prior_term = mask * tf.math.log(
             tf.clip_by_value(1. / (self.l + two_sig) + 1. / (two_sig - self.l),
-                             1e-8, 1e8))
+                             1e-20, 1e8))
         # sum-up constraint terms
         logits = tf.reduce_sum(-self.l[tf.newaxis, :]
                                * gk + prior_term[tf.newaxis, :], axis=1)
@@ -141,7 +141,7 @@ class ReweightLayerLaplace(tf.keras.layers.Layer):
             weights = weights * tf.reshape(input_weights, (-1,))
             weights /= tf.reduce_sum(weights)
         self.add_metric(
-            tf.reduce_sum(-weights * tf.math.log(weights)),
+            tf.reduce_sum(-weights * tf.math.log(weights + 1e-30)),
             aggregation='mean',
             name='weight-entropy')
         return weights
@@ -179,7 +179,7 @@ class ReweightLayer(tf.keras.layers.Layer):
             weights = weights * tf.reshape(input_weights, (-1,))
             weights /= tf.reduce_sum(weights)
         self.add_metric(
-            tf.reduce_sum(-weights * tf.math.log(weights)),
+            tf.reduce_sum(-weights * tf.math.log(weights + 1e-30)),
             aggregation='mean',
             name='weight-entropy')
         return weights
