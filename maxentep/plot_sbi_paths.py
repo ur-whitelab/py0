@@ -19,7 +19,7 @@ true_params = [100., 50., 75., 15., -40.]
 
 true_path = np.genfromtxt('true_trajectory.txt')
 noisy_path = np.genfromtxt('noisy_trajectory.txt')
-sbi_data = np.genfromtxt('samples.txt')
+sbi_data = np.genfromtxt('wide_prior_samples.txt')
 
 maxent_paths = np.load('maxent_raw_trajectories.npy')
 maxent_weights = np.genfromtxt('maxent_traj_weights.txt')
@@ -114,7 +114,7 @@ sim.plot_traj(fig=fig,
               alpha=alpha_val,
               linestyle='-.',
               linewidth=1,
-              label='Unbiased Prior')
+              label='Prior Mean')
 sim.set_traj(mean_sbi_path)
 sim.plot_traj(fig=fig,
               axes=axes,
@@ -125,18 +125,18 @@ sim.plot_traj(fig=fig,
               fade_lines=False,
               linewidth=1,
               alpha=alpha_val,
-              label='SPLE')
-sim.set_traj(abc_mean_path)
-sim.plot_traj(fig=fig,
-              axes=axes,
-              make_colorbar=False,
-              save=False,
-              cmap=plt.get_cmap('Purples').reversed(),
-              color=colors[1],
-              fade_lines=False,
-              linewidth=1,
-              alpha=alpha_val,
-              label='ABC')
+              label='SNL')
+# sim.set_traj(abc_mean_path)
+# sim.plot_traj(fig=fig,
+#               axes=axes,
+#               make_colorbar=False,
+#               save=False,
+#               cmap=plt.get_cmap('Purples').reversed(),
+#               color=colors[1],
+#               fade_lines=False,
+#               linewidth=1,
+#               alpha=alpha_val,
+#               label='ABC')
 sim.set_traj(true_path)
 sim.plot_traj(fig=fig,
               axes=axes,
@@ -181,7 +181,7 @@ plt.tight_layout()
 plt.savefig('paths_compare.png')
 plt.savefig('paths_compare.svg')
 
-fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(5,5), dpi=300, sharex=True)
+fig, axes = plt.subplots(nrows=5, ncols=1, figsize=(5,5), dpi=300, sharex=False)
 
 # iterate over the five parameters
 legend = False
@@ -189,18 +189,19 @@ n_bins = 30
 for i, key in enumerate(column_names):
     if i == len(column_names) - 1:
         legend = True
-    sns.histplot(data=sbi_frame, x=key, ax=axes[i], color=colors[0],  stat='probability', element='step', kde=True, fill=False, bins=n_bins, lw=0.0)
-    sns.histplot(data=abc_frame, x=key, ax=axes[i], color=colors[1], stat='probability', element='step', kde=True, fill=False, bins=n_bins, weights=abc_weights, lw=0.)
-    sns.histplot(data=maxent_frame, x=key, ax=axes[i], color=colors[2],  stat='probability', element='step', kde=True, fill=False, bins=n_bins, weights=maxent_weights, lw=0.0)
+    sns.histplot(data=sbi_frame, x=key, ax=axes[i], color=colors[0],  stat='probability', element='step', kde=True, fill=False, bins=n_bins, lw=1.0)
+    # sns.histplot(data=abc_frame, x=key, ax=axes[i], color=colors[1], stat='probability', element='step', kde=True, fill=False, bins=n_bins, weights=abc_weights, lw=0.)
+    sns.histplot(data=maxent_frame, x=key, ax=axes[i], color=colors[2],  stat='probability', element='step', kde=True, fill=False, bins=n_bins, weights=maxent_weights, lw=1.0)
+    sns.histplot(data=maxent_frame, x=key, ax=axes[i], color=colors[3],  stat='probability', element='step', kde=True, fill=False, bins=n_bins, lw=1.0)
     axes[i].axvline(prior_means[i], ls='-.', color='grey', lw=1.2)
-    axes[i].axvline(true_params[i], ls='--', color='black', lw=1.2)
+    axes[i].axvline(true_params[i], ls=':', color='black', lw=1.2)
     axes[i].set_xlabel(key)
-custom_lines = [Line2D([0], [0], color=colors[0], lw=4),
-                Line2D([0], [0], color=colors[1], lw=4),
-                Line2D([0], [0], color=colors[2], lw=4),
-                Line2D([0], [0], color='black', ls='--', lw=4),
-                Line2D([0], [0], color='grey', ls='-.', lw=4)]
-axes[0].legend(custom_lines, ['SPLE', 'ABC', 'MaxEnt', 'True Parameter', 'Prior Mean'], loc='upper left', bbox_to_anchor=(1.05,1.))
+custom_lines = [Line2D([0], [0], color=colors[3], lw=2),
+                Line2D([0], [0], color=colors[0], lw=2),
+                Line2D([0], [0], color=colors[2], lw=2),
+                Line2D([0], [0], color='black', ls=':', lw=2),
+                Line2D([0], [0], color='grey', ls='-.', lw=2)]
+axes[0].legend(custom_lines, ['Prior', 'SNL',  'MaxEnt', 'True Parameters', 'Prior Mean'], loc='upper left', bbox_to_anchor=(1.05,1.))
 plt.tight_layout()
 
 plt.savefig('posterior_compare.png')
@@ -222,14 +223,15 @@ def get_crossent(prior_samples, posterior_samples, epsilon = 1e-7, x_range=[-100
     return -np.sum(crossents)
 
 
-abc_prior = np.random.multivariate_normal(mean=prior_means, cov=np.eye(5)*2.5, size=abc_dist.shape[0])
-abc_crossent = get_crossent(abc_prior, abc_dist, post_weights=abc_weights)
+# abc_prior = np.random.multivariate_normal(mean=prior_means, cov=np.eye(5)*50, size=abc_dist.shape[0])
+# abc_crossent = get_crossent(abc_prior, abc_dist, post_weights=abc_weights)
 
-sbi_prior = np.random.multivariate_normal(mean=prior_means, cov=np.eye(5)*2.5, size=sbi_dist.shape[0])
+sbi_prior = np.random.multivariate_normal(mean=prior_means, cov=np.eye(5)*50, size=sbi_dist.shape[0])
 sbi_crossent = get_crossent(sbi_prior, sbi_dist)
 
 maxent_prior = np.random.multivariate_normal(prior_means, np.eye(5)*50, size=2048)
 maxent_crossent = get_crossent(maxent_prior, maxent_prior, post_weights=maxent_weights)
-print(f'CROSS-ENTROPY:\nABC: {abc_crossent}\nSBI: {sbi_crossent}\nMaxEnt: {maxent_crossent}')
-crossent_values = [abc_crossent, sbi_crossent, maxent_crossent]
-np.savetxt('crossent_values.txt', np.array(crossent_values), header='ABC, SBI, MaxEnt')
+# print(f'CROSS-ENTROPY:\nABC: {abc_crossent}\nSBI: {sbi_crossent}\nMaxEnt: {maxent_crossent}')
+print(f'CROSS-ENTROPY:\nSBI: {sbi_crossent}\nMaxEnt: {maxent_crossent}')
+crossent_values = [sbi_crossent, maxent_crossent]
+np.savetxt('crossent_values.txt', np.array(crossent_values), header='SBI, MaxEnt')

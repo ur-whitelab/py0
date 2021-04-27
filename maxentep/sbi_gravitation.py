@@ -2,6 +2,7 @@
    then does SBI using that model.'''
 
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 import torch
 
@@ -100,6 +101,7 @@ class GravitySimulator:
         return np.sum(forces, axis=0)
     
     def run(self):
+        np.random.seed(12656)
         while(self.iter_idx < self.nsteps):
             self.step()
         if self.random_noise:
@@ -164,18 +166,24 @@ def sim_wrapper(params_list):
 if __name__ == '__main__':
     
     # set up parameters
-    m1 = 100. #solar masses
-    m2 = 50. #solar masses
-    m3 = 75
-    G = 1.90809e5 #solar radius / solar mass * (km/s)^2
-    v0 = np.array([15.,-40.]) # km/s (?)
+    m1 = 100. # solar masses
+    m2 = 50. # solar masses
+    m3 = 75 # solar masses
+    G = 1.90809e5 # solar radius / solar mass * (km/s)^2
+    v0 = np.array([15.,-40.]) # km/s
 
+
+    if os.path.exists('true_trajectory.txt'):
+        traj = np.genfromtxt('true_trajectory.txt')
+    else:
     # make "true" path
-    sim = GravitySimulator(m1, m2, m3, v0, random_noise=False)
-    traj = sim.run()
-    np.savetxt('true_trajectory.txt', traj)
-    sim.plot_traj()
+        sim = GravitySimulator(m1, m2, m3, v0, random_noise=False)
+        traj = sim.run()
+        np.savetxt('true_trajectory.txt', traj)
+        sim.plot_traj()
 
+    if os.path.exists('noisy_trajectory.txt'):
+        traj=np.genfromtxt('noisy_trajectory.txt')
     sim = GravitySimulator(m1, m2, m3, v0, random_noise=True)
     traj = sim.run()
     np.savetxt('noisy_trajectory.txt', traj)
@@ -184,18 +192,16 @@ if __name__ == '__main__':
     observation_summary_stats = get_observation_points(traj).flatten()
 
     prior = MultivariateNormal(loc=torch.as_tensor(prior_means),
-                                covariance_matrix=torch.as_tensor(torch.eye(5)*2.5))
-    # prior = utils.torchutils.BoxUniform(low=torch.as_tensor(prior_mins, dtype=torch.float64),
-    #                                     high=torch.as_tensor(prior_maxes, dtype=torch.float64))
+                                covariance_matrix=torch.as_tensor(torch.eye(5)*50))
 
-    posterior = infer(sim_wrapper, prior, method='SNLE', num_simulations=400, num_workers=8)#, num_workers=16)
+    posterior = infer(sim_wrapper, prior, method='SNLE', num_simulations=2048, num_workers=16)
 
     print('inference done, starting sampling...')
 
     samples = posterior.sample((2000,),
                                 x=observation_summary_stats)
 
-    np.savetxt('samples.txt', np.array(samples))
+    np.savetxt('wide_prior_samples.txt', np.array(samples))
 
     print('samlping done, plotting.')
 
