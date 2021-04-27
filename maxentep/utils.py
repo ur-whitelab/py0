@@ -202,7 +202,8 @@ def weighted_exposed_prob_finder(prior_exposed_patch, meta_pop_size, weights=Non
 
 
 def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, title=None,
-           choropleth=False, geojson=None, fontsize=12, figsize=(15, 8)):
+           choropleth=False, geojson=None, fontsize=12, figsize=(15, 8), vmin=None, vmax=None,
+           restrained_patches=None, true_origin=None, obs_size=5, obs_color='C0', org_color='C8', colormap='Reds'):
     R'''
     Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
     on a choropleth map (this requires geopandas and geoplot packages).
@@ -213,19 +214,51 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
         import geopandas as gpd
         import geoplot as gplt
         import geoplot.crs as gcrs
-
+        import matplotlib as mpl
+        if vmax is None:
+            vmax = max(weighted_exposed_prob)
+        if vmin is None:
+            vmin = min(weighted_exposed_prob)
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        cmap = mpl.cm.ScalarMappable(norm=norm, cmap=colormap).cmap
         census_geo = gpd.read_file(geojson).sort_values(by=['county']).assign(
             prob_exposed_initial=weighted_exposed_prob)
+        total_bounds = census_geo.total_bounds + np.array([0, -0.2, 0, 0])
         ax = gplt.choropleth(
             census_geo,
             hue='prob_exposed_initial',
-            cmap='Reds', linewidth=0.5,
+            cmap=cmap, norm=norm, linewidth=0.5,
             edgecolor='k',
             legend=True,
             projection=gcrs.AlbersEqualArea(),
             figsize=figsize,
+            zorder=0, extent=total_bounds
         )
-        plt.title(title, fontsize=fontsize)
+        ax.set_facecolor('w')
+        # scatter plot the observations on the map
+        if restrained_patches is not None:
+            restrained_patches_names = [' '.join(patch_names[i].split()[:-1])
+                                        for i in restrained_patches]
+            census_geo_points = census_geo.copy()
+            census_geo_points['geometry'] = census_geo_points['geometry'].centroid
+            obs = census_geo_points.query(
+                'county == @restrained_patches_names')
+            gplt.pointplot(obs, ax=ax,
+                           marker='o', s=obs_size, color=obs_color, zorder=2, extent=total_bounds, edgecolor='#ebebeb', alpha=0.9)
+            if true_origin is not None:
+                origin_name = patch_names[true_origin]
+                origin_name = ' '.join(origin_name.split()[:-1])
+                org = census_geo_points.query('county == @origin_name')
+                gplt.pointplot(org, ax=ax,
+                               marker='v', s=obs_size+6, color=org_color, zorder=1, extent=total_bounds, edgecolor='#ebebeb', alpha=0.9)
+        fig = ax.figure
+        cb_ax = fig.axes[1]
+        cb_ax.tick_params(labelsize=fontsize)
+        if title:
+            plt.title(title, fontsize=fontsize)
+
+
+            
     else:
         nrow = int(np.floor(np.sqrt(meta_pop_size)))
         ncol = int(np.ceil(meta_pop_size / nrow))
@@ -359,7 +392,7 @@ def gen_graph(M):
 
 def gen_random_graph(M, p=1.0):
     R'''
-    Returns a random networkx graph of size M with connection probability p, edge list and node list
+    Returns a random networkx graph of size M with connection probability p
     '''
     import networkx as nx
     graph = nx.fast_gnp_random_graph(M, p, directed=True)
