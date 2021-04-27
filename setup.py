@@ -27,14 +27,12 @@ setup(
 
     packages=find_packages(exclude=('tests',)),
 
-    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm'],
+    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm', 'maxent@https://api.github.com/repos/ur-whitelab/maxent/tarball/master',],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
