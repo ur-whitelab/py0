@@ -7,4 +7,3 @@ __all__ = []
 from .utils import *
 from .SIR_model import SIRModel
 from .metapop_model import *
-from .maxent import *
