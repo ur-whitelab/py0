@@ -3,6 +3,7 @@ import scipy.stats as ss
 import matplotlib.pyplot as plt
 import maxentep
 import tensorflow as tf
+import maxent
 
 
 class TransitionMatrix:
@@ -520,9 +521,9 @@ def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_averag
             ax.plot(i * time_average + time_average // 2 ,
                     np.exp(v), 'o', color=color, markersize=3),
             ax.errorbar(i * time_average + time_average // 2 , np.exp(v), xerr=time_average //
-                        2, yerr=np.exp(prior.expected(float(l))), color=color, capsize=3, ms=20)
+                        2, yerr=prior.expected(float(l)), color=color, capsize=3, ms=20)
         )
-        r = Restraint(fxn, v, prior)
+        r = maxent.Restraint(fxn, v, prior)
         restraints.append(r)
         plots.append(plotter)
     return restraints, plots
