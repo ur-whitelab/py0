@@ -27,7 +27,7 @@ setup(
 
     packages=find_packages(exclude=('tests',)),
 
-    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm', 'maxent@https://api.github.com/repos/ur-whitelab/maxent/tarball/master',],
+    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm', 'tensorflow_probability', 'maxent@git+git://github.com/ur-whitelab/maxent.git'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

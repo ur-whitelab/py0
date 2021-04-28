@@ -116,7 +116,7 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
                 ax[i, j].set_xlabel('Time')
             if j >= NP % ncol:
                 ax[nrow-1, j].set_visible(False)
-        
+
     plt.tight_layout()
 
 
@@ -258,7 +258,7 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
             plt.title(title, fontsize=fontsize)
 
 
-            
+
     else:
         nrow = int(np.floor(np.sqrt(meta_pop_size)))
         ncol = int(np.ceil(meta_pop_size / nrow))
@@ -299,7 +299,7 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
 
 def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj, prior, npoints=5, noise=0, start_time=0, end_time=None, time_average=7):
     R'''
-    Adds restraints to reference traj based on selected compartments of selected patches 
+    Adds restraints to reference traj based on selected compartments of selected patches
     '''
     if tf.rank(ref_traj).numpy() != 4:
         ref_traj = ref_traj[tf.newaxis, ...]
@@ -486,3 +486,43 @@ def traj_loss(ref_traj, trajs, weights):
     loss = -tf.reduce_sum(ref_traj*tf.math.log(
         tf.math.divide_no_nan(mtrajs_counties, ref_traj) + 1e-10))/M/Time
     return loss
+
+
+def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7, start_time=0, end_time=None):
+    '''Creates npoints restraints based on given trajectory with noise and time averaging.
+    For example, it could be weekly averages with some noise.
+
+    Returns: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it
+    '''
+    if end_time is None:
+        end_time = len(traj)
+    restraints = []
+    plots = []
+    # make sure it's a tuple
+    inner_slice = tuple(inner_slice)
+    try:
+        slices = np.random.choice(
+            range(start_time // time_average, end_time // time_average), replace=False, size=npoints)
+    except ValueError:
+        print(f'Only {len(traj) // time_average - start_time // time_average} points are possible given the input time_average = {time_average}.')
+    for i in slices:
+        # pick random time period
+        s = slice(i * time_average,
+                  i * time_average + time_average)
+        v = np.log(np.clip(np.mean(traj[s], axis=0)[
+                    inner_slice] * np.random.normal(loc=1.0, scale=noise), 0, 1) + 1e-15)
+        def fxn(x, s=s, j=inner_slice):
+            return tf.math.log(tf.reduce_mean(x[s], axis=0)[j] + 1e-15)
+        print(i * time_average + time_average // 2 ,
+              np.mean(traj[s], axis=0)[inner_slice], np.exp(v))
+        # need to make a multiline lambda, so fake it with tuple
+        plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
+            ax.plot(i * time_average + time_average // 2 ,
+                    np.exp(v), 'o', color=color, markersize=3),
+            ax.errorbar(i * time_average + time_average // 2 , np.exp(v), xerr=time_average //
+                        2, yerr=np.exp(prior.expected(float(l))), color=color, capsize=3, ms=20)
+        )
+        r = Restraint(fxn, v, prior)
+        restraints.append(r)
+        plots.append(plotter)
+    return restraints, plots
