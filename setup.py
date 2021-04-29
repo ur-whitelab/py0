@@ -16,22 +16,23 @@ def read(filename):
 setup(
     name="maxentep",
     version="1.0",
-    url="https://github.com/kragniz/cookiecutter-pypackage-minimal",
-    license='MIT',
+    url="https://github.com/ur-whitelab/maxent-epidemiology",
+    license='GPL v2',
 
-    author="Mehrad Ansari",
-    author_email="Mehrad.ansari@rochester.edu",
+    author="Mehrad Ansari, Rainier Barret, Andrew D White",
+    author_email="mehrad.ans@gmail.com",
 
-    description="An opinionated, minimal cookiecutter template for Python packages",
+    description="Maximum Entropy Biasing of Compartmental Epidomiology Models",
     long_description=read("README.md"),
 
     packages=find_packages(exclude=('tests',)),
 
-    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm', 'tensorflow_probability', 'maxent@git+git://github.com/ur-whitelab/maxent.git'],
+    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm', 'tensorflow_probability',
+                      'maxent@git+git://github.com/ur-whitelab/maxent.git', 'pandas', 'geopandas', 'geoplot', 'networkx'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GPL v2 License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
