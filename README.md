@@ -4,9 +4,8 @@ This python module implements [maximum entropy biasing](https://github.com/ur-wh
 
 ## Installation
 
-The package uses Keras (Tensorflow), geopandas and networkx. Make sure you install [maxent](https://github.com/ur-whitelab/maxent) first:
+The package uses Keras (Tensorflow), geopandas and networkx.
 ```sh
-pip install maxent@git+git://github.com/ur-whitelab/maxent.git
 pip install maxent@git+git://github.com/ur-whitelab/maxent-epidemiology.git
 ```
 
