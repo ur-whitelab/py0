@@ -391,12 +391,13 @@ def gen_graph(M):
     G.add_edges_from(edge_list)
     return G, edge_list, node_list
 
-def gen_random_graph(M, p=1.0):
+
+def gen_random_graph(M, p=1.0, seed=None):
     R'''
     Returns a random networkx graph of size M with connection probability p
     '''
     import networkx as nx
-    graph = nx.fast_gnp_random_graph(M, p, directed=True)
+    graph = nx.fast_gnp_random_graph(M, p, directed=True, seed=seed)
     # adding self-connection
     edge_list = [(i, i) for i in range(M)]
     graph.add_edges_from(edge_list)
