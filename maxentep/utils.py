@@ -491,7 +491,7 @@ def traj_loss(ref_traj, trajs, weights):
 
 
 def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7, start_time=0, end_time=None):
-    '''Creates npoints restraints based on given trajectory with noise and time averaging.
+    '''Creates npoints restraints based on given trajectory with multiplicative noise and time averaging.
     For example, it could be weekly averages with some noise.
 
     Returns: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it
