@@ -14,9 +14,9 @@ def read(filename):
 
 
 setup(
-    name="maxentep",
+    name="py0",
     version="1.0",
-    url="https://github.com/ur-whitelab/maxent-epidemiology",
+    url="https://github.com/ur-whitelab/py0",
     license='GPL v2',
 
     author="Mehrad Ansari, Rainier Barret, Andrew D White",
@@ -27,8 +27,8 @@ setup(
 
     packages=find_packages(exclude=('tests',)),
 
-    install_requires=['numpy', 'matplotlib', 'scipy', 'tqdm', 'tensorflow_probability',
-                      'maxent@git+git://github.com/ur-whitelab/maxent.git', 'pandas', 'geopandas', 'geoplot', 'networkx'],
+    install_requires=['numpy>=1.19.1', 'matplotlib', 'scipy', 'tqdm', 'tensorflow_probability==0.11.1',
+                      'maxent@git+https://github.com/ur-whitelab/maxent.git', 'pandas', 'geopandas==0.8.1', 'geoplot==0.4.1', 'networkx==2.5'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as ss
 import matplotlib.pyplot as plt
-import maxentep
+import py0
 import tensorflow as tf
 import maxent
 
@@ -209,7 +209,7 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
     Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
     on a choropleth map (this requires geopandas and geoplot packages).
     '''
-    weighted_exposed_prob = maxentep.weighted_exposed_prob_finder(
+    weighted_exposed_prob = py0.weighted_exposed_prob_finder(
         prior_exposed_patch, meta_pop_size, weights=weights)
     if choropleth:
         import geopandas as gpd
@@ -319,7 +319,7 @@ def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj
     for i in range(number_of_restrained_patches):
         plot_fxns = []
         for j in range(number_of_restrained_compartments):
-            res, plfxn = maxentep.traj_to_restraints(ref_traj[0, :, :, :], [
+            res, plfxn = py0.traj_to_restraints(ref_traj[0, :, :, :], [
                 restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average, start_time=start_time, end_time=end_time)
             restraints += res
             plot_fxns += plfxn
@@ -471,8 +471,8 @@ def sparse_graph_mobility(sparse_graph, fully_connected_mobility_matrix):
 def p0_loss(trajs, weights, true_p0_node):
     R'''Returns cross-entropy loss for p0 based on sampled trajs and maxent weights, size of meta-population and ground-truth p0 node inputs'''
     M = trajs.shape[2]
-    prior_exposed_patch = maxentep.exposed_finder(trajs)
-    weighted_exposed_prob = maxentep.weighted_exposed_prob_finder(
+    prior_exposed_patch = py0.exposed_finder(trajs)
+    weighted_exposed_prob = py0.weighted_exposed_prob_finder(
         prior_exposed_patch, M, weights=weights)
     loss = -np.log(weighted_exposed_prob[true_p0_node])
     return loss
