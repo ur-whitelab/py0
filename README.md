@@ -6,7 +6,7 @@ This python module implements [maximum entropy biasing](https://github.com/ur-wh
 
 The package uses Keras (Tensorflow), geopandas and networkx.
 ```sh
-pip install maxent@git+git://github.com/ur-whitelab/maxent-epidemiology.git
+pip install maxent@git+https://github.com/ur-whitelab/maxent.git
 ```
 
 ## License
