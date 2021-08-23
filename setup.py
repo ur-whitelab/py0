@@ -28,7 +28,7 @@ setup(
     packages=find_packages(exclude=('tests',)),
 
     install_requires=['numpy>=1.19.1', 'matplotlib', 'scipy', 'tqdm', 'tensorflow_probability==0.11.1',
-                      'maxent@git+https://github.com/ur-whitelab/maxent.git', 'pandas', 'pygdal==3.3.1', 'Fiona==1.8.20', 'geopandas==0.9', 'geoplot==0.4.1', 'networkx==2.5'],
+                      'maxent@git+https://github.com/ur-whitelab/maxent.git', 'pandas', 'pygdal==3.3.1.7', 'Fiona==1.8.20', 'geopandas==0.9', 'geoplot==0.4.1', 'networkx==2.5'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
