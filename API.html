@@ -1,0 +1,1087 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>API &mdash; py0 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Quick Start" href="Quick_start.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="toc.html" class="icon icon-home"> py0
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">PY0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Quick_start.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#metapopulation-model">metapopulation model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-py0.utils">utilities</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="toc.html">py0</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="toc.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/API.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="metapopulation-model">
+<h2>metapopulation model<a class="headerlink" href="#metapopulation-model" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-py0.metapop_model"></span><dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.AddSusceptibleLayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">AddSusceptibleLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.AddSusceptibleLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.AddSusceptibleLayer.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.AddSusceptibleLayer.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is where the layer’s logic lives.</p>
+<p>Note here that <cite>call()</cite> method in <cite>tf.keras</cite> is little bit different
+from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
+layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
+method to support masking.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
+<a href="#id1"><span class="problematic" id="id2">*</span></a>args: Additional positional arguments. Currently unused.
+<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.ContactInfectionLayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ContactInfectionLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ContactInfectionLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.ContactInfectionLayer.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neff_compartments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ContactInfectionLayer.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is where the layer’s logic lives.</p>
+<p>Note here that <cite>call()</cite> method in <cite>tf.keras</cite> is little bit different
+from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
+layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
+method to support masking.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
+<a href="#id5"><span class="problematic" id="id6">*</span></a>args: Additional positional arguments. Currently unused.
+<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.DeltaRegularizer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">DeltaRegularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.DeltaRegularizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.regularizers.Regularizer</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.MetaModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.training.Model</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.MetaModel.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaModel.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the model on new inputs.</p>
+<p>In this case <cite>call</cite> just reapplies
+all ops in the graph to the new inputs
+(e.g. build a new computational graph from the provided inputs).</p>
+<p>Note: This method should not be called directly. It is only meant to be
+overridden when subclassing <cite>tf.keras.Model</cite>.
+To call a model on an input, always use the <cite>__call__</cite> method,
+i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call</cite> method.</p>
+<dl>
+<dt>Args:</dt><dd><p>inputs: A tensor or list of tensors.
+training: Boolean or boolean scalar tensor, indicating whether to run</p>
+<blockquote>
+<div><p>the <cite>Network</cite> in training mode or inference mode.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>mask: A mask or list of masks. A mask can be</dt><dd><p>either a tensor or None (no mask).</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>A tensor if there is a single output, or
+a list of tensors if there are more than one outputs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.MetaParameterJoint">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetaParameterJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaParameterJoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#py0.metapop_model.ParameterJoint" title="py0.metapop_model.ParameterJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">py0.metapop_model.ParameterJoint</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.MetapopLayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetapopLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetapopLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.MetapopLayer.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetapopLayer.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the variables of the layer (optional, for subclass implementers).</p>
+<p>This is a method that implementers of subclasses of <cite>Layer</cite> or <cite>Model</cite>
+can override if they need a state-creation step in-between
+layer instantiation and layer call.</p>
+<p>This is typically used to create the weights of <cite>Layer</cite> subclasses.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>input_shape: Instance of <cite>TensorShape</cite>, or list of instances of</dt><dd><p><cite>TensorShape</cite> if the layer expects a list of inputs
+(one instance per input).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.MetapopLayer.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetapopLayer.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is where the layer’s logic lives.</p>
+<p>Note here that <cite>call()</cite> method in <cite>tf.keras</cite> is little bit different
+from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
+layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
+method to support masking.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
+<a href="#id9"><span class="problematic" id="id10">*</span></a>args: Additional positional arguments. Currently unused.
+<a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.MinMaxConstraint">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MinMaxConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MinMaxConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.constraints.Constraint</span></code></p>
+<p>Makes weights normalized after reshape and applying mask</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.NormalizationConstraint">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">NormalizationConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.NormalizationConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.constraints.Constraint</span></code></p>
+<p>Makes weights normalized after reshape and applying mask</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.ParameterHypers">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ParameterHypers</span></span><a class="headerlink" href="#py0.metapop_model.ParameterHypers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.ParameterJoint">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ParameterJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ParameterJoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.training.Model</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.ParameterJoint.compile">
+<span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ParameterJoint.compile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures the model for training.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>optimizer: String (name of optimizer) or optimizer instance. See</dt><dd><p><cite>tf.keras.optimizers</cite>.</p>
+</dd>
+<dt>loss: String (name of objective function), objective function or</dt><dd><p><cite>tf.keras.losses.Loss</cite> instance. See <cite>tf.keras.losses</cite>. An objective
+function is any callable with the signature <cite>loss = fn(y_true,
+y_pred)</cite>, where y_true = ground truth values with shape =
+<cite>[batch_size, d0, .. dN]</cite>, except sparse loss functions such as sparse
+categorical crossentropy where shape = <cite>[batch_size, d0, .. dN-1]</cite>.
+y_pred = predicted values with shape = <cite>[batch_size, d0, .. dN]</cite>. It
+returns a weighted loss float tensor. If a custom <cite>Loss</cite> instance is
+used and reduction is set to NONE, return value has the shape
+[batch_size, d0, .. dN-1] ie. per-sample or per-timestep loss values;
+otherwise, it is a scalar. If the model has multiple outputs, you can
+use a different loss on each output by passing a dictionary or a list
+of losses. The loss value that will be minimized by the model will
+then be the sum of all individual losses.</p>
+</dd>
+<dt>metrics: List of metrics to be evaluated by the model during training</dt><dd><p>and testing. Each of this can be a string (name of a built-in
+function), function or a <cite>tf.keras.metrics.Metric</cite> instance. See
+<cite>tf.keras.metrics</cite>. Typically you will use <cite>metrics=[‘accuracy’]</cite>. A
+function is any callable with the signature <cite>result = fn(y_true,
+y_pred)</cite>. To specify different metrics for different outputs of a
+multi-output model, you could also pass a dictionary, such as</p>
+<blockquote>
+<div><dl class="simple">
+<dt><cite>metrics={‘output_a’: ‘accuracy’, ‘output_b’: [‘accuracy’, ‘mse’]}</cite>.</dt><dd><p>You can also pass a list (len = len(outputs)) of lists of metrics
+such as <cite>metrics=[[‘accuracy’], [‘accuracy’, ‘mse’]]</cite> or
+<cite>metrics=[‘accuracy’, [‘accuracy’, ‘mse’]]</cite>. When you pass the
+strings ‘accuracy’ or ‘acc’, we convert this to one of
+<cite>tf.keras.metrics.BinaryAccuracy</cite>,
+<cite>tf.keras.metrics.CategoricalAccuracy</cite>,
+<cite>tf.keras.metrics.SparseCategoricalAccuracy</cite> based on the loss
+function used and the model output shape. We do a similar
+conversion for the strings ‘crossentropy’ and ‘ce’ as well.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt>loss_weights: Optional list or dictionary specifying scalar coefficients</dt><dd><p>(Python floats) to weight the loss contributions of different model
+outputs. The loss value that will be minimized by the model will then
+be the <em>weighted sum</em> of all individual losses, weighted by the
+<cite>loss_weights</cite> coefficients.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>If a list, it is expected to have a 1:1 mapping to the model’s</dt><dd><p>outputs. If a dict, it is expected to map output names (strings)
+to scalar coefficients.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt>weighted_metrics: List of metrics to be evaluated and weighted by</dt><dd><p>sample_weight or class_weight during training and testing.</p>
+</dd>
+<dt>run_eagerly: Bool. Defaults to <cite>False</cite>. If <cite>True</cite>, this <cite>Model</cite>’s</dt><dd><p>logic will not be wrapped in a <cite>tf.function</cite>. Recommended to leave
+this as <cite>None</cite> unless your <cite>Model</cite> cannot be run inside a
+<cite>tf.function</cite>. <cite>run_eagerly=True</cite> is not supported when using
+<cite>tf.distribute.experimental.ParameterServerStrategy</cite>.</p>
+</dd>
+<dt>steps_per_execution: Int. Defaults to 1. The number of batches to</dt><dd><p>run during each <cite>tf.function</cite> call. Running multiple batches
+inside a single <cite>tf.function</cite> call can greatly improve performance
+on TPUs or small models with a large Python overhead.
+At most, one full epoch will be run each
+execution. If a number larger than the size of the epoch is passed,
+the execution will be truncated to the size of the epoch.
+Note that if <cite>steps_per_execution</cite> is set to <cite>N</cite>,
+<cite>Callback.on_batch_begin</cite> and <cite>Callback.on_batch_end</cite> methods
+will only be called every <cite>N</cite> batches
+(i.e. before/after each <cite>tf.function</cite> execution).</p>
+</dd>
+</dl>
+<p><a href="#id13"><span class="problematic" id="id14">**</span></a>kwargs: Arguments supported for backwards compatibility only.</p>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>ValueError: In case of invalid arguments for</dt><dd><p><cite>optimizer</cite>, <cite>loss</cite> or <cite>metrics</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.ParameterJoint.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ParameterJoint.sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.PositiveMaskedConstraint">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">PositiveMaskedConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.PositiveMaskedConstraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.constraints.Constraint</span></code></p>
+<p>Makes weights normalized after reshape and applying mask</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.TrainableInputLayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">TrainableInputLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableInputLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<p>Create trainable input layer</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.TrainableInputLayer.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableInputLayer.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is where the layer’s logic lives.</p>
+<p>Note here that <cite>call()</cite> method in <cite>tf.keras</cite> is little bit different
+from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
+layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
+method to support masking.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
+<a href="#id15"><span class="problematic" id="id16">*</span></a>args: Additional positional arguments. Currently unused.
+<a href="#id17"><span class="problematic" id="id18">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">TrainableMetaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.training.Model</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the model on new inputs.</p>
+<p>In this case <cite>call</cite> just reapplies
+all ops in the graph to the new inputs
+(e.g. build a new computational graph from the provided inputs).</p>
+<p>Note: This method should not be called directly. It is only meant to be
+overridden when subclassing <cite>tf.keras.Model</cite>.
+To call a model on an input, always use the <cite>__call__</cite> method,
+i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call</cite> method.</p>
+<dl>
+<dt>Args:</dt><dd><p>inputs: A tensor or list of tensors.
+training: Boolean or boolean scalar tensor, indicating whether to run</p>
+<blockquote>
+<div><p>the <cite>Network</cite> in training mode or inference mode.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>mask: A mask or list of masks. A mask can be</dt><dd><p>either a tensor or None (no mask).</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>A tensor if there is a single output, or
+a list of tensors if there are more than one outputs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel.compile">
+<span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel.compile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures the model for training.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>optimizer: String (name of optimizer) or optimizer instance. See</dt><dd><p><cite>tf.keras.optimizers</cite>.</p>
+</dd>
+<dt>loss: String (name of objective function), objective function or</dt><dd><p><cite>tf.keras.losses.Loss</cite> instance. See <cite>tf.keras.losses</cite>. An objective
+function is any callable with the signature <cite>loss = fn(y_true,
+y_pred)</cite>, where y_true = ground truth values with shape =
+<cite>[batch_size, d0, .. dN]</cite>, except sparse loss functions such as sparse
+categorical crossentropy where shape = <cite>[batch_size, d0, .. dN-1]</cite>.
+y_pred = predicted values with shape = <cite>[batch_size, d0, .. dN]</cite>. It
+returns a weighted loss float tensor. If a custom <cite>Loss</cite> instance is
+used and reduction is set to NONE, return value has the shape
+[batch_size, d0, .. dN-1] ie. per-sample or per-timestep loss values;
+otherwise, it is a scalar. If the model has multiple outputs, you can
+use a different loss on each output by passing a dictionary or a list
+of losses. The loss value that will be minimized by the model will
+then be the sum of all individual losses.</p>
+</dd>
+<dt>metrics: List of metrics to be evaluated by the model during training</dt><dd><p>and testing. Each of this can be a string (name of a built-in
+function), function or a <cite>tf.keras.metrics.Metric</cite> instance. See
+<cite>tf.keras.metrics</cite>. Typically you will use <cite>metrics=[‘accuracy’]</cite>. A
+function is any callable with the signature <cite>result = fn(y_true,
+y_pred)</cite>. To specify different metrics for different outputs of a
+multi-output model, you could also pass a dictionary, such as</p>
+<blockquote>
+<div><dl class="simple">
+<dt><cite>metrics={‘output_a’: ‘accuracy’, ‘output_b’: [‘accuracy’, ‘mse’]}</cite>.</dt><dd><p>You can also pass a list (len = len(outputs)) of lists of metrics
+such as <cite>metrics=[[‘accuracy’], [‘accuracy’, ‘mse’]]</cite> or
+<cite>metrics=[‘accuracy’, [‘accuracy’, ‘mse’]]</cite>. When you pass the
+strings ‘accuracy’ or ‘acc’, we convert this to one of
+<cite>tf.keras.metrics.BinaryAccuracy</cite>,
+<cite>tf.keras.metrics.CategoricalAccuracy</cite>,
+<cite>tf.keras.metrics.SparseCategoricalAccuracy</cite> based on the loss
+function used and the model output shape. We do a similar
+conversion for the strings ‘crossentropy’ and ‘ce’ as well.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt>loss_weights: Optional list or dictionary specifying scalar coefficients</dt><dd><p>(Python floats) to weight the loss contributions of different model
+outputs. The loss value that will be minimized by the model will then
+be the <em>weighted sum</em> of all individual losses, weighted by the
+<cite>loss_weights</cite> coefficients.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>If a list, it is expected to have a 1:1 mapping to the model’s</dt><dd><p>outputs. If a dict, it is expected to map output names (strings)
+to scalar coefficients.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt>weighted_metrics: List of metrics to be evaluated and weighted by</dt><dd><p>sample_weight or class_weight during training and testing.</p>
+</dd>
+<dt>run_eagerly: Bool. Defaults to <cite>False</cite>. If <cite>True</cite>, this <cite>Model</cite>’s</dt><dd><p>logic will not be wrapped in a <cite>tf.function</cite>. Recommended to leave
+this as <cite>None</cite> unless your <cite>Model</cite> cannot be run inside a
+<cite>tf.function</cite>. <cite>run_eagerly=True</cite> is not supported when using
+<cite>tf.distribute.experimental.ParameterServerStrategy</cite>.</p>
+</dd>
+<dt>steps_per_execution: Int. Defaults to 1. The number of batches to</dt><dd><p>run during each <cite>tf.function</cite> call. Running multiple batches
+inside a single <cite>tf.function</cite> call can greatly improve performance
+on TPUs or small models with a large Python overhead.
+At most, one full epoch will be run each
+execution. If a number larger than the size of the epoch is passed,
+the execution will be truncated to the size of the epoch.
+Note that if <cite>steps_per_execution</cite> is set to <cite>N</cite>,
+<cite>Callback.on_batch_begin</cite> and <cite>Callback.on_batch_end</cite> methods
+will only be called every <cite>N</cite> batches
+(i.e. before/after each <cite>tf.function</cite> execution).</p>
+</dd>
+</dl>
+<p><a href="#id19"><span class="problematic" id="id20">**</span></a>kwargs: Arguments supported for backwards compatibility only.</p>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>ValueError: In case of invalid arguments for</dt><dd><p><cite>optimizer</cite>, <cite>loss</cite> or <cite>metrics</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trains the model for a fixed number of epochs (iterations on a dataset).</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>x: Input data. It could be:</dt><dd><ul class="simple">
+<li><p>A Numpy array (or array-like), or a list of arrays
+(in case the model has multiple inputs).</p></li>
+<li><p>A TensorFlow tensor, or a list of tensors
+(in case the model has multiple inputs).</p></li>
+<li><p>A dict mapping input names to the corresponding array/tensors,
+if the model has named inputs.</p></li>
+<li><p>A <cite>tf.data</cite> dataset. Should return a tuple
+of either <cite>(inputs, targets)</cite> or
+<cite>(inputs, targets, sample_weights)</cite>.</p></li>
+<li><p>A generator or <cite>keras.utils.Sequence</cite> returning <cite>(inputs, targets)</cite>
+or <cite>(inputs, targets, sample_weights)</cite>.</p></li>
+<li><p>A <cite>tf.keras.utils.experimental.DatasetCreator</cite>, which wraps a
+callable that takes a single argument of type
+<cite>tf.distribute.InputContext</cite>, and returns a <cite>tf.data.Dataset</cite>.
+<cite>DatasetCreator</cite> should be used when users prefer to specify the
+per-replica batching and sharding logic for the <cite>Dataset</cite>.
+See <cite>tf.keras.utils.experimental.DatasetCreator</cite> doc for more
+information.</p></li>
+</ul>
+<p>A more detailed description of unpacking behavior for iterator types
+(Dataset, generator, Sequence) is given below. If using
+<cite>tf.distribute.experimental.ParameterServerStrategy</cite>, only
+<cite>DatasetCreator</cite> type is supported for <cite>x</cite>.</p>
+</dd>
+<dt>y: Target data. Like the input data <cite>x</cite>,</dt><dd><p>it could be either Numpy array(s) or TensorFlow tensor(s).
+It should be consistent with <cite>x</cite> (you cannot have Numpy inputs and
+tensor targets, or inversely). If <cite>x</cite> is a dataset, generator,
+or <cite>keras.utils.Sequence</cite> instance, <cite>y</cite> should
+not be specified (since targets will be obtained from <cite>x</cite>).</p>
+</dd>
+<dt>batch_size: Integer or <cite>None</cite>.</dt><dd><p>Number of samples per gradient update.
+If unspecified, <cite>batch_size</cite> will default to 32.
+Do not specify the <cite>batch_size</cite> if your data is in the
+form of datasets, generators, or <cite>keras.utils.Sequence</cite> instances
+(since they generate batches).</p>
+</dd>
+<dt>epochs: Integer. Number of epochs to train the model.</dt><dd><p>An epoch is an iteration over the entire <cite>x</cite> and <cite>y</cite>
+data provided.
+Note that in conjunction with <cite>initial_epoch</cite>,
+<cite>epochs</cite> is to be understood as “final epoch”.
+The model is not trained for a number of iterations
+given by <cite>epochs</cite>, but merely until the epoch
+of index <cite>epochs</cite> is reached.</p>
+</dd>
+<dt>verbose: ‘auto’, 0, 1, or 2. Verbosity mode.</dt><dd><p>0 = silent, 1 = progress bar, 2 = one line per epoch.
+‘auto’ defaults to 1 for most cases, but 2 when used with
+<cite>ParameterServerStrategy</cite>. Note that the progress bar is not
+particularly useful when logged to a file, so verbose=2 is
+recommended when not running interactively (eg, in a production
+environment).</p>
+</dd>
+<dt>callbacks: List of <cite>keras.callbacks.Callback</cite> instances.</dt><dd><p>List of callbacks to apply during training.
+See <cite>tf.keras.callbacks</cite>. Note <cite>tf.keras.callbacks.ProgbarLogger</cite>
+and <cite>tf.keras.callbacks.History</cite> callbacks are created automatically
+and need not be passed into <cite>model.fit</cite>.
+<cite>tf.keras.callbacks.ProgbarLogger</cite> is created or not based on
+<cite>verbose</cite> argument to <cite>model.fit</cite>.
+Callbacks with batch-level calls are currently unsupported with
+<cite>tf.distribute.experimental.ParameterServerStrategy</cite>, and users are
+advised to implement epoch-level calls instead with an appropriate
+<cite>steps_per_epoch</cite> value.</p>
+</dd>
+<dt>validation_split: Float between 0 and 1.</dt><dd><blockquote>
+<div><p>Fraction of the training data to be used as validation data.
+The model will set apart this fraction of the training data,
+will not train on it, and will evaluate
+the loss and any model metrics
+on this data at the end of each epoch.
+The validation data is selected from the last samples
+in the <cite>x</cite> and <cite>y</cite> data provided, before shuffling. This argument is
+not supported when <cite>x</cite> is a dataset, generator or</p>
+</div></blockquote>
+<dl class="simple">
+<dt><cite>keras.utils.Sequence</cite> instance.</dt><dd><p><cite>validation_split</cite> is not yet supported with
+<cite>tf.distribute.experimental.ParameterServerStrategy</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt>validation_data: Data on which to evaluate</dt><dd><p>the loss and any model metrics at the end of each epoch.
+The model will not be trained on this data. Thus, note the fact
+that the validation loss of data provided using <cite>validation_split</cite>
+or <cite>validation_data</cite> is not affected by regularization layers like
+noise and dropout.
+<cite>validation_data</cite> will override <cite>validation_split</cite>.
+<cite>validation_data</cite> could be:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A tuple <cite>(x_val, y_val)</cite> of Numpy arrays or tensors.</p></li>
+<li><p>A tuple <cite>(x_val, y_val, val_sample_weights)</cite> of NumPy arrays.</p></li>
+<li><p>A <cite>tf.data.Dataset</cite>.</p></li>
+<li><p>A Python generator or <cite>keras.utils.Sequence</cite> returning</p></li>
+</ul>
+<p><cite>(inputs, targets)</cite> or <cite>(inputs, targets, sample_weights)</cite>.</p>
+</div></blockquote>
+<p><cite>validation_data</cite> is not yet supported with
+<cite>tf.distribute.experimental.ParameterServerStrategy</cite>.</p>
+</dd>
+<dt>shuffle: Boolean (whether to shuffle the training data</dt><dd><p>before each epoch) or str (for ‘batch’). This argument is ignored
+when <cite>x</cite> is a generator or an object of tf.data.Dataset.
+‘batch’ is a special option for dealing
+with the limitations of HDF5 data; it shuffles in batch-sized
+chunks. Has no effect when <cite>steps_per_epoch</cite> is not <cite>None</cite>.</p>
+</dd>
+<dt>class_weight: Optional dictionary mapping class indices (integers)</dt><dd><p>to a weight (float) value, used for weighting the loss function
+(during training only).
+This can be useful to tell the model to
+“pay more attention” to samples from
+an under-represented class.</p>
+</dd>
+<dt>sample_weight: Optional Numpy array of weights for</dt><dd><blockquote>
+<div><p>the training samples, used for weighting the loss function
+(during training only). You can either pass a flat (1D)
+Numpy array with the same length as the input samples
+(1:1 mapping between weights and samples),
+or in the case of temporal data,
+you can pass a 2D array with shape
+<cite>(samples, sequence_length)</cite>,
+to apply a different weight to every timestep of every sample. This
+argument is not supported when <cite>x</cite> is a dataset, generator, or</p>
+</div></blockquote>
+<dl class="simple">
+<dt><cite>keras.utils.Sequence</cite> instance, instead provide the sample_weights</dt><dd><p>as the third element of <cite>x</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt>initial_epoch: Integer.</dt><dd><p>Epoch at which to start training
+(useful for resuming a previous training run).</p>
+</dd>
+<dt>steps_per_epoch: Integer or <cite>None</cite>.</dt><dd><p>Total number of steps (batches of samples)
+before declaring one epoch finished and starting the
+next epoch. When training with input tensors such as
+TensorFlow data tensors, the default <cite>None</cite> is equal to
+the number of samples in your dataset divided by
+the batch size, or 1 if that cannot be determined. If x is a
+<cite>tf.data</cite> dataset, and ‘steps_per_epoch’
+is None, the epoch will run until the input dataset is exhausted.
+When passing an infinitely repeating dataset, you must specify the
+<cite>steps_per_epoch</cite> argument. This argument is not supported with
+array inputs. <cite>steps_per_epoch=None</cite> is not supported when using
+<cite>tf.distribute.experimental.ParameterServerStrategy</cite>.</p>
+</dd>
+<dt>validation_steps: Only relevant if <cite>validation_data</cite> is provided and</dt><dd><p>is a <cite>tf.data</cite> dataset. Total number of steps (batches of
+samples) to draw before stopping when performing validation
+at the end of every epoch. If ‘validation_steps’ is None, validation
+will run until the <cite>validation_data</cite> dataset is exhausted. In the
+case of an infinitely repeated dataset, it will run into an
+infinite loop. If ‘validation_steps’ is specified and only part of
+the dataset will be consumed, the evaluation will start from the
+beginning of the dataset at each epoch. This ensures that the same
+validation samples are used every time.</p>
+</dd>
+<dt>validation_batch_size: Integer or <cite>None</cite>.</dt><dd><p>Number of samples per validation batch.
+If unspecified, will default to <cite>batch_size</cite>.
+Do not specify the <cite>validation_batch_size</cite> if your data is in the
+form of datasets, generators, or <cite>keras.utils.Sequence</cite> instances
+(since they generate batches).</p>
+</dd>
+<dt>validation_freq: Only relevant if validation data is provided. Integer</dt><dd><p>or <cite>collections.abc.Container</cite> instance (e.g. list, tuple, etc.).
+If an integer, specifies how many training epochs to run before a
+new validation run is performed, e.g. <cite>validation_freq=2</cite> runs
+validation every 2 epochs. If a Container, specifies the epochs on
+which to run validation, e.g. <cite>validation_freq=[1, 2, 10]</cite> runs
+validation at the end of the 1st, 2nd, and 10th epochs.</p>
+</dd>
+<dt>max_queue_size: Integer. Used for generator or <cite>keras.utils.Sequence</cite></dt><dd><p>input only. Maximum size for the generator queue.
+If unspecified, <cite>max_queue_size</cite> will default to 10.</p>
+</dd>
+<dt>workers: Integer. Used for generator or <cite>keras.utils.Sequence</cite> input</dt><dd><p>only. Maximum number of processes to spin up
+when using process-based threading. If unspecified, <cite>workers</cite>
+will default to 1.</p>
+</dd>
+<dt>use_multiprocessing: Boolean. Used for generator or</dt><dd><p><cite>keras.utils.Sequence</cite> input only. If <cite>True</cite>, use process-based
+threading. If unspecified, <cite>use_multiprocessing</cite> will default to
+<cite>False</cite>. Note that because this implementation relies on
+multiprocessing, you should not pass non-picklable arguments to
+the generator as they can’t be passed easily to children processes.</p>
+</dd>
+</dl>
+</dd>
+<dt>Unpacking behavior for iterator-like inputs:</dt><dd><blockquote>
+<div><p>A common pattern is to pass a tf.data.Dataset, generator, or</p>
+</div></blockquote>
+<p>tf.keras.utils.Sequence to the <cite>x</cite> argument of fit, which will in fact
+yield not only features (x) but optionally targets (y) and sample weights.
+Keras requires that the output of such iterator-likes be unambiguous. The
+iterator should return a tuple of length 1, 2, or 3, where the optional
+second and third elements will be used for y and sample_weight
+respectively. Any other type provided will be wrapped in a length one
+tuple, effectively treating everything as ‘x’. When yielding dicts, they
+should still adhere to the top-level tuple structure.
+e.g. <cite>({“x0”: x0, “x1”: x1}, y)</cite>. Keras will not attempt to separate
+features, targets, and weights from the keys of a single dict.</p>
+<blockquote>
+<div><p>A notable unsupported data type is the namedtuple. The reason is that</p>
+</div></blockquote>
+<p>it behaves like both an ordered datatype (tuple) and a mapping
+datatype (dict). So given a namedtuple of the form:</p>
+<blockquote>
+<div><p><cite>namedtuple(“example_tuple”, [“y”, “x”])</cite></p>
+</div></blockquote>
+<p>it is ambiguous whether to reverse the order of the elements when
+interpreting the value. Even worse is a tuple of the form:</p>
+<blockquote>
+<div><p><cite>namedtuple(“other_tuple”, [“x”, “y”, “z”])</cite></p>
+</div></blockquote>
+<p>where it is unclear if the tuple was intended to be unpacked into x, y,
+and sample_weight or passed through as a single element to <cite>x</cite>. As a
+result the data processing code will simply raise a ValueError if it
+encounters a namedtuple. (Along with instructions to remedy the issue.)</p>
+</dd>
+<dt>Returns:</dt><dd><p>A <cite>History</cite> object. Its <cite>History.history</cite> attribute is
+a record of training loss values and metrics values
+at successive epochs, as well as validation loss values
+and validation metrics values (if applicable).</p>
+</dd>
+<dt>Raises:</dt><dd><p>RuntimeError: 1. If the model was never compiled or,
+2. If <cite>model.fit</cite> is  wrapped in <cite>tf.function</cite>.</p>
+<dl class="simple">
+<dt>ValueError: In case of mismatch between the provided input data</dt><dd><p>and what the model expects or when the input data is empty.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel.get_traj">
+<span class="sig-name descname"><span class="pre">get_traj</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel.get_traj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.metapop_model.categorical_normal_layer">
+<span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">categorical_normal_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_logits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.categorical_normal_layer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.metapop_model.contact_infection_func">
+<span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">contact_infection_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infectious_compartments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.float64</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.contact_infection_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.metapop_model.negloglik">
+<span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">negloglik</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rv_y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.negloglik" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.metapop_model.normal_mat_layer">
+<span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">normal_mat_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000000000.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.normal_mat_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normally distributed trainable distribution. Zeros in mobility matrix are preserved</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.metapop_model.recip_norm_mat_dist">
+<span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">recip_norm_mat_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trans_times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trans_times_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_R</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.recip_norm_mat_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.metapop_model.recip_norm_mat_layer">
+<span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">recip_norm_mat_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_means</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_infectious_compartments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.recip_norm_mat_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column Normalized Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-py0.utils">
+<span id="utilities"></span><h2>utilities<a class="headerlink" href="#module-py0.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="py0.utils.TransitionMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">TransitionMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compartment_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infectious_compartments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.TransitionMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.utils.TransitionMatrix.add_transition">
+<span class="sig-name descname"><span class="pre">add_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_var</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.TransitionMatrix.add_transition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="py0.utils.TransitionMatrix.prior_matrix">
+<span class="sig-name descname"><span class="pre">prior_matrix</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.TransitionMatrix.prior_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="py0.utils.TransitionMatrix.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#py0.utils.TransitionMatrix.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return matrix value</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.compartment_restrainer">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">compartment_restrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">restrained_patches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrained_compartments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.compartment_restrainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds restraints to reference traj based on selected compartments of selected patches</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.draw_graph">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">draw_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heatmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.draw_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots networkx graph. Heatmap option changes node color based on node weights.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.exposed_finder">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">exposed_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampled_trajs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.exposed_finder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the initial exposed patch (t=0) for trajs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.gen_graph">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">gen_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.gen_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a fully connected dense networkx graph of size M, edge list and node list</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.gen_random_graph">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">gen_random_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.gen_random_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a random networkx graph of size M with connection probability p</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.get_dist">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">get_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prior_prams</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compartments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['E',</span> <span class="pre">'A',</span> <span class="pre">'I',</span> <span class="pre">'R']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.get_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.graph_degree">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">graph_degree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.graph_degree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns degree-of-freedom of a network graph based on networkx graph</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.merge_history">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">merge_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.merge_history" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.p0_loss">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">p0_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_p0_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.p0_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns cross-entropy loss for p0 based on sampled trajs and maxent weights, size of meta-population and ground-truth p0 node inputs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.p0_map">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">p0_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prior_exposed_patch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choropleth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geojson</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(15,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrained_patches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">org_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Reds'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.p0_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
+on a choropleth map (this requires geopandas and geoplot packages).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.patch_quantile">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">patch_quantile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(18,</span> <span class="pre">18)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.patch_quantile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em>) – ensemble of trajectories after sampling</p></li>
+<li><p><strong>figsize</strong> (<em>tupple</em>) – figure size</p></li>
+<li><p><strong>patch_names</strong> (<em>list</em>) – name of the patches (nodes). If not provided patches name will be defined by their index.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.plot_dist">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">plot_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_exposed_dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'prior'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.plot_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.sparse_graph_mobility">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">sparse_graph_mobility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sparse_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fully_connected_mobility_matrix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.sparse_graph_mobility" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a sprase mobility matrix based on sparse graph and a fully connected mobility matrix inputs.
+For a fully connected graph, the output mobility matrix remains the same.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.traj_loss">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">traj_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.traj_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns KL divergence loss for predicted traj based on ref_traj, sampled trajs and maxent weights inputs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.traj_quantile">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">traj_quantile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(9,</span> <span class="pre">9)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_means</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.traj_quantile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Make a plot of all the trajectories and the average trajectory based on</dt><dd><p>parameter weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em>) – ensemble of trajectories after sampling</p></li>
+<li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.</p></li>
+<li><p><strong>figsize</strong> (<em>tupple</em>) – figure size</p></li>
+<li><p><strong>patch_names</strong> (<em>list</em>) – name of the patches (nodes). If not provided patches name will be defined by their index.</p></li>
+<li><p><strong>plot_means</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code> approximates quantiles as distance from median applied to mean.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.traj_to_restraints">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">traj_to_restraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_slice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.traj_to_restraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates npoints restraints based on given trajectory with multiplicative noise and time averaging.
+For example, it could be weekly averages with some noise.</p>
+<p>Returns: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.weighted_exposed_prob_finder">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">weighted_exposed_prob_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prior_exposed_patch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.weighted_exposed_prob_finder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the weighted probabiity of being exposed in every patch at time zero across all the sample trajs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="py0.utils.weighted_quantile">
+<span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">weighted_quantile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values_sorted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.weighted_quantile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Very close to numpy.percentile, but supports weights.
+NOTE: quantiles should be in [0, 1]!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – numpy.array with data</p></li>
+<li><p><strong>quantiles</strong> – array-like with many quantiles needed</p></li>
+<li><p><strong>sample_weight</strong> – array-like of the same length as <cite>array</cite></p></li>
+<li><p><strong>values_sorted</strong> – bool, if True, then will avoid sorting of
+initial array</p></li>
+<li><p><strong>old_style</strong> – if True, will correct output to be consistent
+with numpy.percentile.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy.array with computed quantiles.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="Quick_start.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Mehrad Ansari, Andrew White.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
