@@ -3,7 +3,7 @@ name: docs
 
 on:
   push:
-    branches: [ sphinx_doc ]
+    branches: [ main ]
 
 jobs:
   docs:
