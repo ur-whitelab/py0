@@ -54,8 +54,9 @@ class TransitionMatrix:
 
 def weighted_quantile(values, quantiles, sample_weight=None,
                        values_sorted=False, old_style=False):
-    """ Very close to numpy.percentile, but supports weights.
+    ''' Very close to numpy.percentile, but supports weights.
     NOTE: quantiles should be in [0, 1]!
+
     :param values: numpy.array with data
     :param quantiles: array-like with many quantiles needed
     :param sample_weight: array-like of the same length as `array`
@@ -63,8 +64,9 @@ def weighted_quantile(values, quantiles, sample_weight=None,
         initial array
     :param old_style: if True, will correct output to be consistent
         with numpy.percentile.
+
     :return: numpy.array with computed quantiles.
-    """
+    '''
     values = np.array(values)
     quantiles = np.array(quantiles)
     if sample_weight is None:
@@ -89,7 +91,14 @@ def weighted_quantile(values, quantiles, sample_weight=None,
 
 
 def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args):
-    '''does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments]
+    ''' Does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments].
+
+    :param trajs: ensemble of trajectories after sampling
+    :type trajs: tensor with dtype tf.float32
+    :param figsize: figure size
+    :type figsize: tupple
+    :param patch_names: name of the patches (nodes). If not provided patches name will be defined by their index.
+    :type patch_names: list
     '''
     NP = trajs.shape[2]
     nrow = int(np.floor(np.sqrt(NP)))
@@ -122,8 +131,20 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
 
 
 def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=True, ax=None, add_legend=True, add_title=None, alpha=0.6):
-    '''Make a plot of all the trajectories and the average trajectory based on
-      parameter weights.'''
+    ''' Make a plot of all the trajectories and the average trajectory based on
+      parameter weights.
+    
+    :param trajs: ensemble of trajectories after sampling
+    :type trajs: tensor with dtype tf.float32
+    :param weights: weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.
+    :type weights: tensor with dtype tf.float32
+    :param figsize: figure size
+    :type figsize: tupple
+    :param patch_names: name of the patches (nodes). If not provided patches name will be defined by their index.
+    :type patch_names: list
+    :param plot_means: if ``True`` approximates quantiles as distance from median applied to mean.
+    :type plot_means: bool
+    '''
 
     if names is None:
         names = [f'Compartment {i}' for i in range(trajs.shape[-1])]
