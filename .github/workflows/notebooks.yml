@@ -31,7 +31,6 @@ jobs:
         pip install .
     - name: Install paper depends
       run: |
-        pip install --use-deprecated=legacy-resolver -r paper/requirements.txt
     - name: Run Direct Regression
       run: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --execute "examples/DirectRegression.ipynb.ipynb" --to notebook --output-dir='temp' --clear-output
     - name: Run Metapop
