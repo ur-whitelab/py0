@@ -5,4 +5,5 @@ PY0
     :maxdepth: 3
 
     index.md
+    Quick_start.rst
     API.rst

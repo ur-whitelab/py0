@@ -15,7 +15,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../../py0'))
-sys.path.insert(0, os.path.abspath('../../gifs'))
+sys.path.insert(0, os.path.abspath('../../examples'))
 
 
 # -- Project information -----------------------------------------------------
@@ -34,12 +34,13 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "myst_parser",
-    "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
-    "sphinx.ext.autosectionlabel",
-    "sphinx.ext.intersphinx",
-    'sphinx.ext.githubpages'
+    'myst_parser',
+    'sphinx.ext.autodoc',
+    'sphinx_autodoc_typehints',
+    'sphinx.ext.autosectionlabel',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.githubpages',
+    'nbsphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -425,7 +425,7 @@ def gen_random_graph(M, p=1.0, seed=None):
     return graph
 
 
-def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_origin=None):
+def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_origin=None, color_bar=True):
     R'''
     Plots networkx graph. Heatmap option changes node color based on node weights.
     '''
@@ -458,8 +458,9 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_ori
         ax = plt.gca()  # to get the current axis
         ax.collections[0].set_edgecolor(edge_colors)
         ax.collections[0].set_linewidths(line_widths)
-        cbar = plt.colorbar(heatmap)
-        cbar.ax.set_ylabel('Patient-zero Probability',
+        if color_bar:
+            cbar = plt.colorbar(heatmap)
+            cbar.ax.set_ylabel('Patient-zero Probability',
                            labelpad=15, rotation=90)
     else:
         fig, ax = plt.subplots(dpi=dpi)
