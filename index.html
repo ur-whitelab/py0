@@ -43,7 +43,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Quick Start" href="Quick_start.html" />
-    <link rel="prev" title="PY0" href="toc.html" /> 
+    <link rel="prev" title="py0" href="toc.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -194,18 +194,24 @@
 </style>
 <div class="tex2jax_ignore mathjax_ignore section" id="py0">
 <h1>PY0<a class="headerlink" href="#py0" title="Permalink to this headline">¶</a></h1>
-<p>py0 is a python implementation of compartmental disease modeling.</p>
+<p><code class="docutils literal notranslate"><span class="pre">py0</span></code> is a python implementation of compartmental disease modeling.</p>
 <p><img alt="" src="../../gifs/py_0.gif" /></p>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>This package uses geopandas and networkx. Make sure you have <code class="docutils literal notranslate"><span class="pre">gdal-config</span></code> defined in your system before installing py0. To install:</p>
+<p>This package uses geopandas and networkx. Make sure you have <code class="docutils literal notranslate"><span class="pre">gdal-config</span></code> defined in your system before installing <code class="docutils literal notranslate"><span class="pre">py0</span></code>. Assuming you are in a linux env, to install <code class="docutils literal notranslate"><span class="pre">gdal</span></code> run:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sudo apt-add-repository ppa:ubuntugis/ubuntugis-unstable
+sudo apt-get update
+sudo apt-get install gdal-bin libgdal-dev
+</pre></div>
+</div>
+<p>To install <code class="docutils literal notranslate"><span class="pre">py0</span></code>:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install py0@git+https://github.com/ur-whitelab/py0.git
 </pre></div>
 </div>
 </div>
 <div class="section" id="maximum-entropy-biasing">
 <h2>Maximum Entropy Biasing<a class="headerlink" href="#maximum-entropy-biasing" title="Permalink to this headline">¶</a></h2>
-<p>PY0 can be coupled with <a class="reference external" href="https://github.com/ur-whitelab/maxent">MaxEnt</a> to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">py0</span></code> can be coupled with <a class="reference external" href="https://github.com/ur-whitelab/maxent">MaxEnt</a> to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data.</p>
 <div class="section" id="maxent-installation">
 <h3>MaxEnt Installation<a class="headerlink" href="#maxent-installation" title="Permalink to this headline">¶</a></h3>
 <p>The package uses Keras (Tensorflow). To install:</p>
@@ -220,7 +226,7 @@
 </div>
 <div class="section" id="authors">
 <h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
-<p>PY0 was developed by <span class="xref myst">Mehrad Ansari</span>, <span class="xref myst">Rainier Barrett</span> and <span class="xref myst">Andrew White</span>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">py0</span></code> is developed by <span class="xref myst">Mehrad Ansari</span>, <span class="xref myst">Rainier Barrett</span> and <span class="xref myst">Andrew White</span>.</p>
 </div>
 </div>
 
@@ -231,7 +237,7 @@
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="Quick_start.html" class="btn btn-neutral float-right" title="Quick Start" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="toc.html" class="btn btn-neutral float-left" title="PY0" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="toc.html" class="btn btn-neutral float-left" title="py0" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
