@@ -6,12 +6,6 @@
 
 ## Installation
 
-This package uses geopandas and networkx. Make sure you have ``gdal-config`` defined in your system before installing ``py0``. Assuming you are in a linux env, to install ``gdal`` run:
-```sh
-sudo apt-add-repository ppa:ubuntugis/ubuntugis-unstable
-sudo apt-get update
-sudo apt-get install gdal-bin libgdal-dev
-```
 To install ``py0``:
 ```sh
 pip install py0@git+https://github.com/ur-whitelab/py0.git
@@ -19,7 +13,7 @@ pip install py0@git+https://github.com/ur-whitelab/py0.git
 
 ## Maximum Entropy Biasing
 
-``py0`` can be coupled with [MaxEnt](https://github.com/ur-whitelab/maxent) to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data. 
+``py0`` can be coupled with [MaxEnt](https://ur-whitelab.github.io/maxent/) to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data. 
 
 ![](docs/source/img/MaxEnt.gif)
 
