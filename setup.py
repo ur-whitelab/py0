@@ -27,7 +27,7 @@ setup(
 
     packages=find_packages(exclude=('tests',)),
 
-    install_requires=['numpy>=1.19.1', 'matplotlib', 'scipy', 'tqdm', 'tensorflow_probability', 'jupyter',
+    install_requires=['numpy>=1.19.1', 'matplotlib', 'scipy', 'seaborn', 'tqdm', 'tensorflow_probability', 'jupyter',
                       'maxent@git+https://github.com/ur-whitelab/maxent.git', 'pandas', 'networkx==2.5'],
 
     classifiers=[
