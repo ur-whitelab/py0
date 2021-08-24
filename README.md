@@ -2,7 +2,7 @@
 
 ``py0`` is a python implementation of compartmental disease modeling.
 
-![](gifs/py_0.gif)
+![](docs/source/img/py_0.gif)
 
 ## Installation
 
@@ -20,6 +20,8 @@ pip install py0@git+https://github.com/ur-whitelab/py0.git
 ## Maximum Entropy Biasing
 
 ``py0`` can be coupled with [MaxEnt](https://github.com/ur-whitelab/maxent) to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data. 
+
+![](docs/source/img/MaxEnt.gif)
 
 ### MaxEnt Installation
 
