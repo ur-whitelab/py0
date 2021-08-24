@@ -33,8 +33,6 @@ jobs:
       run: |
     - name: Run Direct Regression
       run: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --execute "examples/DirectRegression.ipynb" --to notebook --output-dir='temp' --clear-output
-    - name: Run Metapop
-      run: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --execute "examples/Metapop.ipynb" --to notebook --output-dir='temp' --clear-output
     - name: Run Quick_start
       run: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --execute "examples/Quick_start.ipynb" --to notebook --output-dir='temp' --clear-output
     - name: Run SIR_Example
