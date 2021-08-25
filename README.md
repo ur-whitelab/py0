@@ -1,5 +1,8 @@
 # Compartmental Epidomiology Modeling
 
+
+![tests](https://github.com/ur-whitelab/py0/actions/workflows/tests.yml/badge.svg) ![docs](https://github.com/ur-whitelab/py0/actions/workflows/docs.yml/badge.svg)
+
 ``py0`` is a python implementation of compartmental disease modeling.
 
 ![](docs/source/img/py_0.gif)
