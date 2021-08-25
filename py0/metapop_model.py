@@ -39,7 +39,7 @@ def recip_norm_mat_dist(trans_times, trans_times_var, indices, sample_R=True, lo
 
 
 def recip_norm_mat_layer(input, time_means, time_vars, name, n_infectious_compartments=1):
-    '''Column Normalized Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved'''
+    ''' Column Normalized Reciprical Gaussian trainable distribution. Zeros in starting matrix are preserved.'''
     # add extra row that we use for concentration
     combined = np.stack((time_means, time_vars))
     indices = tf.cast(tf.where(time_means > 0), tf.int32)
@@ -95,7 +95,7 @@ def categorical_normal_layer(input, start_logits, start_mean, start_scale, pad, 
 
 
 def normal_mat_layer(input, start, name, start_var=1, clip_high=1e10):
-    '''Normally distributed trainable distribution. Zeros in mobility matrix are preserved'''
+    ''' Normally distributed trainable distribution. Zeros in mobility matrix are preserved.'''
     # stack variance
     start_val = np.concatenate((
         start[np.newaxis, ...],
@@ -132,7 +132,7 @@ class ParameterHypers:
 
 class ParameterJoint(tf.keras.Model):
     def __init__(self, reshapers, **kwargs):
-        '''Create trainable joint model for parameters'''
+        ''' Create trainable joint model for parameters'''
         self.reshapers = reshapers
         self.output_count = len(reshapers)
         super(ParameterJoint, self).__init__(**kwargs)
@@ -159,7 +159,7 @@ class MetaParameterJoint(ParameterJoint):
     def __init__(self, start_logits, mobility_matrix,
                  transition_matrix,
                  name='', hypers=None, n_infectious_compartments=1):
-        '''Create trainable joint model for parameters'''
+        ''' Create trainable joint model for parameters'''
         if hypers is None:
             hypers = ParameterHypers()
         dense_layer_size = n_infectious_compartments
