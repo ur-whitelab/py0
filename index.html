@@ -195,15 +195,9 @@
 <div class="tex2jax_ignore mathjax_ignore section" id="py0">
 <h1>PY0<a class="headerlink" href="#py0" title="Permalink to this headline">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">py0</span></code> is a python implementation of compartmental disease modeling.</p>
-<p><img alt="" src="../../gifs/py_0.gif" /></p>
+<p><img alt="" src="_images/py_0.gif" /></p>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>This package uses geopandas and networkx. Make sure you have <code class="docutils literal notranslate"><span class="pre">gdal-config</span></code> defined in your system before installing <code class="docutils literal notranslate"><span class="pre">py0</span></code>. Assuming you are in a linux env, to install <code class="docutils literal notranslate"><span class="pre">gdal</span></code> run:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sudo apt-add-repository ppa:ubuntugis/ubuntugis-unstable
-sudo apt-get update
-sudo apt-get install gdal-bin libgdal-dev
-</pre></div>
-</div>
 <p>To install <code class="docutils literal notranslate"><span class="pre">py0</span></code>:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install py0@git+https://github.com/ur-whitelab/py0.git
 </pre></div>
@@ -211,7 +205,8 @@ sudo apt-get install gdal-bin libgdal-dev
 </div>
 <div class="section" id="maximum-entropy-biasing">
 <h2>Maximum Entropy Biasing<a class="headerlink" href="#maximum-entropy-biasing" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">py0</span></code> can be coupled with <a class="reference external" href="https://github.com/ur-whitelab/maxent">MaxEnt</a> to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data.</p>
+<p><code class="docutils literal notranslate"><span class="pre">py0</span></code> can be coupled with <a class="reference external" href="https://ur-whitelab.github.io/maxent/">MaxEnt</a> to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data.</p>
+<p><img alt="" src="_images/MaxEnt.gif" /></p>
 <div class="section" id="maxent-installation">
 <h3>MaxEnt Installation<a class="headerlink" href="#maxent-installation" title="Permalink to this headline">¶</a></h3>
 <p>The package uses Keras (Tensorflow). To install:</p>

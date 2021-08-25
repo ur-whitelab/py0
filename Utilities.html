@@ -187,46 +187,173 @@
 <p>This module contains various utility functions that are used throughout the <code class="docutils literal notranslate"><span class="pre">py0</span></code> module.
 These are imported automatically when <code class="docutils literal notranslate"><span class="pre">py0</span></code> is imported.</p>
 <p class="rubric">Details</p>
-<span class="target" id="module-utils"></span><dl class="py function">
+<span class="target" id="module-utils"></span><dl class="py class">
+<dt class="sig sig-object py" id="utils.TransitionMatrix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">TransitionMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compartment_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infectious_compartments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.TransitionMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the transition between different compartments in the disease model, given different epidemiology parameters.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="utils.TransitionMatrix.add_transition">
+<span class="sig-name descname"><span class="pre">add_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_var</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.TransitionMatrix.add_transition" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name1</strong> (<em>string</em>) – source compartment</p></li>
+<li><p><strong>name2</strong> (<em>string</em>) – destination compartment</p></li>
+<li><p><strong>time</strong> (<em>float</em>) – time it takes to move from source compartment to destination compartment. This is typically the reciprocal of rates.</p></li>
+<li><p><strong>time_var</strong> (<em>float</em>) – variance of the time it takes to move from source compartment to destination compartment. Use zero unless you are
+creating an esemble of trajectories to do inference using MaxEnt.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="utils.TransitionMatrix.value">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#utils.TransitionMatrix.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns matrix value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utils.compartment_restrainer">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">compartment_restrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">restrained_patches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrained_compartments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.compartment_restrainer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds restraints to reference traj based on selected compartments of selected patches</p>
+<dd><p>Adds restraints to reference traj based on selected compartments of selected patches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>restrained_patches</strong> (<em>list</em>) – index of the patches (nodes) restrained</p></li>
+<li><p><strong>restrained_compartments</strong> (<em>list</em>) – index values for the restrained compartments</p></li>
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number of compartments.</em>) – reference traj</p></li>
+<li><p><strong>prior</strong> (<em>maxent.prior</em>) – Prior distribution for expected deviation from target for restraint. Can be either ‘EmptyPrior’ for exact agreement
+or set to ‘Laplace’ for more allowable disagreement.</p></li>
+<li><p><strong>npoints</strong> (<em>int</em>) – number of data points in each restrained compartment</p></li>
+<li><p><strong>noise</strong> (<em>float</em>) – multiplicative noise to be added to observations to allow higher uncertainty</p></li>
+<li><p><strong>start_time</strong> (<em>int</em>) – index for the lower time limit of restraints</p></li>
+<li><p><strong>end_time</strong> (<em>int</em>) – index for the higher time limit of restraints. If not provided, maximum timestep will be assumed.</p></li>
+<li><p><strong>time_average</strong> (<em>int</em>) – number of timesteps to for time averaging of restraints</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>restraints, plot_fxns_list</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.draw_graph">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">draw_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heatmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.draw_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots networkx graph. Heatmap option changes node color based on node weights.</p>
+<dd><p>Plots networkx graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> – networkx graph</p></li>
+<li><p><strong>weights</strong> – probabiity of being exposed in every patch at time zero across all the sample trajs. If not provided uniform
+probability will be assumed over all nodes.</p></li>
+<li><p><strong>heatmap</strong> (<em>bool</em>) – change node color based on weights</p></li>
+<li><p><strong>title</strong> (<em>string</em>) – plot title</p></li>
+<li><p><strong>dpi</strong> (<em>int</em>) – dpi value of plot</p></li>
+<li><p><strong>true_origin</strong> (<em>int</em>) – index for the true origin node</p></li>
+<li><p><strong>color_bar</strong> (<em>bool</em>) – enables color bar in plot</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.exposed_finder">
-<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">exposed_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampled_trajs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.exposed_finder" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">exposed_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.exposed_finder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds the initial exposed patch (t=0) for trajs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
+</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array containing the index of the initial exposed node for the ensemble of trajectories</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.gen_graph">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">gen_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.gen_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a fully connected dense networkx graph of size M, edge list and node list</p>
+<dd><p>Generates a fully connected dense networkx graph of size M, edge list and node list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>M</strong> (<em>int</em>) – number of nodes in the metapopulation</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>graph, edge list, node list</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.gen_random_graph">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">gen_random_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.gen_random_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a random networkx graph of size M with connection probability p</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>M</strong> (<em>int</em>) – number of nodes in the metapopulation</p></li>
+<li><p><strong>p</strong> (<em>float</em>) – node connection probability</p></li>
+<li><p><strong>seed</strong> – allows random seeding for graph generations</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.get_dist">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">get_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prior_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compartments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['E',</span> <span class="pre">'A',</span> <span class="pre">'I',</span> <span class="pre">'R']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.get_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets distributions for the model parameters in the ensemble trectory sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prior_params</strong> (<em>list</em>) – model parameters during sampling over different batches.</p></li>
+<li><p><strong>compartments</strong> (<em>list</em>) – list of compartments except for ‘S’ (susceptible) as strings.</p></li>
+</ul>
+</dd>
+</dl>
+<p>return: list of model parameter’s distributions.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.graph_degree">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">graph_degree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.graph_degree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns degree-of-freedom of a network graph based on networkx graph</p>
+<dd><p>Returns graph degree of a network graph based on networkx graph input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>graph</strong> – networkx graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>graph degree</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.p0_loss">
-<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">p0_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_p0_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.p0_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns cross-entropy loss for p0 based on sampled trajs and maxent weights, size of meta-population and ground-truth p0 node inputs</p>
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">p0_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_origin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.p0_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns cross-entropy loss for p0 based on sampled trajs and maxent weights, size of meta-population and ground-truth p0 node inputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
+</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments</em>) – sampled ensemble of trajectories</p></li>
+<li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
+<li><p><strong>true_origin</strong> (<em>int</em>) – index for the true origin node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>cross-entropy loss</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -234,12 +361,37 @@ These are imported automatically when <code class="docutils literal notranslate"
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">p0_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prior_exposed_patch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choropleth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geojson</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(15,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrained_patches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">org_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C8'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colormap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Reds'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.p0_map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
 on a choropleth map (this requires geopandas and geoplot packages).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prior_exposed_patch</strong> (<em>an array of size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
+<li><p><strong>meta_pop_size</strong> (<em>int</em>) – size of the metapopulation</p></li>
+<li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
+<li><p><strong>patch_names</strong> (<em>list</em>) – name of the patches. Note that the namings should be similar to names from GeoJSON if using <code class="docutils literal notranslate"><span class="pre">choropleth</span></code>.</p></li>
+<li><p><strong>title</strong> (<em>string</em>) – figure title</p></li>
+<li><p><strong>choropleth</strong> (<em>bool</em>) – turn on if plotting choropleth plots</p></li>
+<li><p><strong>geojson</strong> (<em>string</em>) – path to GeoJSON file describing the geographical features of the metapopulation</p></li>
+<li><p><strong>fontsize</strong> (<em>float</em>) – font size</p></li>
+<li><p><strong>vmin</strong> (<em>float</em>) – minimum value of the color bar</p></li>
+<li><p><strong>vmax</strong> (<em>float</em>) – maximum value of the color bar</p></li>
+<li><p><strong>restrained_patches</strong> (<em>list</em>) – index of the patches (nodes) restrained</p></li>
+<li><p><strong>true_origin</strong> (<em>int</em>) – index for the true origin node</p></li>
+<li><p><strong>obs_size</strong> (<em>float</em>) – marker size for the observation nodes</p></li>
+<li><p><strong>obs_color</strong> (<em>string</em>) – marker color for the observation nodes</p></li>
+<li><p><strong>org_color</strong> (<em>tensor with dtype tf.float32</em>) – marker size for the true origin node</p></li>
+<li><p><strong>colormap</strong> (<em>string</em>) – Matplotlib colormaps</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.patch_quantile">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">patch_quantile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(18,</span> <span class="pre">18)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.patch_quantile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments].</p>
+<dd><dl class="simple">
+<dt>Does <code class="docutils literal notranslate"><span class="pre">traj_quantile</span></code> for trajectories of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,</dt><dd><p>M is the number of patches (nodes) and C is the number of compartments.</p>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -252,29 +404,71 @@ on a choropleth map (this requires geopandas and geoplot packages).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utils.plot_dist">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">plot_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R_dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E_A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A_I</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">I_R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_exposed_dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'prior'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.plot_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>plots a <code class="docutils literal notranslate"><span class="pre">seaborn.distplot</span></code> for the model’s prior parameter distribution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>R_dist</strong> – sampled mobility flows as tensor with dtype tf.float32</p></li>
+<li><p><strong>E_A</strong> – time for going from E-&gt;A as tensor with dtype tf.float32</p></li>
+<li><p><strong>A_I</strong> – time for going from A-&gt;I as tensor with dtype tf.float32</p></li>
+<li><p><strong>I_R</strong> – time for going from I-&gt;R as tensor with dtype tf.float32</p></li>
+<li><p><strong>start_exposed_dist</strong> – starting exposed fraction as tensor with dtype tf.float32</p></li>
+<li><p><strong>beta_dist</strong> – beta value(s) as tensor with dtype tf.float32</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – name for the distributions that shows up in the figure title</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utils.sparse_graph_mobility">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">sparse_graph_mobility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sparse_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fully_connected_mobility_matrix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.sparse_graph_mobility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a sprase mobility matrix based on sparse graph and a fully connected mobility matrix inputs.
 For a fully connected graph, the output mobility matrix remains the same.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> – networkx sparse graph</p></li>
+<li><p><strong>fully_connected_mobility_matrix</strong> (<em>numpy array</em>) – [M, M] array with values defining mobility flows between nodes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>sparsed mobility matrix</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.traj_loss">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">traj_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.traj_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns KL divergence loss for predicted traj based on ref_traj, sampled trajs and maxent weights inputs</p>
+<dd><p>Returns Kullback–Leibler (KL) divergence loss for predicted traj based on a reference traj and MaxEnt reweighted trajs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number of compartments.</em>) – reference traj</p></li>
+<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
+</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments</em>) – sampled ensemble of trajectories</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>KL divergence as a scalar value</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.traj_quantile">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">traj_quantile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(9,</span> <span class="pre">9)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_means</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.traj_quantile" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Make a plot of all the trajectories and the average trajectory based on</dt><dd><p>parameter weights.</p>
-</dd>
-</dl>
+<dd><p>Make a plot of all the trajectories and the average trajectory based on
+parameter weights.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em>) – ensemble of trajectories after sampling</p></li>
+<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
+</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.</p></li>
 <li><p><strong>figsize</strong> (<em>tupple</em>) – figure size</p></li>
 <li><p><strong>patch_names</strong> (<em>list</em>) – name of the patches (nodes). If not provided patches name will be defined by their index.</p></li>
@@ -286,23 +480,55 @@ For a fully connected graph, the output mobility matrix remains the same.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.traj_to_restraints">
-<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">traj_to_restraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_slice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.traj_to_restraints" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">traj_to_restraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_traj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inner_slice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_average</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.traj_to_restraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates npoints restraints based on given trajectory with multiplicative noise and time averaging.
 For example, it could be weekly averages with some noise.</p>
-<p>Returns: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number of compartments.</em>) – reference traj</p></li>
+<li><p><strong>inner_slice</strong> (<em>list</em>) – list of length 2. First index determines the patch and second index determines what compartment on that patch is restrained.</p></li>
+<li><p><strong>npoints</strong> (<em>int</em>) – number of data points in each restrained compartment</p></li>
+<li><p><strong>prior</strong> (<em>maxent.prior</em>) – Prior distribution for expected deviation from target for restraint. Can be either ‘EmptyPrior’ for exact agreement
+or set to ‘Laplace’ for more allowable disagreement.</p></li>
+<li><p><strong>noise</strong> (<em>float</em>) – multiplicative noise to be added to observations to allow higher uncertainty</p></li>
+<li><p><strong>time_average</strong> (<em>int</em>) – number of timesteps to for time averaging of restraints</p></li>
+<li><p><strong>start_time</strong> (<em>int</em>) – index for the lower time limit of restraints</p></li>
+<li><p><strong>end_time</strong> (<em>int</em>) – index for the higher time limit of restraints. If not provided, maximum timestep will be assumed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.weighted_exposed_prob_finder">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">weighted_exposed_prob_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prior_exposed_patch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta_pop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.weighted_exposed_prob_finder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the weighted probabiity of being exposed in every patch at time zero across all the sample trajs</p>
+<dd><p>Finds the weighted probability of being exposed in every patch at time zero across all the sample trajs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prior_exposed_patch</strong> (<em>an array of size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
+<li><p><strong>meta_pop_size</strong> (<em>int</em>) – size of the metapopulation</p></li>
+<li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>weighted probability of being exposed across all patches</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.weighted_quantile">
 <span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">weighted_quantile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values_sorted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.weighted_quantile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Very close to numpy.percentile, but supports weights.
-NOTE: quantiles should be in [0, 1]!</p>
+<dd><dl class="simple">
+<dt>Very close to numpy.percentile, but supports weights.</dt><dd><p>Note: quantiles should be in [0, 1]!</p>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

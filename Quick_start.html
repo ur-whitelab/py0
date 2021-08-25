@@ -191,10 +191,10 @@
 </style>
 <div class="section" id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import py0
-import matplotlib.pyplot as plt
-import numpy as np
-import maxent
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">py0</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">maxent</span>
 </pre></div>
 </div>
 <div class="section" id="setting-up-an-seair-model">
@@ -205,67 +205,67 @@ infectivity rates <span class="math notranslate nohighlight">\(\beta\)</span> an
 become asymptomatic (<span class="math notranslate nohighlight">\({\bf A}\)</span>) or infected (<span class="math notranslate nohighlight">\({\bf I}\)</span>) at
 rates <span class="math notranslate nohighlight">\(\alpha\)</span> or <span class="math notranslate nohighlight">\(\gamma\)</span>. They finally recover or die at
 rate <span class="math notranslate nohighlight">\(\mu\)</span> and become resolved (<span class="math notranslate nohighlight">\({\bf R}\)</span>).</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Make up some population area and mobility network
-np.random.seed(0)
-M = 10
-patches=[f&#39;patch {i}&#39; for i in range(M)]
-population = np.round(np.random.normal(loc=500000, scale=300000, size=(M,)))
-area = np.maximum(300, np.round(np.random.normal(loc=2000, scale=1000, size=(M,)), 0))
-# defining a fully connected mobility matrix
-dense_mobility_matrix = np.round(np.abs(np.random.normal(loc=100, scale=50, size=(M,M))))
-# setting diagonal values to be dominant
-dense_mobility_matrix_diag = np.round(np.abs(np.random.normal(loc=100000, scale=3000, size=(M))))
-np.fill_diagonal(dense_mobility_matrix, dense_mobility_matrix_diag)
-dense_mobility_matrix_norm = dense_mobility_matrix / np.sum(dense_mobility_matrix, axis=1, keepdims=True)
-compartments = [&#39;E&#39;, &#39;A&#39;, &#39;I&#39;, &#39;R&#39;]
-full_compartments = [&#39;S&#39;] + compartments
-infections_compartments = [1,2]
-C = len(compartments)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Make up some population area and mobility network</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">M</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">patches</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;patch </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">M</span><span class="p">)]</span>
+<span class="n">population</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">500000</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">300000</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">M</span><span class="p">,)))</span>
+<span class="n">area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">M</span><span class="p">,)),</span> <span class="mi">0</span><span class="p">))</span>
+<span class="c1"># defining a fully connected mobility matrix</span>
+<span class="n">dense_mobility_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">M</span><span class="p">))))</span>
+<span class="c1"># setting diagonal values to be dominant</span>
+<span class="n">dense_mobility_matrix_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">M</span><span class="p">))))</span>
+<span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">dense_mobility_matrix</span><span class="p">,</span> <span class="n">dense_mobility_matrix_diag</span><span class="p">)</span>
+<span class="n">dense_mobility_matrix_norm</span> <span class="o">=</span> <span class="n">dense_mobility_matrix</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dense_mobility_matrix</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">compartments</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">]</span>
+<span class="n">full_compartments</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">compartments</span>
+<span class="n">infections_compartments</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">C</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">compartments</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Let’s make a 10-node contact network with node connection probability of
 0.4. The infection starts in node 1 with a single individual exposed.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>M=10
-p = 0.4
-true_node = 1
-graph = py0.gen_random_graph(M,p, seed=0)
-py0.draw_graph(graph, dpi =100, true_origin=true_node, heatmap=True, color_bar=False)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">M</span><span class="o">=</span><span class="mi">10</span>
+<span class="n">p</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">true_node</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">gen_random_graph</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">p</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">py0</span><span class="o">.</span><span class="n">draw_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">dpi</span> <span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">true_origin</span><span class="o">=</span><span class="n">true_node</span><span class="p">,</span> <span class="n">heatmap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="output_5_0.png" src="output_5_0.png" />
+<img alt="_images/output_5_0.png" src="_images/output_5_0.png" />
 <p>Defining diesease parameters:</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>beta_A = 0.025
-beta_I=0.05
-alpha =1/3
-gamma=1/2
-mu=1/7
-M=10
-C=4
-timesteps=250
-# sparsify mobility matrix for sparse graphs
-sparsed_mobility_matrix = py0.sparse_graph_mobility(graph, dense_mobility_matrix)
-tmat = py0.TransitionMatrix(compartments, [1,2])
-tmat.add_transition(&#39;E&#39;, &#39;A&#39;, 1/alpha, 0) # calling this alpha
-tmat.add_transition(&#39;E&#39;, &#39;I&#39;, 1/gamma, 0) # calling this gamma
-tmat.add_transition(&#39;A&#39;, &#39;R&#39;,1/mu, 0) # mu
-tmat.add_transition(&#39;I&#39;, &#39;R&#39;, 1/mu, 0) # mu
-infect_fxn = py0.contact_infection_func(infections_compartments, area=area)
-model = py0.MetaModel(infect_fxn, timesteps, populations=np.array(population))
-# starting fractions probabilities
-start = np.zeros((M,C)) #anywhere
-# Assume starting from Node true_node
-initial_exposed = 1/population[true_node]
-start[true_node,0] = initial_exposed
-sparsed_mobility_matrix_norm = sparsed_mobility_matrix / np.sum(sparsed_mobility_matrix, axis=1, keepdims=True)
-ref_traj = model(sparsed_mobility_matrix_norm, tmat.value, start, np.array([beta_A,beta_I]))[0]
-ref_traj = ref_traj[np.newaxis, ...]
-py0.patch_quantile(ref_traj, patch_names = patches, figsize=(10, 6), alpha=0.5, names=[&#39;S&#39;,&#39;E&#39;,&#39;A&#39;,&#39;I&#39;,&#39;R&#39;])
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">beta_A</span> <span class="o">=</span> <span class="mf">0.025</span>
+<span class="n">beta_I</span><span class="o">=</span><span class="mf">0.05</span>
+<span class="n">alpha</span> <span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span>
+<span class="n">gamma</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+<span class="n">mu</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mi">7</span>
+<span class="n">M</span><span class="o">=</span><span class="mi">10</span>
+<span class="n">C</span><span class="o">=</span><span class="mi">4</span>
+<span class="n">timesteps</span><span class="o">=</span><span class="mi">250</span>
+<span class="c1"># sparsify mobility matrix for sparse graphs</span>
+<span class="n">sparsed_mobility_matrix</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">sparse_graph_mobility</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">dense_mobility_matrix</span><span class="p">)</span>
+<span class="n">tmat</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">TransitionMatrix</span><span class="p">(</span><span class="n">compartments</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">alpha</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># calling this alpha</span>
+<span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">gamma</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># calling this gamma</span>
+<span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="n">mu</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># mu</span>
+<span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">mu</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># mu</span>
+<span class="n">infect_fxn</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">contact_infection_func</span><span class="p">(</span><span class="n">infections_compartments</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="n">area</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">MetaModel</span><span class="p">(</span><span class="n">infect_fxn</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">,</span> <span class="n">populations</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">population</span><span class="p">))</span>
+<span class="c1"># starting fractions probabilities</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">M</span><span class="p">,</span><span class="n">C</span><span class="p">))</span> <span class="c1">#anywhere</span>
+<span class="c1"># Assume starting from Node true_node</span>
+<span class="n">initial_exposed</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">population</span><span class="p">[</span><span class="n">true_node</span><span class="p">]</span>
+<span class="n">start</span><span class="p">[</span><span class="n">true_node</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">initial_exposed</span>
+<span class="n">sparsed_mobility_matrix_norm</span> <span class="o">=</span> <span class="n">sparsed_mobility_matrix</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sparsed_mobility_matrix</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ref_traj</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sparsed_mobility_matrix_norm</span><span class="p">,</span> <span class="n">tmat</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">beta_A</span><span class="p">,</span><span class="n">beta_I</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ref_traj</span> <span class="o">=</span> <span class="n">ref_traj</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<span class="n">py0</span><span class="o">.</span><span class="n">patch_quantile</span><span class="p">(</span><span class="n">ref_traj</span><span class="p">,</span> <span class="n">patch_names</span> <span class="o">=</span> <span class="n">patches</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">,</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;I&#39;</span><span class="p">,</span><span class="s1">&#39;R&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Plotting</span> <span class="mi">10</span> <span class="n">patches</span> <span class="ow">in</span> <span class="n">a</span> <span class="mi">3</span> <span class="n">x</span> <span class="mi">4</span> <span class="n">grid</span>
 </pre></div>
 </div>
-<img alt="output_7_1.png" src="output_7_1.png" />
+<img alt="_images/output_7_1.png" src="_images/output_7_1.png" />
 </div>
 <div class="section" id="applying-maxent">
 <h2>Applying MaxEnt<a class="headerlink" href="#applying-maxent" title="Permalink to this headline">¶</a></h2>
@@ -273,24 +273,24 @@ py0.patch_quantile(ref_traj, patch_names = patches, figsize=(10, 6), alpha=0.5, 
 This is done by considering weekly averages from compartments I and R.
 To account for uncertainty we add 0.05 multiplicative noise and a
 Laplace prior of 1.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def gen_restraints(ref_traj, prior=None, start=None, end=None):
-    if prior:
-        prior = maxent.Laplace(1)
-    else:
-        prior = maxent.EmptyPrior()
-    restrained_patches = np.random.choice(M, number_of_restrained_patches, replace=False)
-    restraints, plot_fxns_list = py0.compartment_restrainer(restrained_patches, restrained_compartments,
-                                                                 ref_traj, prior, npoints = npoints, noise=0.05, start_time=start, end_time=end)
-    return restraints, plot_fxns_list, restrained_patches
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_restraints</span><span class="p">(</span><span class="n">ref_traj</span><span class="p">,</span> <span class="n">prior</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">prior</span><span class="p">:</span>
+        <span class="n">prior</span> <span class="o">=</span> <span class="n">maxent</span><span class="o">.</span><span class="n">Laplace</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prior</span> <span class="o">=</span> <span class="n">maxent</span><span class="o">.</span><span class="n">EmptyPrior</span><span class="p">()</span>
+    <span class="n">restrained_patches</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">number_of_restrained_patches</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">restraints</span><span class="p">,</span> <span class="n">plot_fxns_list</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">compartment_restrainer</span><span class="p">(</span><span class="n">restrained_patches</span><span class="p">,</span> <span class="n">restrained_compartments</span><span class="p">,</span>
+                                                                 <span class="n">ref_traj</span><span class="p">,</span> <span class="n">prior</span><span class="p">,</span> <span class="n">npoints</span> <span class="o">=</span> <span class="n">npoints</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">restraints</span><span class="p">,</span> <span class="n">plot_fxns_list</span><span class="p">,</span> <span class="n">restrained_patches</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>npoints = 5
-number_of_restrained_patches = 5
-restrained_compartments = [3,4] #(infected patch and recovered)
-number_of_restrained_compartments = len(restrained_compartments)
-restrained_compartments_names = [full_compartments[m] for m in restrained_compartments]
-restrained_compartments_names = &quot; &quot;.join(restrained_compartments_names)
-restraints, plot_fxns_list, restrained_patches = gen_restraints(ref_traj, prior=True, start=50, end=140)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">npoints</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">number_of_restrained_patches</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">restrained_compartments</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span> <span class="c1">#(infected patch and recovered)</span>
+<span class="n">number_of_restrained_compartments</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">restrained_compartments</span><span class="p">)</span>
+<span class="n">restrained_compartments_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">full_compartments</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">restrained_compartments</span><span class="p">]</span>
+<span class="n">restrained_compartments_names</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">restrained_compartments_names</span><span class="p">)</span>
+<span class="n">restraints</span><span class="p">,</span> <span class="n">plot_fxns_list</span><span class="p">,</span> <span class="n">restrained_patches</span> <span class="o">=</span> <span class="n">gen_restraints</span><span class="p">(</span><span class="n">ref_traj</span><span class="p">,</span> <span class="n">prior</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">140</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Restraints</span> <span class="n">are</span> <span class="nb">set</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">time</span> <span class="nb">range</span><span class="p">:</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">140</span><span class="p">]</span>
@@ -347,141 +347,141 @@ restraints, plot_fxns_list, restrained_patches = gen_restraints(ref_traj, prior=
 </pre></div>
 </div>
 <p>Generating an ensemble of trajectories to apply MaxEnt:</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def gen_samples(graph, mobility_matrix=dense_mobility_matrix, timesteps =250, area = area, populations = population):
-    # sparsify mobility matrix for sparse graphs
-    sparsed_mobility_matrix = py0.sparse_graph_mobility(graph, mobility_matrix)
-    tmat = py0.TransitionMatrix(compartments, infections_compartments)
-    tmat.add_transition(&#39;E&#39;, &#39;A&#39;, 2, 2) # call this alpha
-    tmat.add_transition(&#39;E&#39;, &#39;I&#39;, 2, 2) # call this gamma
-    tmat.add_transition(&#39;A&#39;, &#39;R&#39;,6, 2) # mu
-    tmat.add_transition(&#39;I&#39;, &#39;R&#39;, 6, 2)
-    hyper_pram = py0.ParameterHypers()
-    hyper_pram.beta_low = [0.005]*2
-    hyper_pram.beta_high = [0.08]*2
-    hyper_pram.beta_var = [0.1]*2
-    hyper_pram.start_high = 2e-5
-    hyper_pram.start_var = 0.5
-    hyper_pram.R_var = 100
-    hyper_pram.beta_start = 0.005
-    hyper_pram.start_mean = 8e-6
-    hyper_pram.start_scale = 1e-7
-    start_logits = np.zeros((M))
-    param_model = py0.MetaParameterJoint(start_logits, sparsed_mobility_matrix , tmat, name=&#39;unbiased_model&#39;,
-                                              hypers = hyper_pram, n_infectious_compartments=2)
-    import tqdm
-    N = 512
-    batches = 16
-    total_batches = N * batches
-    outs = []
-    infect = py0.contact_infection_func(infections_compartments, area = area)
-    model = py0.MetaModel(infect, timesteps, populations = population)
-    prior_prams = []
-    for b in tqdm.tqdm(range(batches)):
-        ps = param_model.sample(N)
-        prior_prams.append(ps)
-        outs.append(model(*ps))
-    trajs = np.concatenate(outs, axis=0)
-    return trajs
-trajs = gen_samples(graph, timesteps =250, area = area, populations = population)
-prior_exposed_patch = py0.exposed_finder(trajs)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gen_samples</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">mobility_matrix</span><span class="o">=</span><span class="n">dense_mobility_matrix</span><span class="p">,</span> <span class="n">timesteps</span> <span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="n">area</span><span class="p">,</span> <span class="n">populations</span> <span class="o">=</span> <span class="n">population</span><span class="p">):</span>
+    <span class="c1"># sparsify mobility matrix for sparse graphs</span>
+    <span class="n">sparsed_mobility_matrix</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">sparse_graph_mobility</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">mobility_matrix</span><span class="p">)</span>
+    <span class="n">tmat</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">TransitionMatrix</span><span class="p">(</span><span class="n">compartments</span><span class="p">,</span> <span class="n">infections_compartments</span><span class="p">)</span>
+    <span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># call this alpha</span>
+    <span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># call this gamma</span>
+    <span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># mu</span>
+    <span class="n">tmat</span><span class="o">.</span><span class="n">add_transition</span><span class="p">(</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">hyper_pram</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">ParameterHypers</span><span class="p">()</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">beta_low</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.005</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">beta_high</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.08</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">beta_var</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">start_high</span> <span class="o">=</span> <span class="mf">2e-5</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">start_var</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">R_var</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">beta_start</span> <span class="o">=</span> <span class="mf">0.005</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">start_mean</span> <span class="o">=</span> <span class="mf">8e-6</span>
+    <span class="n">hyper_pram</span><span class="o">.</span><span class="n">start_scale</span> <span class="o">=</span> <span class="mf">1e-7</span>
+    <span class="n">start_logits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">M</span><span class="p">))</span>
+    <span class="n">param_model</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">MetaParameterJoint</span><span class="p">(</span><span class="n">start_logits</span><span class="p">,</span> <span class="n">sparsed_mobility_matrix</span> <span class="p">,</span> <span class="n">tmat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;unbiased_model&#39;</span><span class="p">,</span>
+                                              <span class="n">hypers</span> <span class="o">=</span> <span class="n">hyper_pram</span><span class="p">,</span> <span class="n">n_infectious_compartments</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">tqdm</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="mi">512</span>
+    <span class="n">batches</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">total_batches</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">batches</span>
+    <span class="n">outs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">infect</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">contact_infection_func</span><span class="p">(</span><span class="n">infections_compartments</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="n">area</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">MetaModel</span><span class="p">(</span><span class="n">infect</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">,</span> <span class="n">populations</span> <span class="o">=</span> <span class="n">population</span><span class="p">)</span>
+    <span class="n">prior_prams</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">batches</span><span class="p">)):</span>
+        <span class="n">ps</span> <span class="o">=</span> <span class="n">param_model</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+        <span class="n">prior_prams</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ps</span><span class="p">)</span>
+        <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="p">(</span><span class="o">*</span><span class="n">ps</span><span class="p">))</span>
+    <span class="n">trajs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">trajs</span>
+<span class="n">trajs</span> <span class="o">=</span> <span class="n">gen_samples</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">timesteps</span> <span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">area</span> <span class="o">=</span> <span class="n">area</span><span class="p">,</span> <span class="n">populations</span> <span class="o">=</span> <span class="n">population</span><span class="p">)</span>
+<span class="n">prior_exposed_patch</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">exposed_finder</span><span class="p">(</span><span class="n">trajs</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>100%|██████████| 16/16 [00:32&lt;00:00,  2.01s/it]
 </pre></div>
 </div>
 <p>Applying MaxEnt:</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from keras.callbacks import ReduceLROnPlateau
-def maxent_fit(trajs, restraints):
-    me_model = maxent.MaxentModel(restraints)
-    from tensorflow import keras
-    optimizer=keras.optimizers.Adam(lr=1e-2)
-    me_model.compile(optimizer=optimizer, loss=&#39;mean_squared_error&#39;)
-    reduce_lr = ReduceLROnPlateau(monitor=&#39;loss&#39;, factor=0.9,
-                              patience=10, min_lr=0)
-    me_history = me_model.fit(trajs, batch_size=trajs.shape[0], epochs=200, callbacks=[reduce_lr], verbose=0)
-    return me_model
-me_model = maxent_fit(trajs, restraints)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="kn">import</span> <span class="n">ReduceLROnPlateau</span>
+<span class="k">def</span> <span class="nf">maxent_fit</span><span class="p">(</span><span class="n">trajs</span><span class="p">,</span> <span class="n">restraints</span><span class="p">):</span>
+    <span class="n">me_model</span> <span class="o">=</span> <span class="n">maxent</span><span class="o">.</span><span class="n">MaxentModel</span><span class="p">(</span><span class="n">restraints</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">tensorflow</span> <span class="kn">import</span> <span class="n">keras</span>
+    <span class="n">optimizer</span><span class="o">=</span><span class="n">keras</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">)</span>
+    <span class="n">me_model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s1">&#39;mean_squared_error&#39;</span><span class="p">)</span>
+    <span class="n">reduce_lr</span> <span class="o">=</span> <span class="n">ReduceLROnPlateau</span><span class="p">(</span><span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                              <span class="n">patience</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">min_lr</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">me_history</span> <span class="o">=</span> <span class="n">me_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">trajs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">trajs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">reduce_lr</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">me_model</span>
+<span class="n">me_model</span> <span class="o">=</span> <span class="n">maxent_fit</span><span class="p">(</span><span class="n">trajs</span><span class="p">,</span> <span class="n">restraints</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def compare_patches(ref_traj, trajs, weights_dict, method, restrained_patches, plot_fxns_list,
-                    *args, figsize=(10, 6), patch_names=None, ** kw_args):
-    &#39;&#39;&#39;does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments]
-    &#39;&#39;&#39;
-    weights = weights_dict[method]
-    NP = trajs.shape[2]
-    nrow = int(np.floor(np.sqrt(NP)))
-    ncol = int(np.ceil(NP / nrow))
-    print(f&#39;Plotting {NP} patches in a {nrow} x {ncol} grid&#39;)
-    fig, ax = plt.subplots(nrow, ncol, sharex=True,
-                           sharey=True, figsize=figsize)
-    for i in range(nrow):
-        for j in range(ncol):
-            if i * ncol + j == NP:
-                break
-#             traj_quantile(trajs[:,:,i * ncol + j,:], weights=weights, names=full_compartments, ax=axs[0,i])
-            ax[i,j].plot(ref_traj[0,:,i * ncol + j,:], linestyle=&#39;--&#39;)
-            if method == &#39;unbiased&#39;:
-                py0.traj_quantile(trajs[:, :, i * ncol + j, :], *args, ax=ax[i, j],
-                              add_legend=i == 0 and j == ncol - 1, **kw_args)
-            elif method == &#39;biased&#39;:
-                py0.traj_quantile(trajs[:, :, i * ncol + j, :],weights= weights, *args, ax=ax[i, j],
-                              add_legend=i == 0 and j == ncol - 1, **kw_args)
-            elif method == &#39;hyper-biased&#39;:
-                py0.traj_quantile(hme_model.trajs[:, :, i * ncol + j, :],weights= weights, *args, ax=ax[i, j],
-                              add_legend=i == 0 and j == ncol - 1, **kw_args)
-            elif method == &#39;regression&#39;:
-                ax[i,j].plot(rtraj[p,:,i * ncol + j,:])
-#             ax[i, j].set_ylim(0, 1)
-            if i * ncol + j in restrained_patches and method != &#39;unbiased&#39;:
-                for _,pf in enumerate(plot_fxns_list[restrained_patches.tolist().index(i * ncol + j)]):
-                    pf(ax[i,j],0, color=&#39;C3&#39;)
-                ax[i,j].spines[&#39;bottom&#39;].set_color(&#39;C0&#39;)
-                ax[i,j].spines[&#39;top&#39;].set_color(&#39;C0&#39;)
-                ax[i,j].spines[&#39;right&#39;].set_color(&#39;C0&#39;)
-                ax[i,j].spines[&#39;left&#39;].set_color(&#39;C0&#39;)
-                ax[i,j].spines[&#39;left&#39;].set_linewidth(2)
-                ax[i,j].spines[&#39;top&#39;].set_linewidth(2)
-                ax[i,j].spines[&#39;right&#39;].set_linewidth(2)
-                ax[i,j].spines[&#39;bottom&#39;].set_linewidth(2)
-#             plt.tight_layout()
-            if patch_names is None:
-                ax[i, j].text(trajs.shape[1] // 2, 0.8,
-                              f&#39;Patch {i * ncol + j}&#39;)
-            else:
-                patch_names = patch_names
-                ax[i, j].set_title(patch_names[i * ncol + j])
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compare_patches</span><span class="p">(</span><span class="n">ref_traj</span><span class="p">,</span> <span class="n">trajs</span><span class="p">,</span> <span class="n">weights_dict</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">restrained_patches</span><span class="p">,</span> <span class="n">plot_fxns_list</span><span class="p">,</span>
+                    <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">patch_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span> <span class="n">kw_args</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments]</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights_dict</span><span class="p">[</span><span class="n">method</span><span class="p">]</span>
+    <span class="n">NP</span> <span class="o">=</span> <span class="n">trajs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">nrow</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">NP</span><span class="p">)))</span>
+    <span class="n">ncol</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">NP</span> <span class="o">/</span> <span class="n">nrow</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Plotting </span><span class="si">{</span><span class="n">NP</span><span class="si">}</span><span class="s1"> patches in a </span><span class="si">{</span><span class="n">nrow</span><span class="si">}</span><span class="s1"> x </span><span class="si">{</span><span class="n">ncol</span><span class="si">}</span><span class="s1"> grid&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                           <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncol</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span> <span class="o">==</span> <span class="n">NP</span><span class="p">:</span>
+                <span class="k">break</span>
+<span class="c1">#             traj_quantile(trajs[:,:,i * ncol + j,:], weights=weights, names=full_compartments, ax=axs[0,i])</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ref_traj</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,</span><span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="p">,:],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;unbiased&#39;</span><span class="p">:</span>
+                <span class="n">py0</span><span class="o">.</span><span class="n">traj_quantile</span><span class="p">(</span><span class="n">trajs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="p">:],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span>
+                              <span class="n">add_legend</span><span class="o">=</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">==</span> <span class="n">ncol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kw_args</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;biased&#39;</span><span class="p">:</span>
+                <span class="n">py0</span><span class="o">.</span><span class="n">traj_quantile</span><span class="p">(</span><span class="n">trajs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="p">:],</span><span class="n">weights</span><span class="o">=</span> <span class="n">weights</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span>
+                              <span class="n">add_legend</span><span class="o">=</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">==</span> <span class="n">ncol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kw_args</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;hyper-biased&#39;</span><span class="p">:</span>
+                <span class="n">py0</span><span class="o">.</span><span class="n">traj_quantile</span><span class="p">(</span><span class="n">hme_model</span><span class="o">.</span><span class="n">trajs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="p">:],</span><span class="n">weights</span><span class="o">=</span> <span class="n">weights</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span>
+                              <span class="n">add_legend</span><span class="o">=</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">==</span> <span class="n">ncol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kw_args</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">rtraj</span><span class="p">[</span><span class="n">p</span><span class="p">,:,</span><span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="p">,:])</span>
+<span class="c1">#             ax[i, j].set_ylim(0, 1)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">restrained_patches</span> <span class="ow">and</span> <span class="n">method</span> <span class="o">!=</span> <span class="s1">&#39;unbiased&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">pf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plot_fxns_list</span><span class="p">[</span><span class="n">restrained_patches</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="p">)]):</span>
+                    <span class="n">pf</span><span class="p">(</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">],</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C3&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;C0&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;C0&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;C0&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;C0&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1">#             plt.tight_layout()</span>
+            <span class="k">if</span> <span class="n">patch_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">trajs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span>
+                              <span class="sa">f</span><span class="s1">&#39;Patch </span><span class="si">{</span><span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">patch_names</span> <span class="o">=</span> <span class="n">patch_names</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">patch_names</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">+</span> <span class="n">j</span><span class="p">])</span>
 
-            if j == 0 and i == nrow // 2:
-                ax[i, j].set_ylabel(&#39;Fraction&#39;)
-            if i == nrow - 1 and j == ncol // 2:
-                ax[i, j].set_xlabel(&#39;Time&#39;)
-            if j &gt;= NP % ncol:
-                ax[nrow-1, j].set_visible(False)
-            if i==2:
-                ax[i,j].set_xlabel(&#39;Time (days)&#39;)
-    plt.tight_layout()
+            <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="n">nrow</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Fraction&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">nrow</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">==</span> <span class="n">ncol</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;=</span> <span class="n">NP</span> <span class="o">%</span> <span class="n">ncol</span><span class="p">:</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">nrow</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (days)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Let’s have a look at the posterior trajectory. The dashed lines are the
 reference trajectory and the red markers are observation data points
 coming from patches with blue highlighted edges.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>weights_dict = {&#39;unbiased&#39;:None, &#39;biased&#39;:me_model.traj_weights}
-compare_patches(ref_traj, trajs, weights_dict,&#39;biased&#39;, restrained_patches, plot_fxns_list,
-                patch_names = patches, figsize=(10, 6), alpha=0.3, names=full_compartments)
-plt.tight_layout()
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">weights_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;unbiased&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;biased&#39;</span><span class="p">:</span><span class="n">me_model</span><span class="o">.</span><span class="n">traj_weights</span><span class="p">}</span>
+<span class="n">compare_patches</span><span class="p">(</span><span class="n">ref_traj</span><span class="p">,</span> <span class="n">trajs</span><span class="p">,</span> <span class="n">weights_dict</span><span class="p">,</span><span class="s1">&#39;biased&#39;</span><span class="p">,</span> <span class="n">restrained_patches</span><span class="p">,</span> <span class="n">plot_fxns_list</span><span class="p">,</span>
+                <span class="n">patch_names</span> <span class="o">=</span> <span class="n">patches</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">full_compartments</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Plotting</span> <span class="mi">10</span> <span class="n">patches</span> <span class="ow">in</span> <span class="n">a</span> <span class="mi">3</span> <span class="n">x</span> <span class="mi">4</span> <span class="n">grid</span>
 </pre></div>
 </div>
-<img alt="output_18_1.png" src="output_18_1.png" />
+<img alt="_images/output_18_1.png" src="_images/output_18_1.png" />
 <p>Finally, we can have a look at model’s patient-zero origin inference:</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>me_w = me_model.traj_weights
-exposed_prob = py0.weighted_exposed_prob_finder(
-                            prior_exposed_patch, M)
-weighted_exposed_prob = py0.weighted_exposed_prob_finder(
-                            prior_exposed_patch, M, weights=me_w)
-py0.draw_graph(graph, weights=weighted_exposed_prob, heatmap=True, true_origin=true_node)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">me_w</span> <span class="o">=</span> <span class="n">me_model</span><span class="o">.</span><span class="n">traj_weights</span>
+<span class="n">exposed_prob</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">weighted_exposed_prob_finder</span><span class="p">(</span>
+                            <span class="n">prior_exposed_patch</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+<span class="n">weighted_exposed_prob</span> <span class="o">=</span> <span class="n">py0</span><span class="o">.</span><span class="n">weighted_exposed_prob_finder</span><span class="p">(</span>
+                            <span class="n">prior_exposed_patch</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">me_w</span><span class="p">)</span>
+<span class="n">py0</span><span class="o">.</span><span class="n">draw_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weighted_exposed_prob</span><span class="p">,</span> <span class="n">heatmap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">true_origin</span><span class="o">=</span><span class="n">true_node</span><span class="p">)</span>
 </pre></div>
 </div>
 <img alt="_images/output_20_0.png" src="_images/output_20_0.png" />

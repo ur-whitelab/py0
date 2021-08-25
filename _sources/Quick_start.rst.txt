@@ -50,7 +50,7 @@ Let’s make a 10-node contact network with node connection probability of
 
 
 
-.. image:: output_5_0.png
+.. image:: img/output_5_0.png
 
 
 Defining diesease parameters:
@@ -91,7 +91,7 @@ Defining diesease parameters:
 
 
 
-.. image:: output_7_1.png
+.. image:: img/output_7_1.png
 
 
 Applying MaxEnt
@@ -324,7 +324,7 @@ coming from patches with blue highlighted edges.
 
 
 
-.. image:: output_18_1.png
+.. image:: img/output_18_1.png
 
 
 Finally, we can have a look at model’s patient-zero origin inference:
@@ -340,5 +340,5 @@ Finally, we can have a look at model’s patient-zero origin inference:
 
 
 
-.. image:: output_20_0.png
+.. image:: img/output_20_0.png
 
