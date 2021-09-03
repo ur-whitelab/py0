@@ -18,7 +18,13 @@ pip install py0@git+https://github.com/ur-whitelab/py0.git
 
 ``py0`` can be coupled with [MaxEnt](https://ur-whitelab.github.io/maxent/) to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data. 
 
-![](docs/source/img/MaxEnt.gif)
+### Creating an ensmble of trajectories
+
+![](docs/source/img/sampling.gif)
+
+### Fitting using MaxEnt
+
+![](docs/source/img/fit.gif)
 
 ### MaxEnt Installation
 
