@@ -39,3 +39,5 @@ jobs:
       run: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --execute "examples/SIR_Example.ipynb" --to notebook --output-dir='temp' --clear-output
     - name: Run Traj_Matching
       run: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --execute "examples/Traj_Matching.ipynb" --to notebook --output-dir='temp' --clear-output
+    - name: Run OR_state
+      run: jupyter nbconvert --ExecutePreprocessor.timeout=-1 --execute "examples/OR_state.ipynb" --to notebook --output-dir='temp' --clear-output
