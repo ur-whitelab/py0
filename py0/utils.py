@@ -7,13 +7,32 @@ import maxent
 
 
 class TransitionMatrix:
+    ''' Defines the transition between different compartments in the disease model, given different epidemiology parameters.
+    '''
     def __init__(self, compartment_names, infectious_compartments):
+        ''' 
+        :param compartment_names: name of different compartments
+        :type compartment_names: list of compartment_names as strings
+        :param infectious_compartments: index of infectious compartment_names
+        :type infectious_compartments: list
+        '''
         self.names = compartment_names
         self.infectious_compartments = infectious_compartments
         self.transitions = []
         self.mat = None
 
     def add_transition(self, name1, name2, time, time_var):
+        '''
+        :param name1: source compartment
+        :type name1: string
+        :param name2: destination compartment
+        :type name2: string
+        :param time: time it takes to move from source compartment to destination compartment. This is typically the reciprocal of rates.
+        :type time: float
+        :param time_var: variance of the time it takes to move from source compartment to destination compartment. Use zero unless you are
+            creating an esemble of trajectories to do inference using MaxEnt.
+        :type time_var: float
+        '''
         if name1 not in self.names or name2 not in self.names:
             raise ValueError('name not in compartment names')
         if name1 == name2:
@@ -45,7 +64,7 @@ class TransitionMatrix:
 
     @property
     def value(self):
-        '''Return matrix value
+        ''' Returns matrix value.
         '''
         if self.mat is None:
             self._make_matrix()
@@ -54,8 +73,9 @@ class TransitionMatrix:
 
 def weighted_quantile(values, quantiles, sample_weight=None,
                        values_sorted=False, old_style=False):
-    """ Very close to numpy.percentile, but supports weights.
-    NOTE: quantiles should be in [0, 1]!
+    ''' Very close to numpy.percentile, but supports weights.
+        Note: quantiles should be in [0, 1]!
+
     :param values: numpy.array with data
     :param quantiles: array-like with many quantiles needed
     :param sample_weight: array-like of the same length as `array`
@@ -63,8 +83,9 @@ def weighted_quantile(values, quantiles, sample_weight=None,
         initial array
     :param old_style: if True, will correct output to be consistent
         with numpy.percentile.
+
     :return: numpy.array with computed quantiles.
-    """
+    '''
     values = np.array(values)
     quantiles = np.array(quantiles)
     if sample_weight is None:
@@ -89,7 +110,15 @@ def weighted_quantile(values, quantiles, sample_weight=None,
 
 
 def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args):
-    '''does traj_quantile for trajectories of shape [ntrajs, time, patches, compartments]
+    ''' Does ``traj_quantile`` for trajectories of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,
+        M is the number of patches (nodes) and C is the number of compartments.
+
+    :param trajs: ensemble of trajectories after sampling
+    :type trajs: tensor with dtype tf.float32
+    :param figsize: figure size
+    :type figsize: tupple
+    :param patch_names: name of the patches (nodes). If not provided patches name will be defined by their index.
+    :type patch_names: list
     '''
     NP = trajs.shape[2]
     nrow = int(np.floor(np.sqrt(NP)))
@@ -121,9 +150,34 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
     plt.tight_layout()
 
 
-def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=True, ax=None, add_legend=True, add_title=None, alpha=0.6):
-    '''Make a plot of all the trajectories and the average trajectory based on
-      parameter weights.'''
+def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  figsize=(9, 9), names=None, plot_means=True, ax=None,
+    add_legend=True, alpha=0.6):
+    ''' Make a plot of all the trajectories and the average trajectory based on trajectory weights and lower and upper quantile values.
+    
+    :param trajs: ensemble of trajectories after sampling
+    :type trajs: tensor with dtype tf.float32 of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,
+        M is the number of patches (nodes) and C is the number of compartments.
+    :param weights: weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.
+    :type weights: tensor with dtype tf.float32
+    :param lower_q_bound: lower quantile bound
+    :type lower_q_bound: float
+    :param upper_q_bound: upper quantile bound
+    :type upper_q_bound: float
+    :param figsize: figure size
+    :type figsize: tupple
+    :param names: name of compartments as strings
+    :type names: list
+    :param plot_means: if ``True`` approximates quantiles as distance from median applied to mean.
+    :type plot_means: bool
+    :param ax: ``matplotlib.axes.AxesSubplot``. Defaults to a new axis.
+    :param add_legend: show legend 
+    :type add_legend: bool
+    :param alpha: alpha value for edges that allows transparency
+    :type alpha: float
+    '''
+
+    if lower_q_bound+upper_q_bound != 1.0:
+        raise ValueError('lower and upper quantile bounds should sum up to 1.0.')
 
     if names is None:
         names = [f'Compartment {i}' for i in range(trajs.shape[-1])]
@@ -138,7 +192,7 @@ def traj_quantile(trajs, weights=None, figsize=(9, 9), names=None, plot_means=Tr
     # weighted quantiles doesn't support axis
     # fake it using apply_along
     qtrajs = np.apply_along_axis(lambda x: weighted_quantile(
-        x, [1/3, 1/2, 2/3], sample_weight=w), 0, trajs)
+        x, [lower_q_bound, 1/2, upper_q_bound], sample_weight=w), 0, trajs)
     if plot_means:
         # approximate quantiles as distance from median applied to mean
         # with clips
@@ -179,19 +233,33 @@ def merge_history(base, other, prefix=''):
             base.history[prefix + k] = v
     return base
 
-def exposed_finder(sampled_trajs):
-    R'''
-    Finds the initial exposed patch (t=0) for trajs
+
+def exposed_finder(trajs):
+    ''' Finds the initial exposed patch (t=0) for trajs
+
+    :param trajs: ensemble of trajectories after sampling
+    :type trajs: tensor with dtype tf.float32 of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,
+        M is the number of patches (nodes) and C is the number of compartments.
+
+    :return: A numpy array containing the index of the initial exposed node for the ensemble of trajectories
     '''
-    if len(sampled_trajs.shape) < 4:
-        sampled_trajs = sampled_trajs[np.newaxis, ...]
-    exposed_sampled_trajs = sampled_trajs[:, 0, :, 1]
+    if len(trajs.shape) < 4:
+        trajs = trajs[np.newaxis, ...]
+    exposed_sampled_trajs = trajs[:, 0, :, 1]
     return np.where(exposed_sampled_trajs > 0)[:][1]
 
 
 def weighted_exposed_prob_finder(prior_exposed_patch, meta_pop_size, weights=None):
-    R'''
-    Finds the weighted probabiity of being exposed in every patch at time zero across all the sample trajs
+    ''' Finds the weighted probability of being exposed in every patch at time zero across all the sample trajs.
+
+    :param prior_exposed_patch: output of ``exposed_finder`` function.
+    :type prior_exposed_patch: an array of size N (sample size)
+    :param meta_pop_size: size of the metapopulation
+    :type meta_pop_size: int
+    :param weights: weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.
+    :type weights: tensor with dtype tf.float32
+
+    :return: weighted probability of being exposed across all patches
     '''
     if weights is None:
         weights = np.ones_like(prior_exposed_patch)
@@ -204,18 +272,71 @@ def weighted_exposed_prob_finder(prior_exposed_patch, meta_pop_size, weights=Non
 
 def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, title=None,
            choropleth=False, geojson=None, fontsize=12, figsize=(15, 8), vmin=None, vmax=None,
-           restrained_patches=None, true_origin=None, obs_size=5, obs_color='C0', org_color='C8', colormap='Reds'):
-    R'''
-    Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
-    on a choropleth map (this requires geopandas and geoplot packages).
+           restrained_patches=None, true_origin=None, obs_size=5, obs_color='C0', org_color='C8',
+           colormap='Reds', ax=None, projection=None, show_legend=True, show_cbar=True):
+    ''' Plots the weighted probabiity of being exposed in every patch at time zero on a grid or
+    on a choropleth map (this requires geopandas and geoplot packages). If choropleth plotting is enabled, make sure your geojson has 'county' as header for 
+    the counties name column and your patches names are alphabetically sorted.
+
+    :param prior_exposed_patch: output of ``exposed_finder`` function.
+    :type prior_exposed_patch: an array of size N (sample size)
+    :param meta_pop_size: size of the metapopulation
+    :type meta_pop_size: int
+    :param weights: weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.
+    :type weights: tensor with dtype tf.float32
+    :param patch_names: name of the patches. Note that the namings should be similar to names from GeoJSON if using ``choropleth``.
+    :type patch_names: list
+    :param title: figure title
+    :type title: string
+    :param choropleth: turn on if plotting choropleth plots
+    :type choropleth: bool
+    :param geojson: path to GeoJSON file describing the geographic features of the metapopulation
+    :type geojson: string
+    :param fontsize: font size
+    :type fontsize: float
+    :param figsize: figure size
+    :type figsize: tupple
+    :param vmin: minimum value of the color bar
+    :type vmin: float
+    :param vmax: maximum value of the color bar
+    :type vmax: float
+    :param restrained_patches: index of the patches (nodes) restrained
+    :type restrained_patches: list
+    :param true_origin: index for the true origin node
+    :type true_origin: int
+    :param obs_size: marker size for the observation nodes
+    :type obs_size: float
+    :param obs_color: marker color for the observation nodes
+    :type obs_color: string
+    :param org_color: marker size for the true origin node
+    :type org_color: tensor with dtype tf.float32
+    :param colormap: Matplotlib colormaps 
+    :type colormap: string
+    :param ax: ``matplotlib.axes.AxesSubplot``. Defaults to a new axis.
+    :param projection: the projection to use. For reference see
+        `Working with Projections
+        <https://residentmario.github.io/geoplot/user_guide/Working_with_Projections.html>`_.
+    :param show_legend: show legend for true origin or obsevations. 
+    :type show_legend: bool
+    :param show_cbar: show heatmap color bar 
+    :type show_cbar: bool
     '''
     weighted_exposed_prob = py0.weighted_exposed_prob_finder(
         prior_exposed_patch, meta_pop_size, weights=weights)
     if choropleth:
-        import geopandas as gpd
-        import geoplot as gplt
-        import geoplot.crs as gcrs
+        try:
+            import geopandas as gpd
+        except ImportError:
+            raise ImportError(
+                'This function requires geopandas package to run. Please install the missing dependency.')
+        try:
+            import geoplot as gplt
+            import geoplot.crs as gcrs
+        except ImportError:
+            raise ImportError(
+                'This function requires geoplot package to run. Please install the missing dependency.')
         import matplotlib as mpl
+        import matplotlib.lines as mlines
         if vmax is None:
             vmax = max(weighted_exposed_prob)
         if vmin is None:
@@ -225,41 +346,68 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
         census_geo = gpd.read_file(geojson).sort_values(by=['county']).assign(
             prob_exposed_initial=weighted_exposed_prob)
         total_bounds = census_geo.total_bounds + np.array([0, -0.2, 0, 0])
-        ax = gplt.choropleth(
-            census_geo,
-            hue='prob_exposed_initial',
-            cmap=cmap, norm=norm, linewidth=0.5,
-            edgecolor='k',
-            legend=True,
-            projection=gcrs.AlbersEqualArea(),
-            figsize=figsize,
-            zorder=0, extent=total_bounds
-        )
+        if projection is None:
+            projection = gcrs.AlbersEqualArea(
+                central_longitude=-121, central_latitude=39.5)
+        if ax is not None:
+            gplt.choropleth(
+                census_geo,
+                hue='prob_exposed_initial',
+                cmap=cmap, norm=norm, linewidth=0.5,
+                edgecolor='k',
+                legend=False,
+                extent=total_bounds,
+                zorder=0,
+                ax=ax,
+                figsize=figsize)
+        else:
+            ax = gplt.choropleth(
+                census_geo,
+                hue='prob_exposed_initial',
+                cmap=cmap, norm=norm, linewidth=0.5,
+                edgecolor='k',
+                legend=False,
+                projection=projection,
+                figsize=figsize,
+                extent=total_bounds,
+                zorder=0)
         ax.set_facecolor('w')
         # scatter plot the observations on the map
+        handles = []
+        census_geo_points = census_geo.copy()
+        census_geo_points['geometry'] = census_geo_points['geometry'].centroid
         if restrained_patches is not None:
             restrained_patches_names = [' '.join(patch_names[i].split()[:-1])
                                         for i in restrained_patches]
-            census_geo_points = census_geo.copy()
-            census_geo_points['geometry'] = census_geo_points['geometry'].centroid
             obs = census_geo_points.query(
                 'county == @restrained_patches_names')
             gplt.pointplot(obs, ax=ax,
                            marker='o', s=obs_size, color=obs_color, zorder=2, extent=total_bounds, edgecolor='#ebebeb', alpha=0.9)
-            if true_origin is not None:
-                origin_name = patch_names[true_origin]
-                origin_name = ' '.join(origin_name.split()[:-1])
-                org = census_geo_points.query('county == @origin_name')
-                gplt.pointplot(org, ax=ax,
-                               marker='v', s=obs_size+6, color=org_color, zorder=1, extent=total_bounds, edgecolor='#ebebeb', alpha=0.9)
-        fig = ax.figure
-        cb_ax = fig.axes[1]
-        cb_ax.tick_params(labelsize=fontsize)
+            obs_marker = mlines.Line2D([], [], color=obs_color, marker='o', linestyle='None',
+                                       markersize=obs_size, label='Observation(s)', markeredgecolor='#ebebeb')
+            handles.append(obs_marker)
+        if true_origin is not None:
+            origin_name = patch_names[true_origin]
+            origin_name = ' '.join(origin_name.split()[:-1])
+            org = census_geo_points.query('county == @origin_name')
+            gplt.pointplot(org, ax=ax,
+                           marker='v', s=obs_size+6, color=org_color, zorder=1, extent=total_bounds, edgecolor='#ebebeb', alpha=0.9)
+            org_marker = mlines.Line2D([], [], color=org_color, marker='v', linestyle='None',
+                                       markersize=obs_size+6, label='True Origin', markeredgecolor='#ebebeb')
+            handles.append(org_marker)
+        if show_legend:
+            pos_ax = ax.get_position()
+            ax.legend(handles=handles, bbox_to_anchor=[-0.05*(pos_ax.width), pos_ax.height],
+                      frameon=True, fontsize=fontsize, edgecolor='k', facecolor='#ebebeb')
+
+        if show_cbar:
+            cbar = ax.figure.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=colormap), ax=ax,
+                                      pad=0.05, fraction=0.03)
+            cbar.ax.tick_params(labelsize=fontsize)
+            cbar.ax.set_title('Probability', fontsize=fontsize, y=1.05)
         if title:
-            plt.title(title, fontsize=fontsize)
-
-
-
+            ax.set_title(title, fontsize=fontsize+10, y=1.05)
+        plt.tight_layout()
     else:
         nrow = int(np.floor(np.sqrt(meta_pop_size)))
         ncol = int(np.ceil(meta_pop_size / nrow))
@@ -298,9 +446,36 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
         plt.tight_layout()
 
 
-def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj, prior, npoints=5, noise=0, start_time=0, end_time=None, time_average=7):
-    R'''
-    Adds restraints to reference traj based on selected compartments of selected patches
+def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj, prior, npoints=5, noise=0,
+    start_time=0, end_time=None, time_average=7, marker_size=10, marker_color='r'):
+    ''' Adds restraints to reference traj based on selected compartments of selected patches.
+
+    :param restrained_patches: index of the patches (nodes) restrained
+    :type restrained_patches: list
+    :param restrained_compartments: index values for the restrained compartments
+    :type restrained_compartments: list
+    :param ref_traj: reference traj
+    :type ref_traj:  a [1, T, M, C] tensor with dtype tf.float32, where T is the number of timesteps, M is the number of patches (nodes) and
+        C is the number of compartments.
+    :param prior: Prior distribution for expected deviation from target for restraint. Can be either 'EmptyPrior' for exact agreement
+        or set to 'Laplace' for more allowable disagreement.
+    :type prior: maxent.prior
+    :param npoints: number of data points in each restrained compartment
+    :type npoints: int
+    :param noise: multiplicative noise to be added to observations to allow higher uncertainty
+    :type noise: float
+    :param start_time: index for the lower time limit of restraints
+    :type start_time: int
+    :param end_time: index for the higher time limit of restraints. If not provided, maximum timestep will be assumed.
+    :type end_time: int
+    :param time_average: number of timesteps to for time averaging of restraints
+    :type time_average: int
+    :param marker_size: marker size for restraints
+    :type marker_size: int
+    :param marker_color: marker color for restraints
+    :type marker_color: string
+
+    :return: restraints, plot_fxns_list
     '''
     if tf.rank(ref_traj).numpy() != 4:
         ref_traj = ref_traj[tf.newaxis, ...]
@@ -320,20 +495,30 @@ def compartment_restrainer(restrained_patches, restrained_compartments, ref_traj
         plot_fxns = []
         for j in range(number_of_restrained_compartments):
             res, plfxn = py0.traj_to_restraints(ref_traj[0, :, :, :], [
-                restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average, start_time=start_time, end_time=end_time)
+                restrained_patches[i], restrained_compartments[j]], npoints, prior, noise, time_average, start_time=start_time,
+                end_time=end_time, marker_size=marker_size, marker_color=marker_color)
             restraints += res
             plot_fxns += plfxn
         plot_fxns_list.append(plot_fxns)
     return restraints, plot_fxns_list
 
 
-def get_dist(prior_prams, compartments=['E', 'A', 'I', 'R']):
+def get_dist(prior_params, compartments=['E', 'A', 'I', 'R']):
+    ''' Gets distributions for the model parameters in the ensemble trectory sampling.
+
+    :param prior_params: model parameters during sampling over different batches.
+    :type prior_params: list
+    :param compartments: list of compartments except for 'S' (susceptible) as strings.
+    :type compartments: list
+
+    return: list of model parameter's distributions.
+    '''
     R_dist = []
     T_dist = []
     start_dist = []
     beta_dist = []
-    for i in range(len(prior_prams)):
-        param_batch = prior_prams[i]
+    for i in range(len(prior_params)):
+        param_batch = prior_params[i]
         R_dist.append(param_batch[0])
         T_dist.append(param_batch[1])
         start_dist.append(param_batch[2])
@@ -355,6 +540,18 @@ def get_dist(prior_prams, compartments=['E', 'A', 'I', 'R']):
 
 
 def plot_dist(R_dist, E_A, A_I, I_R, start_exposed_dist, beta_dist, name='prior'):
+    ''' plots a ``seaborn.distplot`` for the model's prior parameter distribution.
+
+    :param R_dist:  sampled mobility flows as tensor with dtype tf.float32
+    :param E_A: time for going from E->A as tensor with dtype tf.float32
+    :param A_I: time for going from A->I as tensor with dtype tf.float32
+    :param I_R: time for going from I->R as tensor with dtype tf.float32
+    :param start_exposed_dist: starting exposed fraction as tensor with dtype tf.float32
+    :param beta_dist: beta value(s) as tensor with dtype tf.float32
+    :param name: name for the distributions that shows up in the figure title
+    :type name: string
+
+    '''
     import seaborn as sns
     fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(18, 6), dpi=200)
     fig.suptitle(f'Parameter {name} distributions', fontsize=20, y=1.00)
@@ -368,15 +565,22 @@ def plot_dist(R_dist, E_A, A_I, I_R, start_exposed_dist, beta_dist, name='prior'
 
 
 def graph_degree(graph):
-    R'''
-    Returns degree-of-freedom of a network graph based on networkx graph
+    ''' Returns graph degree of a network graph based on networkx graph input.
+    
+    :param graph:  networkx graph
+
+    :return: graph degree
     '''
     degree = len(list(graph.edges))/len(list(graph.nodes))
     return degree
 
 def gen_graph(M):
-    R'''
-    Returns a fully connected dense networkx graph of size M, edge list and node list
+    ''' Generates a fully connected dense networkx graph of size M, edge list and node list.
+
+    :param M: number of nodes in the metapopulation
+    :type M: int
+    
+    :return: graph, edge list, node list
     '''
     import networkx as nx
     G = nx.DiGraph()
@@ -392,9 +596,41 @@ def gen_graph(M):
     return G, edge_list, node_list
 
 
+def gen_graph_from_R(mobility_matrix):
+    ''' Generates a networkx graph of size mobility_matrix.shape[0], edge list and node list.
+
+    :param mobility_matrix: mobility flows between the nodes
+    :type mobility_matrix: numpy array of [M, M], where M is the number of nodes in the metapopulation
+    
+    :return: graph, edge list, node list
+    '''
+    import networkx as nx
+    M = mobility_matrix.shape[0]
+    G = nx.DiGraph()
+    edge_list = []
+    k = 0
+    i = 0
+    node_list = range(M)
+    for k in range(M):
+        G.add_nodes_from([node_list[k]])
+        for i in range(M):
+            if mobility_matrix[k, i] != 0:
+                edge_list.append(
+                    (k, i, {'weight': np.log(mobility_matrix[k, i])}))
+    G.add_edges_from(edge_list)
+    return G, edge_list, node_list
+
+
 def gen_random_graph(M, p=1.0, seed=None):
-    R'''
-    Returns a random networkx graph of size M with connection probability p
+    ''' Returns a random networkx graph of size M with connection probability p
+
+    :param M: number of nodes in the metapopulation
+    :type M: int
+    :param p: node connection probability
+    :type p: float
+    :param seed: allows random seeding for graph generations
+
+    :return: graph
     '''
     import networkx as nx
     graph = nx.fast_gnp_random_graph(M, p, directed=True, seed=seed)
@@ -404,9 +640,22 @@ def gen_random_graph(M, p=1.0, seed=None):
     return graph
 
 
-def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_origin=None):
-    R'''
-    Plots networkx graph. Heatmap option changes node color based on node weights.
+def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_origin=None, color_bar=True):
+    ''' Plots networkx graph.
+
+    :param graph:  networkx graph
+    :param weights:  probabiity of being exposed in every patch at time zero across all the sample trajs. If not provided uniform
+        probability will be assumed over all nodes.
+    :param heatmap: change node color based on weights
+    :type heatmap: bool
+    :param title: plot title 
+    :type title: string
+    :param dpi: dpi value of plot
+    :type dpi: int
+    :param true_origin: index for the true origin node
+    :type true_origin: int
+    :param color_bar: enables color bar in plot
+    :type color_bar: bool
     '''
     import networkx as nx
     if heatmap:
@@ -437,8 +686,9 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_ori
         ax = plt.gca()  # to get the current axis
         ax.collections[0].set_edgecolor(edge_colors)
         ax.collections[0].set_linewidths(line_widths)
-        cbar = plt.colorbar(heatmap)
-        cbar.ax.set_ylabel('Patient-zero Probability',
+        if color_bar:
+            cbar = plt.colorbar(heatmap)
+            cbar.ax.set_ylabel('Patient-zero Probability',
                            labelpad=15, rotation=90)
     else:
         fig, ax = plt.subplots(dpi=dpi)
@@ -456,10 +706,137 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_ori
     return
 
 
+def draw_graph_on_map(mobility_matrix, geojson, title=None, node_size=300, node_color="#eb4034", edge_color='#555555',
+                      map_face_colors=None, fontsize=12, figsize=(10, 10), ax=None, alpha_edge=0.3, alpha_node=0.8,
+                      true_origin=None, restrained_patches=None, obs_color='C0', org_color='C8', show_map_only=False, show_legend=False):
+    ''' Plots networkx graph on a map given mobility flows and geographic features. The edges are weighted by the mobility flows between the nodes.
+    This function also alows for visualization of true orgin node and observed ones.
+
+    :param mobility_matrix: mobility flows between the nodes
+    :type mobility_matrix: numpy array of [M, M], where M is the number of nodes in the metapopulation
+    :param geojson: path to GeoJSON file describing the geographic features of the metapopulation
+    :type geojson: string
+    :param title: figure title
+    :type title: string
+    :param node_size: size for the networkx nodes
+    :type node_size: int
+    :param node_color: color for the networkx nodes
+    :type node_color: string or a list of strings with length M
+    :param edge_color: color for the networkx edges
+    :type edge_color: string
+    :param map_face_colors: color for the faces of patches on the map
+    :type map_face_colors: string or a list of strings with length M
+    :param fontsize: font size
+    :type fontsize: float
+    :param figsize: figure size
+    :type figsize: tupple
+    :param ax: ``matplotlib.axes.AxesSubplot``. Defaults to a new axis.
+    :param show_legend: show legend for true origin or obsevations.
+    :param alpha_edge: alpha value for edges that allows transparency
+    :type alpha_edge: float
+    :param alpha_nodes: alpha value for nodes that allows transparency
+    :type alpha_nodes: float
+    :param true_origin: index for the true origin node
+    :type true_origin: int
+    :param restrained_patches: index of the patches (nodes) restrained
+    :type restrained_patches: list
+    :param obs_color: marker color for the observation nodes
+    :type obs_color: string
+    :param org_color: marker size for the true origin node
+    :type org_color: tensor with dtype tf.float32
+    :param show_map_only: Showing the map only without the networkx graph. Default is ``False``.
+    :type show_map_only: bool
+    :type show_legend: bool
+    '''
+    try:
+        import geopandas as gpd
+    except ImportError:
+        raise ImportError(
+            'This function requires geopandas package to run. Please install the missing dependency.')
+    import matplotlib.lines as mlines
+    import networkx as nx
+    import random
+    graph, edge_list, node_list = gen_graph_from_R(mobility_matrix)
+    M = len(node_list)
+    if map_face_colors is None:
+        random.seed(2)
+        map_face_colors = ['C'+f'{i}' for i in range(M)]
+        random.shuffle(map_face_colors)
+        random.shuffle(map_face_colors)
+    handles = []
+    if true_origin is not None or restrained_patches is not None:
+        map_face_colors = ['#c2c2c2']*M
+        if true_origin is not None:
+            node_color_origin = [node_color]*M
+            map_face_colors[true_origin] = org_color
+            node_color_origin[true_origin] = org_color
+            org_marker = mlines.Line2D([], [], color=org_color, marker='o', linestyle='None',
+                                       markersize=node_size/30+5, label='True Origin', markeredgecolor='k')
+            handles.append(org_marker)
+            node_size_origin = [node_size]*M
+            node_size_origin[true_origin] *= 2.5
+        if restrained_patches is not None:
+            node_color_obs = [node_color]*M
+            edge_color_obs = ['k']*M
+            node_size_obs = [node_size]*M
+            if true_origin is not None:
+                node_color_obs[true_origin] = org_color
+                edge_color_obs[true_origin] = 'none'
+            for i in restrained_patches:
+                map_face_colors[i] = obs_color
+                node_color_obs[i] = obs_color
+            obs_marker = mlines.Line2D([], [], color=obs_color, marker='o', linestyle='None',
+                                       markersize=node_size/30, label='Observation(s)', markeredgecolor='k')
+            handles.append(obs_marker)
+            node_color = node_color_obs
+    regions = gpd.read_file(geojson).sort_values(by=['county'])
+    centroids = np.column_stack((regions.centroid.x, regions.centroid.y))
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    regions.plot(linewidth=1, edgecolor='k',
+                 facecolor=map_face_colors, alpha=0.3, ax=ax)
+    ax.axis("off")
+    if not show_map_only:
+        positions = dict(zip(graph.nodes, centroids))
+        graph_nodes_only = py0.gen_random_graph(M, p=0)
+        edge_weights = nx.get_edge_attributes(graph, 'weight').values()
+        if not bool(edge_weights):
+            print('No weights found for edges. Assuming uniform widths for edges.')
+            width = [1]*M
+        else:
+            width = list(edge_weights)
+        if true_origin is None and restrained_patches is None:
+            nx.draw(graph, positions, ax=ax, width=width, node_size=node_size, node_color=node_color,
+                    edge_color=edge_color, alpha=alpha_edge, edgecolors='k')
+            nx.draw(graph_nodes_only, positions, ax=ax,
+                    node_color="#eb4034", alpha=alpha_node, edgecolors='k')
+        else:
+            # draw transparent nodes to get the edges first
+            nx.draw(graph, positions, ax=ax, width=width, node_size=node_size, node_color='none',
+                    edge_color=edge_color, alpha=alpha_edge, edgecolors='none')
+            if true_origin is not None:
+                nx.draw(graph_nodes_only, positions, ax=ax, node_color=node_color_origin,
+                        node_size=node_size_origin, alpha=1, edgecolors='k')
+            if restrained_patches is not None:
+                nx.draw(graph_nodes_only, positions, ax=ax, node_color=node_color_obs, node_size=node_size, alpha=alpha_node,
+                        edgecolors=edge_color_obs)
+    if title:
+        ax.set_title(title, fontsize=fontsize, y=1.05)
+    if show_legend:
+        pos_ax = ax.get_position()
+        ax.legend(handles=handles, bbox_to_anchor=[-0.05*(pos_ax.width), pos_ax.height],
+                  frameon=True, fontsize=fontsize, edgecolor='k', facecolor='#ebebeb')
+
+
 def sparse_graph_mobility(sparse_graph, fully_connected_mobility_matrix):
-    R'''
-    Generates a sprase mobility matrix based on sparse graph and a fully connected mobility matrix inputs.
+    ''' Generates a sprase mobility matrix based on sparse graph and a fully connected mobility matrix inputs.
     For a fully connected graph, the output mobility matrix remains the same.
+
+    :param graph:  networkx sparse graph
+    :param fully_connected_mobility_matrix: [M, M] array with values defining mobility flows between nodes
+    :type fully_connected_mobility_matrix: numpy array
+
+    :return: sparsed mobility matrix 
     '''
     sparse_mobility_matrix = np.zeros_like(fully_connected_mobility_matrix)
     for i, edge in enumerate(sparse_graph.edges()):
@@ -468,18 +845,39 @@ def sparse_graph_mobility(sparse_graph, fully_connected_mobility_matrix):
     return sparse_mobility_matrix
 
 
-def p0_loss(trajs, weights, true_p0_node):
-    R'''Returns cross-entropy loss for p0 based on sampled trajs and maxent weights, size of meta-population and ground-truth p0 node inputs'''
+def p0_loss(trajs, weights, true_origin):
+    ''' Returns cross-entropy loss for p0 based on sampled trajs and maxent weights, size of meta-population and ground-truth p0 node inputs.
+
+    :param trajs: sampled ensemble of trajectories
+    :type trajs:  a [N, T, M, C] tensor with dtype tf.float32, where N is the number of samples, T is the number of timesteps,
+        M is the number of patches (nodes) and C is the number of compartments
+    :param weights: weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.
+    :type weights: tensor with dtype tf.float32
+    :param true_origin: index for the true origin node
+    :type true_origin: int
+
+    :return: cross-entropy loss
+    '''
     M = trajs.shape[2]
     prior_exposed_patch = py0.exposed_finder(trajs)
     weighted_exposed_prob = py0.weighted_exposed_prob_finder(
         prior_exposed_patch, M, weights=weights)
-    loss = -np.log(weighted_exposed_prob[true_p0_node])
+    loss = -np.log(weighted_exposed_prob[true_origin])
     return loss
 
 
 def traj_loss(ref_traj, trajs, weights):
-    R'''Returns KL divergence loss for predicted traj based on ref_traj, sampled trajs and maxent weights inputs'''
+    ''' Returns Kullback–Leibler (KL) divergence loss for predicted traj based on a reference traj and MaxEnt reweighted trajs.
+
+    :param ref_traj: reference traj
+    :type ref_traj:  a [1, T, M, C] tensor with dtype tf.float32, where T is the number of timesteps, M is the number of patches (nodes) and
+        C is the number of compartments.
+    :param trajs: sampled ensemble of trajectories
+    :type trajs:  a [N, T, M, C] tensor with dtype tf.float32, where N is the number of samples, T is the number of timesteps,
+        M is the number of patches (nodes) and C is the number of compartments
+
+    :return: KL divergence as a scalar value
+    '''
     M = trajs.shape[2]
     Time = trajs.shape[1]
     weights /= tf.reduce_sum(weights)
@@ -490,14 +888,37 @@ def traj_loss(ref_traj, trajs, weights):
     return loss
 
 
-def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_average=7, start_time=0, end_time=None):
-    '''Creates npoints restraints based on given trajectory with multiplicative noise and time averaging.
+def traj_to_restraints(ref_traj, inner_slice, npoints, prior, noise=0.1, time_average=7, start_time=0, end_time=None, marker_size=10, marker_color='r'):
+    ''' Creates npoints restraints based on given trajectory with multiplicative noise and time averaging.
     For example, it could be weekly averages with some noise.
 
-    Returns: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it
+    :param ref_traj: reference traj
+    :type ref_traj:  a [1, T, M, C] tensor with dtype tf.float32, where T is the number of timesteps, M is the number of patches (nodes) and
+        C is the number of compartments.
+    :param inner_slice: list of length 2. First index determines the patch and second index determines what compartment on that patch is restrained.
+    :type inner_slice: list
+    :param npoints: number of data points in each restrained compartment
+    :type npoints: int
+    :param prior: Prior distribution for expected deviation from target for restraint. Can be either 'EmptyPrior' for exact agreement
+        or set to 'Laplace' for more allowable disagreement.
+    :type prior: maxent.prior
+    :param noise: multiplicative noise to be added to observations to allow higher uncertainty
+    :type noise: float
+    :param time_average: number of timesteps to for time averaging of restraints
+    :type time_average: int
+    :param start_time: index for the lower time limit of restraints
+    :type start_time: int
+    :param end_time: index for the higher time limit of restraints. If not provided, maximum timestep will be assumed.
+    :type end_time: int
+    :param marker_size: marker size for restraints
+    :type marker_size: int
+    :param marker_color: marker color for restraints
+    :type marker_color: string
+
+    :return: list of restraints, list of functions which take a matplotlib axis and lambda value and plot the restraint on it.
     '''
     if end_time is None:
-        end_time = len(traj)
+        end_time = len(ref_traj)
     restraints = []
     plots = []
     # make sure it's a tuple
@@ -506,21 +927,21 @@ def traj_to_restraints(traj, inner_slice, npoints, prior, noise=0.1, time_averag
         slices = np.random.choice(
             range(start_time // time_average, end_time // time_average), replace=False, size=npoints)
     except ValueError:
-        print(f'Only {len(traj) // time_average - start_time // time_average} points are possible given the input time_average = {time_average}.')
+        print(f'Only {len(ref_traj) // time_average - start_time // time_average} points are possible given the input time_average = {time_average}.')
     for i in slices:
         # pick random time period
         s = slice(i * time_average,
                   i * time_average + time_average)
-        v = np.log(np.clip(np.mean(traj[s], axis=0)[
+        v = np.log(np.clip(np.mean(ref_traj[s], axis=0)[
                     inner_slice] * np.random.normal(loc=1.0, scale=noise), 0, 1) + 1e-15)
         def fxn(x, s=s, j=inner_slice):
             return tf.math.log(tf.reduce_mean(x[s], axis=0)[j] + 1e-15)
         print(i * time_average + time_average // 2 ,
-              np.mean(traj[s], axis=0)[inner_slice], np.exp(v))
+              np.mean(ref_traj[s], axis=0)[inner_slice], np.exp(v))
         # need to make a multiline lambda, so fake it with tuple
-        plotter = lambda ax, l, i=i, v=v, color='black', inner_slice=inner_slice, prior=prior: (
+        def plotter(ax, l, i=i, v=v, color=marker_color, inner_slice=inner_slice, prior=prior): return (
             ax.plot(i * time_average + time_average // 2 ,
-                    np.exp(v), 'o', color=color, markersize=3),
+                    np.exp(v), 'o', color=color, markersize=marker_size, markeredgecolor='k'),
             ax.errorbar(i * time_average + time_average // 2 , np.exp(v), xerr=time_average //
                         2, yerr=prior.expected(float(l)), color=color, capsize=3, ms=20)
         )
