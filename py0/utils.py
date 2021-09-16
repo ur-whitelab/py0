@@ -109,7 +109,7 @@ def weighted_quantile(values, quantiles, sample_weight=None,
     return np.interp(quantiles, weighted_quantiles, values)
 
 
-def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args):
+def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, fancy_shading=False, n_shading_gradients=30, alpha=0.6, ** kw_args):
     ''' Does ``traj_quantile`` for trajectories of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,
         M is the number of patches (nodes) and C is the number of compartments.
 
@@ -119,6 +119,12 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
     :type figsize: tupple
     :param patch_names: name of the patches (nodes). If not provided patches name will be defined by their index.
     :type patch_names: list
+    :param alpha: alpha value for edges that allows transparency
+    :type alpha: float
+    :param fancy_shading: allows for gradient shading of the confidence interval
+    :type fancy_shading: bool
+    :param n_shading_gradients: number of intervals for shading gradients
+    :type n_shading_gradients: int
     '''
     NP = trajs.shape[2]
     nrow = int(np.floor(np.sqrt(NP)))
@@ -131,7 +137,7 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
             if i * ncol + j == NP:
                 break
             traj_quantile(trajs[:, :, i * ncol + j, :], *args, ax=ax[i, j],
-                          add_legend=i == 0 and j == ncol - 1, **kw_args)
+                          add_legend=i == 0 and j == ncol - 1, fancy_shading=fancy_shading, n_shading_gradients=n_shading_gradients, alpha=alpha, **kw_args)
             ax[i, j].set_ylim(0, 1)
             if patch_names is None:
                 ax[i, j].text(trajs.shape[1] // 2, 0.8,
@@ -151,7 +157,7 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, ** kw_args)
 
 
 def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  figsize=(9, 9), names=None, plot_means=True, ax=None,
-    add_legend=True, alpha=0.6):
+                  add_legend=True, alpha=0.6, fancy_shading=False, n_shading_gradients=30):
     ''' Make a plot of all the trajectories and the average trajectory based on trajectory weights and lower and upper quantile values.
     
     :param trajs: ensemble of trajectories after sampling
@@ -174,11 +180,14 @@ def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  fi
     :type add_legend: bool
     :param alpha: alpha value for edges that allows transparency
     :type alpha: float
+    :param fancy_shading: allows for gradient shading of the confidence interval
+    :type fancy_shading: bool
+    :param n_shading_gradients: number of intervals for shading gradients
+    :type n_shading_gradients: int
     '''
 
     if lower_q_bound+upper_q_bound != 1.0:
         raise ValueError('lower and upper quantile bounds should sum up to 1.0.')
-
     if names is None:
         names = [f'Compartment {i}' for i in range(trajs.shape[-1])]
     if weights is None:
@@ -186,31 +195,45 @@ def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  fi
     else:
         w = weights
     w /= np.sum(w)
-
     x = range(trajs.shape[1])
-
-    # weighted quantiles doesn't support axis
-    # fake it using apply_along
-    qtrajs = np.apply_along_axis(lambda x: weighted_quantile(
-        x, [lower_q_bound, 1/2, upper_q_bound], sample_weight=w), 0, trajs)
-    if plot_means:
-        # approximate quantiles as distance from median applied to mean
-        # with clips
-        mtrajs = np.sum(trajs * w[:, np.newaxis, np.newaxis], axis=0)
-        qtrajs[0, :, :] = np.clip(
-            qtrajs[0, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
-        qtrajs[2, :, :] = np.clip(
-            qtrajs[2, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
-        qtrajs[1, :, :] = mtrajs
-    if ax is None:
-        ax = plt.gca()
-        ax.set_xlabel('Timestep')
-        ax.set_ylabel('Fraction of Population')
-    for i in range(trajs.shape[-1]):
-        ax.plot(x, qtrajs[1, :, i],
-                color=f'C{i}', label=f'Compartment {names[i]}')
-        ax.fill_between(x, qtrajs[0, :, i], qtrajs[-1, :, i],
-                        color=f'C{i}', alpha=alpha)
+    fancy_lower_q_bounds = np.linspace(lower_q_bound, 0.5, n_shading_gradients)
+    fancy_higher_q_bounds = 1 - fancy_lower_q_bounds
+    for n in range(n_shading_gradients):
+        if not fancy_shading:
+            lower_q_bound = fancy_lower_q_bounds[0]
+            upper_q_bound = fancy_higher_q_bounds[0]
+        else:
+            lower_q_bound = fancy_lower_q_bounds[n]
+            upper_q_bound = fancy_higher_q_bounds[n]
+        # weighted quantiles doesn't support axis
+        # fake it using apply_along
+        qtrajs = np.apply_along_axis(lambda x: weighted_quantile(
+            x, [lower_q_bound, 1/2, upper_q_bound], sample_weight=w), 0, trajs)
+        if plot_means:
+            # approximate quantiles as distance from median applied to mean
+            # with clips
+            mtrajs = np.sum(trajs * w[:, np.newaxis, np.newaxis], axis=0)
+            qtrajs[0, :, :] = np.clip(
+                qtrajs[0, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
+            qtrajs[2, :, :] = np.clip(
+                qtrajs[2, :, :] - qtrajs[1, :, :] + mtrajs, 0, 1)
+            qtrajs[1, :, :] = mtrajs
+        if ax is None:
+            ax = plt.gca()
+            ax.set_xlabel('Timestep')
+            ax.set_ylabel('Fraction of Population')
+        for i in range(trajs.shape[-1]):
+            ax.fill_between(x, qtrajs[0, :, i], qtrajs[-1, :, i],
+                            color=f'C{i}', alpha=alpha, linewidth=0.0)
+            if n == 0:
+                ax.plot(x, qtrajs[1, :, i],
+                        color=f'C{i}', label=f'Compartment {names[i]}')
+                ax.plot(x, qtrajs[0, :, i],
+                        color=f'C{i}', alpha=0.4, linewidth=1)
+                ax.plot(x, qtrajs[2, :, i],
+                        color=f'C{i}', alpha=0.4, linewidth=1)
+        if not fancy_shading:
+            break
     if not plot_means:
         ax.plot(x, np.sum(qtrajs[1, :, :], axis=1),
                 color='gray', label='Total', linestyle=':')
@@ -219,6 +242,11 @@ def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  fi
         # add margin for legend
         ax.set_xlim(0, max(x))
         ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
+        # removing duplicates from legend
+        handles, labels = ax.get_legend_handles_labels()
+        unique = [(h, l) for i, (h, l) in enumerate(
+            zip(handles, labels)) if l not in labels[:i]]
+        ax.legend(*zip(*unique), loc='upper left', bbox_to_anchor=(1.05, 1))
 
 
 def merge_history(base, other, prefix=''):
