@@ -198,16 +198,13 @@ def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  fi
     x = range(trajs.shape[1])
     fancy_lower_q_bounds = np.linspace(lower_q_bound, 0.5, n_shading_gradients)
     fancy_higher_q_bounds = 1 - fancy_lower_q_bounds
-    alpha = np.linspace(0.01, alpha, n_shading_gradients)
     for n in range(n_shading_gradients):
         if not fancy_shading:
             lower_q_bound = fancy_lower_q_bounds[0]
             upper_q_bound = fancy_higher_q_bounds[0]
-            adjusted_alpha = alpha[-1]
         else:
             lower_q_bound = fancy_lower_q_bounds[n]
             upper_q_bound = fancy_higher_q_bounds[n]
-            adjusted_alpha = alpha[n]
         # weighted quantiles doesn't support axis
         # fake it using apply_along
         qtrajs = np.apply_along_axis(lambda x: weighted_quantile(
@@ -227,14 +224,14 @@ def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  fi
             ax.set_ylabel('Fraction of Population')
         for i in range(trajs.shape[-1]):
             ax.fill_between(x, qtrajs[0, :, i], qtrajs[-1, :, i],
-                            color=f'C{i}', alpha=adjusted_alpha, linewidth=0.0)
+                            color=f'C{i}', alpha=alpha, linewidth=0.0)
             if n == 0:
                 ax.plot(x, qtrajs[1, :, i],
                         color=f'C{i}', label=f'Compartment {names[i]}')
                 ax.plot(x, qtrajs[0, :, i],
-                        color=f'C{i}', alpha=0.4)
+                        color=f'C{i}', alpha=0.4, linewidth=1)
                 ax.plot(x, qtrajs[2, :, i],
-                        color=f'C{i}', alpha=0.4)
+                        color=f'C{i}', alpha=0.4, linewidth=1)
         if not fancy_shading:
             break
     if not plot_means:
