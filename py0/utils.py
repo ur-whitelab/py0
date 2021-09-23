@@ -109,22 +109,39 @@ def weighted_quantile(values, quantiles, sample_weight=None,
     return np.interp(quantiles, weighted_quantiles, values)
 
 
-def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, fancy_shading=False, n_shading_gradients=30, alpha=0.6, ** kw_args):
+def patch_quantile(trajs, *args, ref_traj=None, weights=None, lower_q_bound=1/3, upper_q_bound=2/3, restrained_patches=None, plot_fxns_list=None, figsize=(18, 18), patch_names=None,
+                    fancy_shading=False, n_shading_gradients=30, alpha=0.6, obs_color='C0', ** kw_args):
     ''' Does ``traj_quantile`` for trajectories of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,
         M is the number of patches (nodes) and C is the number of compartments.
 
     :param trajs: ensemble of trajectories after sampling
-    :type trajs: tensor with dtype tf.float32
+    :type trajs: tensor with dtype tf.float32 of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,
+        M is the number of patches (nodes) and C is the number of compartments.
+    :param ref_traj: reference trajectory
+    :type ref_traj: tensor with dtype tf.float32 of shape [1, T, M, C] where T is the number of timesteps,
+        M is the number of patches (nodes) and C is the number of compartments.
+    :param weights: weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.
+    :type weights: tensor with dtype tf.float32
+    :param lower_q_bound: lower quantile bound
+    :type lower_q_bound: float
+    :param upper_q_bound: upper quantile bound
+    :type upper_q_bound: float
+    :param restrained_patches: index of the patches (nodes) restrained
+    :type restrained_patches: list
+    :param plot_fxns_list: output of `compartment_restrainer`
+    :type plot_fxns_list: list
     :param figsize: figure size
     :type figsize: tupple
     :param patch_names: name of the patches (nodes). If not provided patches name will be defined by their index.
     :type patch_names: list
-    :param alpha: alpha value for edges that allows transparency
-    :type alpha: float
     :param fancy_shading: allows for gradient shading of the confidence interval
     :type fancy_shading: bool
     :param n_shading_gradients: number of intervals for shading gradients
     :type n_shading_gradients: int
+    :param alpha: alpha value for edges that allows transparency
+    :type alpha: float
+    :param obs_color: marker color for the observation nodes
+    :type obs_color: string
     '''
     NP = trajs.shape[2]
     nrow = int(np.floor(np.sqrt(NP)))
@@ -136,9 +153,22 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, fancy_shadi
         for j in range(ncol):
             if i * ncol + j == NP:
                 break
-            traj_quantile(trajs[:, :, i * ncol + j, :], *args, ax=ax[i, j],
+            if ref_traj is not None:
+                ax[i, j].plot(ref_traj[0, :, i * ncol + j, :], linestyle='--')
+            traj_quantile(trajs[:, :, i * ncol + j, :], *args, ax=ax[i, j], weights=weights, lower_q_bound=lower_q_bound, upper_q_bound=upper_q_bound,
                           add_legend=i == 0 and j == ncol - 1, fancy_shading=fancy_shading, n_shading_gradients=n_shading_gradients, alpha=alpha, **kw_args)
             ax[i, j].set_ylim(0, 1)
+            if restrained_patches is not None and i * ncol + j in restrained_patches:
+                for _,pf in enumerate(plot_fxns_list[restrained_patches.tolist().index(i * ncol + j)]):
+                    pf(ax[i, j], 0, color=obs_color)
+                ax[i, j].spines['bottom'].set_color(obs_color)
+                ax[i, j].spines['top'].set_color(obs_color)
+                ax[i, j].spines['right'].set_color(obs_color)
+                ax[i, j].spines['left'].set_color(obs_color)
+                ax[i,j].spines['left'].set_linewidth(2)
+                ax[i,j].spines['top'].set_linewidth(2)
+                ax[i,j].spines['right'].set_linewidth(2)
+                ax[i,j].spines['bottom'].set_linewidth(2)
             if patch_names is None:
                 ax[i, j].text(trajs.shape[1] // 2, 0.8,
                               f'Patch {i * ncol + j}')
@@ -147,9 +177,9 @@ def patch_quantile(trajs, *args, figsize=(18, 18), patch_names=None, fancy_shadi
                 ax[i, j].set_title(patch_names[i * ncol + j])
 
             if j == 0 and i == nrow // 2:
-                ax[i, j].set_ylabel('Fraction')
-            if i == nrow - 1 and j == ncol // 2:
-                ax[i, j].set_xlabel('Time')
+                ax[i, j].set_ylabel('Population Fraction')
+            if i == nrow - 1:
+                ax[i, j].set_xlabel('Time (days)')
             if j >= NP % ncol:
                 ax[nrow-1, j].set_visible(False)
 
@@ -432,7 +462,7 @@ def p0_map(prior_exposed_patch, meta_pop_size, weights=None, patch_names=None, t
             cbar = ax.figure.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=colormap), ax=ax,
                                       pad=0.05, fraction=0.03)
             cbar.ax.tick_params(labelsize=fontsize)
-            cbar.ax.set_title('Probability', fontsize=fontsize, y=1.05)
+            cbar.ax.set_title('$P_0$ Probability', fontsize=fontsize, y=1.05)
         if title:
             ax.set_title(title, fontsize=fontsize+10, y=1.05)
         plt.tight_layout()
@@ -716,7 +746,7 @@ def draw_graph(graph, weights=None, heatmap=False, title=None, dpi=150, true_ori
         ax.collections[0].set_linewidths(line_widths)
         if color_bar:
             cbar = plt.colorbar(heatmap)
-            cbar.ax.set_ylabel('Patient-zero Probability',
+            cbar.ax.set_ylabel('$P_0$ Probability',
                            labelpad=15, rotation=90)
     else:
         fig, ax = plt.subplots(dpi=dpi)
