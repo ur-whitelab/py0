@@ -110,7 +110,7 @@ def weighted_quantile(values, quantiles, sample_weight=None,
 
 
 def patch_quantile(trajs, *args, ref_traj=None, weights=None, lower_q_bound=1/3, upper_q_bound=2/3, restrained_patches=None, plot_fxns_list=None, figsize=(18, 18), patch_names=None,
-                    fancy_shading=False, n_shading_gradients=30, alpha=0.6, obs_color='C0', ** kw_args):
+                   fancy_shading=False, n_shading_gradients=30, alpha=0.6, obs_color='C0', yscale_log=False, ** kw_args):
     ''' Does ``traj_quantile`` for trajectories of shape [N, T, M, C] where N is the number of samples, T is the number of timesteps,
         M is the number of patches (nodes) and C is the number of compartments.
 
@@ -142,6 +142,8 @@ def patch_quantile(trajs, *args, ref_traj=None, weights=None, lower_q_bound=1/3,
     :type alpha: float
     :param obs_color: marker color for the observation nodes
     :type obs_color: string
+    :param yscale_log: change y axis scale to log for better visualization of the observations.
+    :type yscale_log: bool
     '''
     NP = trajs.shape[2]
     nrow = int(np.floor(np.sqrt(NP)))
@@ -180,6 +182,9 @@ def patch_quantile(trajs, *args, ref_traj=None, weights=None, lower_q_bound=1/3,
                 ax[i, j].set_ylabel('Population Fraction')
             if i == nrow - 1:
                 ax[i, j].set_xlabel('Time (days)')
+            if yscale_log:
+                ax[i, j].set_yscale('log')
+                ax[i, j].set_ylim([1e-4, 1])
             if j >= NP % ncol:
                 ax[nrow-1, j].set_visible(False)
 
