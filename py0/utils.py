@@ -259,7 +259,7 @@ def traj_quantile(trajs, weights=None, lower_q_bound=1/3, upper_q_bound=2/3,  fi
             ax.set_ylabel('Fraction of Population')
         for i in range(trajs.shape[-1]):
             ax.fill_between(x, qtrajs[0, :, i], qtrajs[-1, :, i],
-                            color=f'C{i}', alpha=alpha, linewidth=0.0)
+                            color=f'C{i}', alpha=alpha, linewidth=0.0, rasterized=True)
             if n == 0:
                 ax.plot(x, qtrajs[1, :, i],
                         color=f'C{i}', label=f'Compartment {names[i]}')
