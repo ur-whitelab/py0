@@ -34,6 +34,23 @@ The package uses Keras (Tensorflow). To install:
 pip install maxent@git+https://github.com/ur-whitelab/maxent.git
 ```
 
+## Citation
+
+[See paper](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.106.014306) and the citation:
+
+```bibtex
+@article{ansari2022inferring,
+  title={Inferring spatial source of disease outbreaks using maximum entropy},
+  author={Ansari, Mehrad and Soriano-Pa{\~n}os, David and Ghoshal, Gourab and White, Andrew D},
+  journal={Physical Review E},
+  volume={106},
+  number={1},
+  pages={014306},
+  year={2022},
+  publisher={APS}
+}
+```
+
 ## License
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
