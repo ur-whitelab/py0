@@ -31,7 +31,7 @@ We try to explore the disease trajectory space over a distribution of epidomiolo
 
 The package uses Keras (Tensorflow). To install:
 ```sh
-pip install maxent@git+https://github.com/ur-whitelab/maxent.git
+pip install maxent-infer
 ```
 
 ## Citation
