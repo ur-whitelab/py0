@@ -14,7 +14,9 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -41,8 +43,83 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">PY0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Quick_start.html">Quick Start</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#metapopulation-model">metapopulation model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-py0.utils">utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#metapopulation-model">metapopulation model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.AddSusceptibleLayer"><code class="docutils literal notranslate"><span class="pre">AddSusceptibleLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.AddSusceptibleLayer.call"><code class="docutils literal notranslate"><span class="pre">AddSusceptibleLayer.call()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.ContactInfectionLayer"><code class="docutils literal notranslate"><span class="pre">ContactInfectionLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.ContactInfectionLayer.call"><code class="docutils literal notranslate"><span class="pre">ContactInfectionLayer.call()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.DeltaRegularizer"><code class="docutils literal notranslate"><span class="pre">DeltaRegularizer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.MetaModel"><code class="docutils literal notranslate"><span class="pre">MetaModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.MetaModel.call"><code class="docutils literal notranslate"><span class="pre">MetaModel.call()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.MetaParameterJoint"><code class="docutils literal notranslate"><span class="pre">MetaParameterJoint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.MetapopLayer"><code class="docutils literal notranslate"><span class="pre">MetapopLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.MetapopLayer.build"><code class="docutils literal notranslate"><span class="pre">MetapopLayer.build()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.MetapopLayer.call"><code class="docutils literal notranslate"><span class="pre">MetapopLayer.call()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.MinMaxConstraint"><code class="docutils literal notranslate"><span class="pre">MinMaxConstraint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.NormalizationConstraint"><code class="docutils literal notranslate"><span class="pre">NormalizationConstraint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.ParameterHypers"><code class="docutils literal notranslate"><span class="pre">ParameterHypers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.ParameterJoint"><code class="docutils literal notranslate"><span class="pre">ParameterJoint</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.ParameterJoint.compile"><code class="docutils literal notranslate"><span class="pre">ParameterJoint.compile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.ParameterJoint.sample"><code class="docutils literal notranslate"><span class="pre">ParameterJoint.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.PositiveMaskedConstraint"><code class="docutils literal notranslate"><span class="pre">PositiveMaskedConstraint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.TrainableInputLayer"><code class="docutils literal notranslate"><span class="pre">TrainableInputLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.TrainableInputLayer.call"><code class="docutils literal notranslate"><span class="pre">TrainableInputLayer.call()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.TrainableMetaModel"><code class="docutils literal notranslate"><span class="pre">TrainableMetaModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.TrainableMetaModel.call"><code class="docutils literal notranslate"><span class="pre">TrainableMetaModel.call()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.TrainableMetaModel.compile"><code class="docutils literal notranslate"><span class="pre">TrainableMetaModel.compile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.TrainableMetaModel.fit"><code class="docutils literal notranslate"><span class="pre">TrainableMetaModel.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#py0.metapop_model.TrainableMetaModel.get_traj"><code class="docutils literal notranslate"><span class="pre">TrainableMetaModel.get_traj()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.categorical_normal_layer"><code class="docutils literal notranslate"><span class="pre">categorical_normal_layer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.contact_infection_func"><code class="docutils literal notranslate"><span class="pre">contact_infection_func()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.negloglik"><code class="docutils literal notranslate"><span class="pre">negloglik()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.normal_mat_layer"><code class="docutils literal notranslate"><span class="pre">normal_mat_layer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.recip_norm_mat_dist"><code class="docutils literal notranslate"><span class="pre">recip_norm_mat_dist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.metapop_model.recip_norm_mat_layer"><code class="docutils literal notranslate"><span class="pre">recip_norm_mat_layer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-py0.utils">utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.TransitionMatrix"><code class="docutils literal notranslate"><span class="pre">TransitionMatrix</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#py0.utils.TransitionMatrix.add_transition"><code class="docutils literal notranslate"><span class="pre">TransitionMatrix.add_transition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#py0.utils.TransitionMatrix.prior_matrix"><code class="docutils literal notranslate"><span class="pre">TransitionMatrix.prior_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#py0.utils.TransitionMatrix.value"><code class="docutils literal notranslate"><span class="pre">TransitionMatrix.value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.compartment_restrainer"><code class="docutils literal notranslate"><span class="pre">compartment_restrainer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.draw_graph"><code class="docutils literal notranslate"><span class="pre">draw_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.draw_graph_on_map"><code class="docutils literal notranslate"><span class="pre">draw_graph_on_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.exposed_finder"><code class="docutils literal notranslate"><span class="pre">exposed_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.gen_graph"><code class="docutils literal notranslate"><span class="pre">gen_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.gen_graph_from_R"><code class="docutils literal notranslate"><span class="pre">gen_graph_from_R()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.gen_random_graph"><code class="docutils literal notranslate"><span class="pre">gen_random_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.get_dist"><code class="docutils literal notranslate"><span class="pre">get_dist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.graph_degree"><code class="docutils literal notranslate"><span class="pre">graph_degree()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.merge_history"><code class="docutils literal notranslate"><span class="pre">merge_history()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.p0_loss"><code class="docutils literal notranslate"><span class="pre">p0_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.p0_map"><code class="docutils literal notranslate"><span class="pre">p0_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.patch_quantile"><code class="docutils literal notranslate"><span class="pre">patch_quantile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.plot_dist"><code class="docutils literal notranslate"><span class="pre">plot_dist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.sparse_graph_mobility"><code class="docutils literal notranslate"><span class="pre">sparse_graph_mobility()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.traj_loss"><code class="docutils literal notranslate"><span class="pre">traj_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.traj_quantile"><code class="docutils literal notranslate"><span class="pre">traj_quantile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.traj_to_restraints"><code class="docutils literal notranslate"><span class="pre">traj_to_restraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.weighted_exposed_prob_finder"><code class="docutils literal notranslate"><span class="pre">weighted_exposed_prob_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#py0.utils.weighted_quantile"><code class="docutils literal notranslate"><span class="pre">weighted_quantile()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -96,13 +173,13 @@
 }
 </style>
 <section id="api">
-<h1>API<a class="headerlink" href="#api" title="Permalink to this headline"></a></h1>
+<h1>API<a class="headerlink" href="#api" title="Permalink to this heading"></a></h1>
 <section id="metapopulation-model">
-<h2>metapopulation model<a class="headerlink" href="#metapopulation-model" title="Permalink to this headline"></a></h2>
+<h2>metapopulation model<a class="headerlink" href="#metapopulation-model" title="Permalink to this heading"></a></h2>
 <span class="target" id="module-py0.metapop_model"></span><dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.AddSusceptibleLayer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">AddSusceptibleLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.AddSusceptibleLayer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">AddSusceptibleLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.AddSusceptibleLayer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Layer</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.AddSusceptibleLayer.call">
 <span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.AddSusceptibleLayer.call" title="Permalink to this definition"></a></dt>
@@ -125,8 +202,8 @@ method to support masking.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.ContactInfectionLayer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ContactInfectionLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ContactInfectionLayer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ContactInfectionLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ContactInfectionLayer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Layer</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.ContactInfectionLayer.call">
 <span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neff_compartments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ContactInfectionLayer.call" title="Permalink to this definition"></a></dt>
@@ -149,14 +226,14 @@ method to support masking.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.DeltaRegularizer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">DeltaRegularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.DeltaRegularizer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.regularizers.Regularizer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">DeltaRegularizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.DeltaRegularizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Regularizer</span></code></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.MetaModel">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaModel" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.training.Model</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.MetaModel.call">
 <span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaModel.call" title="Permalink to this definition"></a></dt>
@@ -189,14 +266,14 @@ a list of tensors if there are more than one outputs.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.MetaParameterJoint">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetaParameterJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaParameterJoint" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#py0.metapop_model.ParameterJoint" title="py0.metapop_model.ParameterJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">py0.metapop_model.ParameterJoint</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetaParameterJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaParameterJoint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#py0.metapop_model.ParameterJoint" title="py0.metapop_model.ParameterJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterJoint</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.MetapopLayer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetapopLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetapopLayer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MetapopLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetapopLayer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Layer</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.MetapopLayer.build">
 <span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetapopLayer.build" title="Permalink to this definition"></a></dt>
@@ -237,28 +314,28 @@ method to support masking.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.MinMaxConstraint">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MinMaxConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MinMaxConstraint" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.constraints.Constraint</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">MinMaxConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MinMaxConstraint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></p>
 <p>Makes weights normalized after reshape and applying mask</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.NormalizationConstraint">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">NormalizationConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.NormalizationConstraint" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.constraints.Constraint</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">NormalizationConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.NormalizationConstraint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></p>
 <p>Makes weights normalized after reshape and applying mask</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.ParameterHypers">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ParameterHypers</span></span><a class="headerlink" href="#py0.metapop_model.ParameterHypers" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ParameterHypers</span></span><a class="headerlink" href="#py0.metapop_model.ParameterHypers" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.ParameterJoint">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ParameterJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ParameterJoint" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.training.Model</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">ParameterJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ParameterJoint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.ParameterJoint.compile">
 <span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ParameterJoint.compile" title="Permalink to this definition"></a></dt>
@@ -352,15 +429,15 @@ will only be called every <cite>N</cite> batches
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.PositiveMaskedConstraint">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">PositiveMaskedConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.PositiveMaskedConstraint" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.constraints.Constraint</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">PositiveMaskedConstraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.PositiveMaskedConstraint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Constraint</span></code></p>
 <p>Makes weights normalized after reshape and applying mask</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.TrainableInputLayer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">TrainableInputLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableInputLayer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.base_layer.Layer</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">TrainableInputLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableInputLayer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Layer</span></code></p>
 <p>Create trainable input layer</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.TrainableInputLayer.call">
@@ -384,8 +461,8 @@ method to support masking.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">TrainableMetaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.keras.engine.training.Model</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.metapop_model.</span></span><span class="sig-name descname"><span class="pre">TrainableMetaModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel.call">
 <span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel.call" title="Permalink to this definition"></a></dt>
@@ -771,10 +848,10 @@ and validation metrics values (if applicable).</p>
 
 </section>
 <section id="module-py0.utils">
-<span id="utilities"></span><h2>utilities<a class="headerlink" href="#module-py0.utils" title="Permalink to this headline"></a></h2>
+<span id="utilities"></span><h2>utilities<a class="headerlink" href="#module-py0.utils" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="py0.utils.TransitionMatrix">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">TransitionMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compartment_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infectious_compartments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.TransitionMatrix" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">py0.utils.</span></span><span class="sig-name descname"><span class="pre">TransitionMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compartment_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infectious_compartments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.utils.TransitionMatrix" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Defines the transition between different compartments in the disease model, given different epidemiology parameters.</p>
 <dl class="py method">
@@ -800,7 +877,7 @@ creating an esemble of trajectories to do inference using MaxEnt.</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="py0.utils.TransitionMatrix.value">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#py0.utils.TransitionMatrix.value" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#py0.utils.TransitionMatrix.value" title="Permalink to this definition"></a></dt>
 <dd><p>Returns matrix value.</p>
 </dd></dl>
 
@@ -815,8 +892,8 @@ creating an esemble of trajectories to do inference using MaxEnt.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>restrained_patches</strong> (<em>list</em>) – index of the patches (nodes) restrained</p></li>
 <li><p><strong>restrained_compartments</strong> (<em>list</em>) – index values for the restrained compartments</p></li>
-<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
-C is the number of compartments.</em>) – reference traj</p></li>
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>, </em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number</em><em> of </em><em>compartments.</em>) – reference traj</p></li>
 <li><p><strong>prior</strong> (<em>maxent.prior</em>) – Prior distribution for expected deviation from target for restraint. Can be either ‘EmptyPrior’ for exact agreement
 or set to ‘Laplace’ for more allowable disagreement.</p></li>
 <li><p><strong>npoints</strong> (<em>int</em>) – number of data points in each restrained compartment</p></li>
@@ -862,13 +939,13 @@ This function also alows for visualization of true orgin node and observed ones.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mobility_matrix</strong> (<em>numpy array of</em><em> [</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number of nodes in the metapopulation</em>) – mobility flows between the nodes</p></li>
+<li><p><strong>mobility_matrix</strong> (<em>numpy array</em><em> of </em><em>[</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number</em><em> of </em><em>nodes in the metapopulation</em>) – mobility flows between the nodes</p></li>
 <li><p><strong>geojson</strong> (<em>string</em>) – path to GeoJSON file describing the geographic features of the metapopulation</p></li>
 <li><p><strong>title</strong> (<em>string</em>) – figure title</p></li>
 <li><p><strong>node_size</strong> (<em>int</em>) – size for the networkx nodes</p></li>
-<li><p><strong>node_color</strong> (<em>string</em><em> or </em><em>a list of strings with length M</em>) – color for the networkx nodes</p></li>
+<li><p><strong>node_color</strong> (<em>string</em><em> or </em><em>a list</em><em> of </em><em>strings with length M</em>) – color for the networkx nodes</p></li>
 <li><p><strong>edge_color</strong> (<em>string</em>) – color for the networkx edges</p></li>
-<li><p><strong>map_face_colors</strong> (<em>string</em><em> or </em><em>a list of strings with length M</em>) – color for the faces of patches on the map</p></li>
+<li><p><strong>map_face_colors</strong> (<em>string</em><em> or </em><em>a list</em><em> of </em><em>strings with length M</em>) – color for the faces of patches on the map</p></li>
 <li><p><strong>fontsize</strong> (<em>float</em>) – font size</p></li>
 <li><p><strong>figsize</strong> (<em>tupple</em>) – figure size</p></li>
 <li><p><strong>ax</strong> – <code class="docutils literal notranslate"><span class="pre">matplotlib.axes.AxesSubplot</span></code>. Defaults to a new axis.</p></li>
@@ -891,8 +968,8 @@ This function also alows for visualization of true orgin node and observed ones.
 <dd><p>Finds the initial exposed patch (t=0) for trajs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p>
+<dd class="field-odd"><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – ensemble of trajectories after sampling</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A numpy array containing the index of the initial exposed node for the ensemble of trajectories</p>
@@ -920,7 +997,7 @@ This function also alows for visualization of true orgin node and observed ones.
 <dd><p>Generates a networkx graph of size mobility_matrix.shape[0], edge list and node list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mobility_matrix</strong> (<em>numpy array of</em><em> [</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number of nodes in the metapopulation</em>) – mobility flows between the nodes</p>
+<dd class="field-odd"><p><strong>mobility_matrix</strong> (<em>numpy array</em><em> of </em><em>[</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number</em><em> of </em><em>nodes in the metapopulation</em>) – mobility flows between the nodes</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>graph, edge list, node list</p>
@@ -987,8 +1064,8 @@ This function also alows for visualization of true orgin node and observed ones.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments</em>) – sampled ensemble of trajectories</p></li>
+<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments</em>) – sampled ensemble of trajectories</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
 <li><p><strong>true_origin</strong> (<em>int</em>) – index for the true origin node</p></li>
 </ul>
@@ -1008,7 +1085,7 @@ the counties name column and your patches names are alphabetically sorted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>prior_exposed_patch</strong> (<em>an array of size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
+<li><p><strong>prior_exposed_patch</strong> (<em>an array</em><em> of </em><em>size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
 <li><p><strong>meta_pop_size</strong> (<em>int</em>) – size of the metapopulation</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
 <li><p><strong>patch_names</strong> (<em>list</em>) – name of the patches. Note that the namings should be similar to names from GeoJSON if using <code class="docutils literal notranslate"><span class="pre">choropleth</span></code>.</p></li>
@@ -1045,10 +1122,10 @@ the counties name column and your patches names are alphabetically sorted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p></li>
-<li><p><strong>ref_traj</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – reference trajectory</p></li>
+<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – ensemble of trajectories after sampling</p></li>
+<li><p><strong>ref_traj</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – reference trajectory</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.</p></li>
 <li><p><strong>lower_q_bound</strong> (<em>float</em>) – lower quantile bound</p></li>
 <li><p><strong>upper_q_bound</strong> (<em>float</em>) – upper quantile bound</p></li>
@@ -1110,10 +1187,10 @@ For a fully connected graph, the output mobility matrix remains the same.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
-C is the number of compartments.</em>) – reference traj</p></li>
-<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments</em>) – sampled ensemble of trajectories</p></li>
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>, </em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number</em><em> of </em><em>compartments.</em>) – reference traj</p></li>
+<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments</em>) – sampled ensemble of trajectories</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1129,8 +1206,8 @@ C is the number of compartments.</em>) – reference traj</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p></li>
+<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – ensemble of trajectories after sampling</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.</p></li>
 <li><p><strong>lower_q_bound</strong> (<em>float</em>) – lower quantile bound</p></li>
 <li><p><strong>upper_q_bound</strong> (<em>float</em>) – upper quantile bound</p></li>
@@ -1155,8 +1232,8 @@ For example, it could be weekly averages with some noise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
-C is the number of compartments.</em>) – reference traj</p></li>
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>, </em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number</em><em> of </em><em>compartments.</em>) – reference traj</p></li>
 <li><p><strong>inner_slice</strong> (<em>list</em>) – list of length 2. First index determines the patch and second index determines what compartment on that patch is restrained.</p></li>
 <li><p><strong>npoints</strong> (<em>int</em>) – number of data points in each restrained compartment</p></li>
 <li><p><strong>prior</strong> (<em>maxent.prior</em>) – Prior distribution for expected deviation from target for restraint. Can be either ‘EmptyPrior’ for exact agreement
@@ -1182,7 +1259,7 @@ or set to ‘Laplace’ for more allowable disagreement.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>prior_exposed_patch</strong> (<em>an array of size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
+<li><p><strong>prior_exposed_patch</strong> (<em>an array</em><em> of </em><em>size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
 <li><p><strong>meta_pop_size</strong> (<em>int</em>) – size of the metapopulation</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
 </ul>

@@ -14,10 +14,12 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -99,7 +101,7 @@
 }
 </style>
 <section id="quick-start">
-<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline"></a></h1>
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this heading"></a></h1>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">py0</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -107,7 +109,7 @@
 </pre></div>
 </div>
 <section id="setting-up-an-seair-model">
-<h2>Setting-up an SEAIR Model<a class="headerlink" href="#setting-up-an-seair-model" title="Permalink to this headline"></a></h2>
+<h2>Setting-up an SEAIR Model<a class="headerlink" href="#setting-up-an-seair-model" title="Permalink to this heading"></a></h2>
 <p>Susceptible (<span class="math notranslate nohighlight">\({\bf S}\)</span>) individuals can get exposed
 (<span class="math notranslate nohighlight">\({\bf E}\)</span>) to the disease through I-S and A-S contacts with
 infectivity rates <span class="math notranslate nohighlight">\(\beta\)</span> and <span class="math notranslate nohighlight">\(\beta'\)</span>. Once exposed, they
@@ -177,7 +179,7 @@ rate <span class="math notranslate nohighlight">\(\mu\)</span> and become resolv
 <img alt="_images/output_7_1.png" src="_images/output_7_1.png" />
 </section>
 <section id="applying-maxent">
-<h2>Applying MaxEnt<a class="headerlink" href="#applying-maxent" title="Permalink to this headline"></a></h2>
+<h2>Applying MaxEnt<a class="headerlink" href="#applying-maxent" title="Permalink to this heading"></a></h2>
 <p>We need to obtain a set of observations from the reference trajectory.
 This is done by considering weekly averages from compartments I and R.
 To account for uncertainty we add 0.05 multiplicative noise and a

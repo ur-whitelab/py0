@@ -14,7 +14,9 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -47,6 +49,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#maxent-installation">MaxEnt Installation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#citation">Citation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#license">License</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#authors">Authors</a></li>
 </ul>
@@ -103,44 +106,60 @@
     text-align: unset;
 }
 </style>
-<section class="tex2jax_ignore mathjax_ignore" id="py0">
-<h1>PY0<a class="headerlink" href="#py0" title="Permalink to this headline"></a></h1>
+<section id="py0">
+<h1>PY0<a class="headerlink" href="#py0" title="Permalink to this heading"></a></h1>
 <p><img alt="tests" src="https://github.com/ur-whitelab/py0/actions/workflows/tests.yml/badge.svg" /> <img alt="docs" src="https://github.com/ur-whitelab/py0/actions/workflows/docs.yml/badge.svg" /></p>
 <p><code class="docutils literal notranslate"><span class="pre">py0</span></code> is a python implementation of compartmental disease modeling.</p>
 <p><img alt="" src="_images/py_0.gif" /></p>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
 <p>To install <code class="docutils literal notranslate"><span class="pre">py0</span></code>:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install py0@git+https://github.com/ur-whitelab/py0.git
 </pre></div>
 </div>
 </section>
 <section id="maximum-entropy-biasing">
-<h2>Maximum Entropy Biasing<a class="headerlink" href="#maximum-entropy-biasing" title="Permalink to this headline"></a></h2>
+<h2>Maximum Entropy Biasing<a class="headerlink" href="#maximum-entropy-biasing" title="Permalink to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">py0</span></code> can be coupled with <a class="reference external" href="https://ur-whitelab.github.io/maxent/">MaxEnt</a> to modify epidomiology parameters to find the best fit to disease trajectory given a set of observations and also infer the true origin of the outbreak (patient-zero). These observations are time-averaged fractional values that can come from different compartments (S, E, A, I and R) of a known synthetic reference trajectory or real pandemic spread data.</p>
 <section id="creating-an-ensemble-of-trajectories">
-<h3>Creating an Ensemble of Trajectories<a class="headerlink" href="#creating-an-ensemble-of-trajectories" title="Permalink to this headline"></a></h3>
+<h3>Creating an Ensemble of Trajectories<a class="headerlink" href="#creating-an-ensemble-of-trajectories" title="Permalink to this heading"></a></h3>
 <p>We try to explore the disease trajectory space over a distribution of epidomiology parameters, while changing the infection origin to different nodes (counties).
 <img alt="" src="_images/sampling.gif" /></p>
 </section>
 <section id="maxent-fit">
-<h3>MaxEnt Fit<a class="headerlink" href="#maxent-fit" title="Permalink to this headline"></a></h3>
+<h3>MaxEnt Fit<a class="headerlink" href="#maxent-fit" title="Permalink to this heading"></a></h3>
 <p><img alt="" src="_images/fit.gif" /></p>
 </section>
 <section id="maxent-installation">
-<h3>MaxEnt Installation<a class="headerlink" href="#maxent-installation" title="Permalink to this headline"></a></h3>
+<h3>MaxEnt Installation<a class="headerlink" href="#maxent-installation" title="Permalink to this heading"></a></h3>
 <p>The package uses Keras (Tensorflow). To install:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install maxent@git+https://github.com/ur-whitelab/maxent.git
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip install maxent-infer
 </pre></div>
 </div>
 </section>
 </section>
+<section id="citation">
+<h2>Citation<a class="headerlink" href="#citation" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://journals.aps.org/pre/abstract/10.1103/PhysRevE.106.014306">See paper</a> and the citation:</p>
+<div class="highlight-bibtex notranslate"><div class="highlight"><pre><span></span><span class="nc">@article</span><span class="p">{</span><span class="nl">ansari2022inferring</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">title</span><span class="p">=</span><span class="s">{Inferring spatial source of disease outbreaks using maximum entropy}</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">author</span><span class="p">=</span><span class="s">{Ansari, Mehrad and Soriano-Pa{\~n}os, David and Ghoshal, Gourab and White, Andrew D}</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">journal</span><span class="p">=</span><span class="s">{Physical Review E}</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">volume</span><span class="p">=</span><span class="s">{106}</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">number</span><span class="p">=</span><span class="s">{1}</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">pages</span><span class="p">=</span><span class="s">{014306}</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">year</span><span class="p">=</span><span class="s">{2022}</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="na">publisher</span><span class="p">=</span><span class="s">{APS}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+</section>
 <section id="license">
-<h2>License<a class="headerlink" href="#license" title="Permalink to this headline"></a></h2>
+<h2>License<a class="headerlink" href="#license" title="Permalink to this heading"></a></h2>
 <p><a class="reference external" href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html"><img alt="License: GPL v2" src="https://img.shields.io/badge/License-GPL%20v2-blue.svg" /></a></p>
 </section>
 <section id="authors">
-<h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline"></a></h2>
+<h2>Authors<a class="headerlink" href="#authors" title="Permalink to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">py0</span></code> is developed by <span class="xref myst">Mehrad Ansari</span>, <span class="xref myst">Rainier Barrett</span> and <span class="xref myst">Andrew White</span>.</p>
 </section>
 </section>

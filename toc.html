@@ -14,7 +14,9 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -92,7 +94,7 @@
 }
 </style>
 <section id="py0">
-<h1>py0<a class="headerlink" href="#py0" title="Permalink to this headline"></a></h1>
+<h1>py0<a class="headerlink" href="#py0" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html">PY0</a><ul>
@@ -103,6 +105,7 @@
 <li class="toctree-l3"><a class="reference internal" href="index.html#maxent-installation">MaxEnt Installation</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#citation">Citation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#license">License</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#authors">Authors</a></li>
 </ul>
@@ -113,8 +116,52 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="API.html">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="API.html#metapopulation-model">metapopulation model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="API.html#module-py0.utils">utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="API.html#metapopulation-model">metapopulation model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.AddSusceptibleLayer"><code class="docutils literal notranslate"><span class="pre">AddSusceptibleLayer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.ContactInfectionLayer"><code class="docutils literal notranslate"><span class="pre">ContactInfectionLayer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.DeltaRegularizer"><code class="docutils literal notranslate"><span class="pre">DeltaRegularizer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.MetaModel"><code class="docutils literal notranslate"><span class="pre">MetaModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.MetaParameterJoint"><code class="docutils literal notranslate"><span class="pre">MetaParameterJoint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.MetapopLayer"><code class="docutils literal notranslate"><span class="pre">MetapopLayer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.MinMaxConstraint"><code class="docutils literal notranslate"><span class="pre">MinMaxConstraint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.NormalizationConstraint"><code class="docutils literal notranslate"><span class="pre">NormalizationConstraint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.ParameterHypers"><code class="docutils literal notranslate"><span class="pre">ParameterHypers</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.ParameterJoint"><code class="docutils literal notranslate"><span class="pre">ParameterJoint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.PositiveMaskedConstraint"><code class="docutils literal notranslate"><span class="pre">PositiveMaskedConstraint</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.TrainableInputLayer"><code class="docutils literal notranslate"><span class="pre">TrainableInputLayer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.TrainableMetaModel"><code class="docutils literal notranslate"><span class="pre">TrainableMetaModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.categorical_normal_layer"><code class="docutils literal notranslate"><span class="pre">categorical_normal_layer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.contact_infection_func"><code class="docutils literal notranslate"><span class="pre">contact_infection_func()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.negloglik"><code class="docutils literal notranslate"><span class="pre">negloglik()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.normal_mat_layer"><code class="docutils literal notranslate"><span class="pre">normal_mat_layer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.recip_norm_mat_dist"><code class="docutils literal notranslate"><span class="pre">recip_norm_mat_dist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.metapop_model.recip_norm_mat_layer"><code class="docutils literal notranslate"><span class="pre">recip_norm_mat_layer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="API.html#module-py0.utils">utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.TransitionMatrix"><code class="docutils literal notranslate"><span class="pre">TransitionMatrix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.compartment_restrainer"><code class="docutils literal notranslate"><span class="pre">compartment_restrainer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.draw_graph"><code class="docutils literal notranslate"><span class="pre">draw_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.draw_graph_on_map"><code class="docutils literal notranslate"><span class="pre">draw_graph_on_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.exposed_finder"><code class="docutils literal notranslate"><span class="pre">exposed_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.gen_graph"><code class="docutils literal notranslate"><span class="pre">gen_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.gen_graph_from_R"><code class="docutils literal notranslate"><span class="pre">gen_graph_from_R()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.gen_random_graph"><code class="docutils literal notranslate"><span class="pre">gen_random_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.get_dist"><code class="docutils literal notranslate"><span class="pre">get_dist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.graph_degree"><code class="docutils literal notranslate"><span class="pre">graph_degree()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.merge_history"><code class="docutils literal notranslate"><span class="pre">merge_history()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.p0_loss"><code class="docutils literal notranslate"><span class="pre">p0_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.p0_map"><code class="docutils literal notranslate"><span class="pre">p0_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.patch_quantile"><code class="docutils literal notranslate"><span class="pre">patch_quantile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.plot_dist"><code class="docutils literal notranslate"><span class="pre">plot_dist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.sparse_graph_mobility"><code class="docutils literal notranslate"><span class="pre">sparse_graph_mobility()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.traj_loss"><code class="docutils literal notranslate"><span class="pre">traj_loss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.traj_quantile"><code class="docutils literal notranslate"><span class="pre">traj_quantile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.traj_to_restraints"><code class="docutils literal notranslate"><span class="pre">traj_to_restraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.weighted_exposed_prob_finder"><code class="docutils literal notranslate"><span class="pre">weighted_exposed_prob_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="API.html#py0.utils.weighted_quantile"><code class="docutils literal notranslate"><span class="pre">weighted_quantile()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

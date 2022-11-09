@@ -14,7 +14,9 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -91,14 +93,14 @@
 }
 </style>
 <section id="utilities">
-<h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline"></a></h1>
+<h1>Utilities<a class="headerlink" href="#utilities" title="Permalink to this heading"></a></h1>
 <p class="rubric">Overview</p>
 <p>This module contains various utility functions that are used throughout the <code class="docutils literal notranslate"><span class="pre">py0</span></code> module.
 These are imported automatically when <code class="docutils literal notranslate"><span class="pre">py0</span></code> is imported.</p>
 <p class="rubric">Details</p>
 <span class="target" id="module-utils"></span><dl class="py class">
 <dt class="sig sig-object py" id="utils.TransitionMatrix">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">TransitionMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compartment_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infectious_compartments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.TransitionMatrix" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">TransitionMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compartment_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infectious_compartments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.TransitionMatrix" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the transition between different compartments in the disease model, given different epidemiology parameters.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="utils.TransitionMatrix.add_transition">
@@ -118,7 +120,7 @@ creating an esemble of trajectories to do inference using MaxEnt.</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="utils.TransitionMatrix.value">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#utils.TransitionMatrix.value" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#utils.TransitionMatrix.value" title="Permalink to this definition"></a></dt>
 <dd><p>Returns matrix value.</p>
 </dd></dl>
 
@@ -133,8 +135,8 @@ creating an esemble of trajectories to do inference using MaxEnt.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>restrained_patches</strong> (<em>list</em>) – index of the patches (nodes) restrained</p></li>
 <li><p><strong>restrained_compartments</strong> (<em>list</em>) – index values for the restrained compartments</p></li>
-<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
-C is the number of compartments.</em>) – reference traj</p></li>
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>, </em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number</em><em> of </em><em>compartments.</em>) – reference traj</p></li>
 <li><p><strong>prior</strong> (<em>maxent.prior</em>) – Prior distribution for expected deviation from target for restraint. Can be either ‘EmptyPrior’ for exact agreement
 or set to ‘Laplace’ for more allowable disagreement.</p></li>
 <li><p><strong>npoints</strong> (<em>int</em>) – number of data points in each restrained compartment</p></li>
@@ -180,13 +182,13 @@ This function also alows for visualization of true orgin node and observed ones.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mobility_matrix</strong> (<em>numpy array of</em><em> [</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number of nodes in the metapopulation</em>) – mobility flows between the nodes</p></li>
+<li><p><strong>mobility_matrix</strong> (<em>numpy array</em><em> of </em><em>[</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number</em><em> of </em><em>nodes in the metapopulation</em>) – mobility flows between the nodes</p></li>
 <li><p><strong>geojson</strong> (<em>string</em>) – path to GeoJSON file describing the geographic features of the metapopulation</p></li>
 <li><p><strong>title</strong> (<em>string</em>) – figure title</p></li>
 <li><p><strong>node_size</strong> (<em>int</em>) – size for the networkx nodes</p></li>
-<li><p><strong>node_color</strong> (<em>string</em><em> or </em><em>a list of strings with length M</em>) – color for the networkx nodes</p></li>
+<li><p><strong>node_color</strong> (<em>string</em><em> or </em><em>a list</em><em> of </em><em>strings with length M</em>) – color for the networkx nodes</p></li>
 <li><p><strong>edge_color</strong> (<em>string</em>) – color for the networkx edges</p></li>
-<li><p><strong>map_face_colors</strong> (<em>string</em><em> or </em><em>a list of strings with length M</em>) – color for the faces of patches on the map</p></li>
+<li><p><strong>map_face_colors</strong> (<em>string</em><em> or </em><em>a list</em><em> of </em><em>strings with length M</em>) – color for the faces of patches on the map</p></li>
 <li><p><strong>fontsize</strong> (<em>float</em>) – font size</p></li>
 <li><p><strong>figsize</strong> (<em>tupple</em>) – figure size</p></li>
 <li><p><strong>ax</strong> – <code class="docutils literal notranslate"><span class="pre">matplotlib.axes.AxesSubplot</span></code>. Defaults to a new axis.</p></li>
@@ -209,8 +211,8 @@ This function also alows for visualization of true orgin node and observed ones.
 <dd><p>Finds the initial exposed patch (t=0) for trajs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p>
+<dd class="field-odd"><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – ensemble of trajectories after sampling</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A numpy array containing the index of the initial exposed node for the ensemble of trajectories</p>
@@ -238,7 +240,7 @@ This function also alows for visualization of true orgin node and observed ones.
 <dd><p>Generates a networkx graph of size mobility_matrix.shape[0], edge list and node list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mobility_matrix</strong> (<em>numpy array of</em><em> [</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number of nodes in the metapopulation</em>) – mobility flows between the nodes</p>
+<dd class="field-odd"><p><strong>mobility_matrix</strong> (<em>numpy array</em><em> of </em><em>[</em><em>M</em><em>, </em><em>M</em><em>]</em><em>, </em><em>where M is the number</em><em> of </em><em>nodes in the metapopulation</em>) – mobility flows between the nodes</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>graph, edge list, node list</p>
@@ -300,8 +302,8 @@ This function also alows for visualization of true orgin node and observed ones.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments</em>) – sampled ensemble of trajectories</p></li>
+<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments</em>) – sampled ensemble of trajectories</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
 <li><p><strong>true_origin</strong> (<em>int</em>) – index for the true origin node</p></li>
 </ul>
@@ -321,7 +323,7 @@ the counties name column and your patches names are alphabetically sorted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>prior_exposed_patch</strong> (<em>an array of size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
+<li><p><strong>prior_exposed_patch</strong> (<em>an array</em><em> of </em><em>size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
 <li><p><strong>meta_pop_size</strong> (<em>int</em>) – size of the metapopulation</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
 <li><p><strong>patch_names</strong> (<em>list</em>) – name of the patches. Note that the namings should be similar to names from GeoJSON if using <code class="docutils literal notranslate"><span class="pre">choropleth</span></code>.</p></li>
@@ -358,10 +360,10 @@ the counties name column and your patches names are alphabetically sorted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p></li>
-<li><p><strong>ref_traj</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – reference trajectory</p></li>
+<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – ensemble of trajectories after sampling</p></li>
+<li><p><strong>ref_traj</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – reference trajectory</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.</p></li>
 <li><p><strong>lower_q_bound</strong> (<em>float</em>) – lower quantile bound</p></li>
 <li><p><strong>upper_q_bound</strong> (<em>float</em>) – upper quantile bound</p></li>
@@ -423,10 +425,10 @@ For a fully connected graph, the output mobility matrix remains the same.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
-C is the number of compartments.</em>) – reference traj</p></li>
-<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments</em>) – sampled ensemble of trajectories</p></li>
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>, </em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number</em><em> of </em><em>compartments.</em>) – reference traj</p></li>
+<li><p><strong>trajs</strong> (<em>a</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments</em>) – sampled ensemble of trajectories</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -442,8 +444,8 @@ C is the number of compartments.</em>) – reference traj</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32 of shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number of samples</em><em>, </em><em>T is the number of timesteps</em><em>,
-</em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number of compartments.</em>) – ensemble of trajectories after sampling</p></li>
+<li><p><strong>trajs</strong> (<em>tensor with dtype tf.float32</em><em> of </em><em>shape</em><em> [</em><em>N</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>where N is the number</em><em> of </em><em>samples</em><em>, </em><em>T is the number</em><em> of </em><em>timesteps</em><em>,
+</em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and C is the number</em><em> of </em><em>compartments.</em>) – ensemble of trajectories after sampling</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights for the each trajectory in the ensemble. If not defined uniform weights will be assumed.</p></li>
 <li><p><strong>lower_q_bound</strong> (<em>float</em>) – lower quantile bound</p></li>
 <li><p><strong>upper_q_bound</strong> (<em>float</em>) – upper quantile bound</p></li>
@@ -468,8 +470,8 @@ For example, it could be weekly averages with some noise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number of timesteps</em><em>, </em><em>M is the number of patches</em><em> (</em><em>nodes</em><em>) </em><em>and
-C is the number of compartments.</em>) – reference traj</p></li>
+<li><p><strong>ref_traj</strong> (<em>a</em><em> [</em><em>1</em><em>, </em><em>T</em><em>, </em><em>M</em><em>, </em><em>C</em><em>] </em><em>tensor with dtype tf.float32</em><em>, </em><em>where T is the number</em><em> of </em><em>timesteps</em><em>, </em><em>M is the number</em><em> of </em><em>patches</em><em> (</em><em>nodes</em><em>) </em><em>and
+C is the number</em><em> of </em><em>compartments.</em>) – reference traj</p></li>
 <li><p><strong>inner_slice</strong> (<em>list</em>) – list of length 2. First index determines the patch and second index determines what compartment on that patch is restrained.</p></li>
 <li><p><strong>npoints</strong> (<em>int</em>) – number of data points in each restrained compartment</p></li>
 <li><p><strong>prior</strong> (<em>maxent.prior</em>) – Prior distribution for expected deviation from target for restraint. Can be either ‘EmptyPrior’ for exact agreement
@@ -495,7 +497,7 @@ or set to ‘Laplace’ for more allowable disagreement.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>prior_exposed_patch</strong> (<em>an array of size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
+<li><p><strong>prior_exposed_patch</strong> (<em>an array</em><em> of </em><em>size N</em><em> (</em><em>sample size</em><em>)</em>) – output of <code class="docutils literal notranslate"><span class="pre">exposed_finder</span></code> function.</p></li>
 <li><p><strong>meta_pop_size</strong> (<em>int</em>) – size of the metapopulation</p></li>
 <li><p><strong>weights</strong> (<em>tensor with dtype tf.float32</em>) – weights of the trajectories in the ensemble. If not provided, will be assumed as 1/N.</p></li>
 </ul>
