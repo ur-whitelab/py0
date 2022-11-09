@@ -31,7 +31,24 @@ We try to explore the disease trajectory space over a distribution of epidomiolo
 
 The package uses Keras (Tensorflow). To install:
 ```sh
-pip install maxent@git+https://github.com/ur-whitelab/maxent.git
+pip install maxent-infer
+```
+
+## Citation
+
+[See paper](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.106.014306) and the citation:
+
+```bibtex
+@article{ansari2022inferring,
+  title={Inferring spatial source of disease outbreaks using maximum entropy},
+  author={Ansari, Mehrad and Soriano-Pa{\~n}os, David and Ghoshal, Gourab and White, Andrew D},
+  journal={Physical Review E},
+  volume={106},
+  number={1},
+  pages={014306},
+  year={2022},
+  publisher={APS}
+}
 ```
 
 ## License
