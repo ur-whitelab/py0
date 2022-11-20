@@ -188,10 +188,46 @@
 from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
 layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
 method to support masking.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
-<a href="#id1"><span class="problematic" id="id2">*</span></a>args: Additional positional arguments. Currently unused.
-<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>inputs: Input tensor, or dict/list/tuple of input tensors.</dt><dd><p>The first positional <cite>inputs</cite> argument is subject to special rules:
+- <cite>inputs</cite> must be explicitly passed. A layer cannot have zero</p>
+<blockquote>
+<div><p>arguments, and <cite>inputs</cite> cannot be provided via the default value
+of a keyword argument.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>NumPy array or Python scalar values in <cite>inputs</cite> get cast as tensors.</p></li>
+<li><p>Keras mask metadata is only collected from <cite>inputs</cite>.</p></li>
+<li><p>Layers are built (<cite>build(input_shape)</cite> method)
+using shape info from <cite>inputs</cite> only.</p></li>
+<li><p><cite>input_spec</cite> compatibility is only checked against <cite>inputs</cite>.</p></li>
+<li><p>Mixed precision input casting is only applied to <cite>inputs</cite>.
+If a layer has tensor arguments in <cite>*args</cite> or <cite>**kwargs</cite>, their
+casting behavior in mixed precision should be handled manually.</p></li>
+<li><p>The SavedModel input specification is generated using <cite>inputs</cite> only.</p></li>
+<li><p>Integration with various ecosystem packages like TFMOT, TFLite,
+TF.js, etc is only supported for <cite>inputs</cite> and not for tensors in
+positional and keyword arguments.</p></li>
+</ul>
+</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">*</span></a>args: Additional positional arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.</p>
+</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Additional keyword arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.
+The following optional keyword arguments are reserved:
+- <cite>training</cite>: Boolean scalar tensor of Python boolean indicating</p>
+<blockquote>
+<div><p>whether the <cite>call</cite> is meant for training or inference.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><cite>mask</cite>: Boolean input mask. If the layer’s <cite>call()</cite> method takes a
+<cite>mask</cite> argument, its default value will be set to the mask generated
+for <cite>inputs</cite> by the previous layer (if <cite>input</cite> did come from a layer
+that generated a corresponding mask, i.e. if it came from a Keras
+layer with masking support).</p></li>
+</ul>
+</dd>
+</dl>
 </dd>
 <dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
 </dd>
@@ -212,10 +248,46 @@ method to support masking.</p>
 from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
 layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
 method to support masking.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
-<a href="#id5"><span class="problematic" id="id6">*</span></a>args: Additional positional arguments. Currently unused.
-<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>inputs: Input tensor, or dict/list/tuple of input tensors.</dt><dd><p>The first positional <cite>inputs</cite> argument is subject to special rules:
+- <cite>inputs</cite> must be explicitly passed. A layer cannot have zero</p>
+<blockquote>
+<div><p>arguments, and <cite>inputs</cite> cannot be provided via the default value
+of a keyword argument.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>NumPy array or Python scalar values in <cite>inputs</cite> get cast as tensors.</p></li>
+<li><p>Keras mask metadata is only collected from <cite>inputs</cite>.</p></li>
+<li><p>Layers are built (<cite>build(input_shape)</cite> method)
+using shape info from <cite>inputs</cite> only.</p></li>
+<li><p><cite>input_spec</cite> compatibility is only checked against <cite>inputs</cite>.</p></li>
+<li><p>Mixed precision input casting is only applied to <cite>inputs</cite>.
+If a layer has tensor arguments in <cite>*args</cite> or <cite>**kwargs</cite>, their
+casting behavior in mixed precision should be handled manually.</p></li>
+<li><p>The SavedModel input specification is generated using <cite>inputs</cite> only.</p></li>
+<li><p>Integration with various ecosystem packages like TFMOT, TFLite,
+TF.js, etc is only supported for <cite>inputs</cite> and not for tensors in
+positional and keyword arguments.</p></li>
+</ul>
+</dd>
+<dt><a href="#id5"><span class="problematic" id="id6">*</span></a>args: Additional positional arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.</p>
+</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: Additional keyword arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.
+The following optional keyword arguments are reserved:
+- <cite>training</cite>: Boolean scalar tensor of Python boolean indicating</p>
+<blockquote>
+<div><p>whether the <cite>call</cite> is meant for training or inference.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><cite>mask</cite>: Boolean input mask. If the layer’s <cite>call()</cite> method takes a
+<cite>mask</cite> argument, its default value will be set to the mask generated
+for <cite>inputs</cite> by the previous layer (if <cite>input</cite> did come from a layer
+that generated a corresponding mask, i.e. if it came from a Keras
+layer with masking support).</p></li>
+</ul>
+</dd>
+</dl>
 </dd>
 <dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
 </dd>
@@ -237,22 +309,25 @@ method to support masking.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.MetaModel.call">
 <span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.MetaModel.call" title="Permalink to this definition"></a></dt>
-<dd><p>Calls the model on new inputs.</p>
-<p>In this case <cite>call</cite> just reapplies
+<dd><p>Calls the model on new inputs and returns the outputs as tensors.</p>
+<p>In this case <cite>call()</cite> just reapplies
 all ops in the graph to the new inputs
 (e.g. build a new computational graph from the provided inputs).</p>
 <p>Note: This method should not be called directly. It is only meant to be
 overridden when subclassing <cite>tf.keras.Model</cite>.
-To call a model on an input, always use the <cite>__call__</cite> method,
-i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call</cite> method.</p>
+To call a model on an input, always use the <cite>__call__()</cite> method,
+i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call()</cite> method.</p>
 <dl>
-<dt>Args:</dt><dd><p>inputs: A tensor or list of tensors.
+<dt>Args:</dt><dd><p>inputs: Input tensor, or dict/list/tuple of input tensors.
 training: Boolean or boolean scalar tensor, indicating whether to run</p>
 <blockquote>
 <div><p>the <cite>Network</cite> in training mode or inference mode.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>mask: A mask or list of masks. A mask can be</dt><dd><p>either a tensor or None (no mask).</p>
+<dt>mask: A mask or list of masks. A mask can be either a boolean tensor or</dt><dd><dl class="simple">
+<dt>None (no mask). For more details, check the guide</dt><dd><p>[here](<a class="reference external" href="https://www.tensorflow.org/guide/keras/masking_and_padding">https://www.tensorflow.org/guide/keras/masking_and_padding</a>).</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd>
@@ -300,10 +375,46 @@ layer instantiation and layer call.</p>
 from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
 layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
 method to support masking.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
-<a href="#id9"><span class="problematic" id="id10">*</span></a>args: Additional positional arguments. Currently unused.
-<a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>inputs: Input tensor, or dict/list/tuple of input tensors.</dt><dd><p>The first positional <cite>inputs</cite> argument is subject to special rules:
+- <cite>inputs</cite> must be explicitly passed. A layer cannot have zero</p>
+<blockquote>
+<div><p>arguments, and <cite>inputs</cite> cannot be provided via the default value
+of a keyword argument.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>NumPy array or Python scalar values in <cite>inputs</cite> get cast as tensors.</p></li>
+<li><p>Keras mask metadata is only collected from <cite>inputs</cite>.</p></li>
+<li><p>Layers are built (<cite>build(input_shape)</cite> method)
+using shape info from <cite>inputs</cite> only.</p></li>
+<li><p><cite>input_spec</cite> compatibility is only checked against <cite>inputs</cite>.</p></li>
+<li><p>Mixed precision input casting is only applied to <cite>inputs</cite>.
+If a layer has tensor arguments in <cite>*args</cite> or <cite>**kwargs</cite>, their
+casting behavior in mixed precision should be handled manually.</p></li>
+<li><p>The SavedModel input specification is generated using <cite>inputs</cite> only.</p></li>
+<li><p>Integration with various ecosystem packages like TFMOT, TFLite,
+TF.js, etc is only supported for <cite>inputs</cite> and not for tensors in
+positional and keyword arguments.</p></li>
+</ul>
+</dd>
+<dt><a href="#id9"><span class="problematic" id="id10">*</span></a>args: Additional positional arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.</p>
+</dd>
+<dt><a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs: Additional keyword arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.
+The following optional keyword arguments are reserved:
+- <cite>training</cite>: Boolean scalar tensor of Python boolean indicating</p>
+<blockquote>
+<div><p>whether the <cite>call</cite> is meant for training or inference.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><cite>mask</cite>: Boolean input mask. If the layer’s <cite>call()</cite> method takes a
+<cite>mask</cite> argument, its default value will be set to the mask generated
+for <cite>inputs</cite> by the previous layer (if <cite>input</cite> did come from a layer
+that generated a corresponding mask, i.e. if it came from a Keras
+layer with masking support).</p></li>
+</ul>
+</dd>
+</dl>
 </dd>
 <dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
 </dd>
@@ -340,44 +451,57 @@ method to support masking.</p>
 <dt class="sig sig-object py" id="py0.metapop_model.ParameterJoint.compile">
 <span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.ParameterJoint.compile" title="Permalink to this definition"></a></dt>
 <dd><p>Configures the model for training.</p>
+<p>Example:</p>
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a>python
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),</p>
+<blockquote>
+<div><p>loss=tf.keras.losses.BinaryCrossentropy(),
+metrics=[tf.keras.metrics.BinaryAccuracy(),</p>
+<blockquote>
+<div><p>tf.keras.metrics.FalseNegatives()])</p>
+</div></blockquote>
+</div></blockquote>
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a></p>
 <dl>
 <dt>Args:</dt><dd><dl>
 <dt>optimizer: String (name of optimizer) or optimizer instance. See</dt><dd><p><cite>tf.keras.optimizers</cite>.</p>
 </dd>
-<dt>loss: String (name of objective function), objective function or</dt><dd><p><cite>tf.keras.losses.Loss</cite> instance. See <cite>tf.keras.losses</cite>. An objective
+<dt>loss: Loss function. Maybe be a string (name of loss function), or</dt><dd><p>a <cite>tf.keras.losses.Loss</cite> instance. See <cite>tf.keras.losses</cite>. A loss
 function is any callable with the signature <cite>loss = fn(y_true,
-y_pred)</cite>, where y_true = ground truth values with shape =
-<cite>[batch_size, d0, .. dN]</cite>, except sparse loss functions such as sparse
-categorical crossentropy where shape = <cite>[batch_size, d0, .. dN-1]</cite>.
-y_pred = predicted values with shape = <cite>[batch_size, d0, .. dN]</cite>. It
-returns a weighted loss float tensor. If a custom <cite>Loss</cite> instance is
-used and reduction is set to NONE, return value has the shape
-[batch_size, d0, .. dN-1] ie. per-sample or per-timestep loss values;
-otherwise, it is a scalar. If the model has multiple outputs, you can
-use a different loss on each output by passing a dictionary or a list
-of losses. The loss value that will be minimized by the model will
-then be the sum of all individual losses.</p>
+y_pred)</cite>, where <cite>y_true</cite> are the ground truth values, and
+<cite>y_pred</cite> are the model’s predictions.
+<cite>y_true</cite> should have shape
+<cite>(batch_size, d0, .. dN)</cite> (except in the case of
+sparse loss functions such as
+sparse categorical crossentropy which expects integer arrays of shape
+<cite>(batch_size, d0, .. dN-1)</cite>).
+<cite>y_pred</cite> should have shape <cite>(batch_size, d0, .. dN)</cite>.
+The loss function should return a float tensor.
+If a custom <cite>Loss</cite> instance is
+used and reduction is set to <cite>None</cite>, return value has shape
+<cite>(batch_size, d0, .. dN-1)</cite> i.e. per-sample or per-timestep loss
+values; otherwise, it is a scalar. If the model has multiple outputs,
+you can use a different loss on each output by passing a dictionary
+or a list of losses. The loss value that will be minimized by the
+model will then be the sum of all individual losses, unless
+<cite>loss_weights</cite> is specified.</p>
 </dd>
 <dt>metrics: List of metrics to be evaluated by the model during training</dt><dd><p>and testing. Each of this can be a string (name of a built-in
 function), function or a <cite>tf.keras.metrics.Metric</cite> instance. See
 <cite>tf.keras.metrics</cite>. Typically you will use <cite>metrics=[‘accuracy’]</cite>. A
 function is any callable with the signature <cite>result = fn(y_true,
 y_pred)</cite>. To specify different metrics for different outputs of a
-multi-output model, you could also pass a dictionary, such as</p>
-<blockquote>
-<div><dl class="simple">
-<dt><cite>metrics={‘output_a’: ‘accuracy’, ‘output_b’: [‘accuracy’, ‘mse’]}</cite>.</dt><dd><p>You can also pass a list (len = len(outputs)) of lists of metrics
-such as <cite>metrics=[[‘accuracy’], [‘accuracy’, ‘mse’]]</cite> or
-<cite>metrics=[‘accuracy’, [‘accuracy’, ‘mse’]]</cite>. When you pass the
+multi-output model, you could also pass a dictionary, such as
+<cite>metrics={‘output_a’: ‘accuracy’, ‘output_b’: [‘accuracy’, ‘mse’]}</cite>.
+You can also pass a list to specify a metric or a list of metrics
+for each output, such as <cite>metrics=[[‘accuracy’], [‘accuracy’, ‘mse’]]</cite>
+or <cite>metrics=[‘accuracy’, [‘accuracy’, ‘mse’]]</cite>. When you pass the
 strings ‘accuracy’ or ‘acc’, we convert this to one of
 <cite>tf.keras.metrics.BinaryAccuracy</cite>,
 <cite>tf.keras.metrics.CategoricalAccuracy</cite>,
 <cite>tf.keras.metrics.SparseCategoricalAccuracy</cite> based on the loss
 function used and the model output shape. We do a similar
 conversion for the strings ‘crossentropy’ and ‘ce’ as well.</p>
-</dd>
-</dl>
-</div></blockquote>
 </dd>
 <dt>loss_weights: Optional list or dictionary specifying scalar coefficients</dt><dd><p>(Python floats) to weight the loss contributions of different model
 outputs. The loss value that will be minimized by the model will then
@@ -391,7 +515,7 @@ to scalar coefficients.</p>
 </dl>
 </div></blockquote>
 </dd>
-<dt>weighted_metrics: List of metrics to be evaluated and weighted by</dt><dd><p>sample_weight or class_weight during training and testing.</p>
+<dt>weighted_metrics: List of metrics to be evaluated and weighted by</dt><dd><p><cite>sample_weight</cite> or <cite>class_weight</cite> during training and testing.</p>
 </dd>
 <dt>run_eagerly: Bool. Defaults to <cite>False</cite>. If <cite>True</cite>, this <cite>Model</cite>’s</dt><dd><p>logic will not be wrapped in a <cite>tf.function</cite>. Recommended to leave
 this as <cite>None</cite> unless your <cite>Model</cite> cannot be run inside a
@@ -410,12 +534,7 @@ will only be called every <cite>N</cite> batches
 (i.e. before/after each <cite>tf.function</cite> execution).</p>
 </dd>
 </dl>
-<p><a href="#id13"><span class="problematic" id="id14">**</span></a>kwargs: Arguments supported for backwards compatibility only.</p>
-</dd>
-<dt>Raises:</dt><dd><dl class="simple">
-<dt>ValueError: In case of invalid arguments for</dt><dd><p><cite>optimizer</cite>, <cite>loss</cite> or <cite>metrics</cite>.</p>
-</dd>
-</dl>
+<p><a href="#id21"><span class="problematic" id="id22">**</span></a>kwargs: Arguments supported for backwards compatibility only.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -447,10 +566,46 @@ will only be called every <cite>N</cite> batches
 from <cite>keras</cite> API. In <cite>keras</cite> API, you can pass support masking for
 layers as additional arguments. Whereas <cite>tf.keras</cite> has <cite>compute_mask()</cite>
 method to support masking.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>inputs: Input tensor, or list/tuple of input tensors.
-<a href="#id15"><span class="problematic" id="id16">*</span></a>args: Additional positional arguments. Currently unused.
-<a href="#id17"><span class="problematic" id="id18">**</span></a>kwargs: Additional keyword arguments. Currently unused.</p>
+<dl>
+<dt>Args:</dt><dd><dl>
+<dt>inputs: Input tensor, or dict/list/tuple of input tensors.</dt><dd><p>The first positional <cite>inputs</cite> argument is subject to special rules:
+- <cite>inputs</cite> must be explicitly passed. A layer cannot have zero</p>
+<blockquote>
+<div><p>arguments, and <cite>inputs</cite> cannot be provided via the default value
+of a keyword argument.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>NumPy array or Python scalar values in <cite>inputs</cite> get cast as tensors.</p></li>
+<li><p>Keras mask metadata is only collected from <cite>inputs</cite>.</p></li>
+<li><p>Layers are built (<cite>build(input_shape)</cite> method)
+using shape info from <cite>inputs</cite> only.</p></li>
+<li><p><cite>input_spec</cite> compatibility is only checked against <cite>inputs</cite>.</p></li>
+<li><p>Mixed precision input casting is only applied to <cite>inputs</cite>.
+If a layer has tensor arguments in <cite>*args</cite> or <cite>**kwargs</cite>, their
+casting behavior in mixed precision should be handled manually.</p></li>
+<li><p>The SavedModel input specification is generated using <cite>inputs</cite> only.</p></li>
+<li><p>Integration with various ecosystem packages like TFMOT, TFLite,
+TF.js, etc is only supported for <cite>inputs</cite> and not for tensors in
+positional and keyword arguments.</p></li>
+</ul>
+</dd>
+<dt><a href="#id23"><span class="problematic" id="id24">*</span></a>args: Additional positional arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.</p>
+</dd>
+<dt><a href="#id25"><span class="problematic" id="id26">**</span></a>kwargs: Additional keyword arguments. May contain tensors, although</dt><dd><p>this is not recommended, for the reasons above.
+The following optional keyword arguments are reserved:
+- <cite>training</cite>: Boolean scalar tensor of Python boolean indicating</p>
+<blockquote>
+<div><p>whether the <cite>call</cite> is meant for training or inference.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p><cite>mask</cite>: Boolean input mask. If the layer’s <cite>call()</cite> method takes a
+<cite>mask</cite> argument, its default value will be set to the mask generated
+for <cite>inputs</cite> by the previous layer (if <cite>input</cite> did come from a layer
+that generated a corresponding mask, i.e. if it came from a Keras
+layer with masking support).</p></li>
+</ul>
+</dd>
+</dl>
 </dd>
 <dt>Returns:</dt><dd><p>A tensor or list/tuple of tensors.</p>
 </dd>
@@ -466,22 +621,25 @@ method to support masking.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel.call">
 <span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel.call" title="Permalink to this definition"></a></dt>
-<dd><p>Calls the model on new inputs.</p>
-<p>In this case <cite>call</cite> just reapplies
+<dd><p>Calls the model on new inputs and returns the outputs as tensors.</p>
+<p>In this case <cite>call()</cite> just reapplies
 all ops in the graph to the new inputs
 (e.g. build a new computational graph from the provided inputs).</p>
 <p>Note: This method should not be called directly. It is only meant to be
 overridden when subclassing <cite>tf.keras.Model</cite>.
-To call a model on an input, always use the <cite>__call__</cite> method,
-i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call</cite> method.</p>
+To call a model on an input, always use the <cite>__call__()</cite> method,
+i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call()</cite> method.</p>
 <dl>
-<dt>Args:</dt><dd><p>inputs: A tensor or list of tensors.
+<dt>Args:</dt><dd><p>inputs: Input tensor, or dict/list/tuple of input tensors.
 training: Boolean or boolean scalar tensor, indicating whether to run</p>
 <blockquote>
 <div><p>the <cite>Network</cite> in training mode or inference mode.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>mask: A mask or list of masks. A mask can be</dt><dd><p>either a tensor or None (no mask).</p>
+<dt>mask: A mask or list of masks. A mask can be either a boolean tensor or</dt><dd><dl class="simple">
+<dt>None (no mask). For more details, check the guide</dt><dd><p>[here](<a class="reference external" href="https://www.tensorflow.org/guide/keras/masking_and_padding">https://www.tensorflow.org/guide/keras/masking_and_padding</a>).</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd>
@@ -495,44 +653,57 @@ a list of tensors if there are more than one outputs.</p>
 <dt class="sig sig-object py" id="py0.metapop_model.TrainableMetaModel.compile">
 <span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#py0.metapop_model.TrainableMetaModel.compile" title="Permalink to this definition"></a></dt>
 <dd><p>Configures the model for training.</p>
+<p>Example:</p>
+<p><a href="#id27"><span class="problematic" id="id28">``</span></a><a href="#id29"><span class="problematic" id="id30">`</span></a>python
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),</p>
+<blockquote>
+<div><p>loss=tf.keras.losses.BinaryCrossentropy(),
+metrics=[tf.keras.metrics.BinaryAccuracy(),</p>
+<blockquote>
+<div><p>tf.keras.metrics.FalseNegatives()])</p>
+</div></blockquote>
+</div></blockquote>
+<p><a href="#id31"><span class="problematic" id="id32">``</span></a><a href="#id33"><span class="problematic" id="id34">`</span></a></p>
 <dl>
 <dt>Args:</dt><dd><dl>
 <dt>optimizer: String (name of optimizer) or optimizer instance. See</dt><dd><p><cite>tf.keras.optimizers</cite>.</p>
 </dd>
-<dt>loss: String (name of objective function), objective function or</dt><dd><p><cite>tf.keras.losses.Loss</cite> instance. See <cite>tf.keras.losses</cite>. An objective
+<dt>loss: Loss function. Maybe be a string (name of loss function), or</dt><dd><p>a <cite>tf.keras.losses.Loss</cite> instance. See <cite>tf.keras.losses</cite>. A loss
 function is any callable with the signature <cite>loss = fn(y_true,
-y_pred)</cite>, where y_true = ground truth values with shape =
-<cite>[batch_size, d0, .. dN]</cite>, except sparse loss functions such as sparse
-categorical crossentropy where shape = <cite>[batch_size, d0, .. dN-1]</cite>.
-y_pred = predicted values with shape = <cite>[batch_size, d0, .. dN]</cite>. It
-returns a weighted loss float tensor. If a custom <cite>Loss</cite> instance is
-used and reduction is set to NONE, return value has the shape
-[batch_size, d0, .. dN-1] ie. per-sample or per-timestep loss values;
-otherwise, it is a scalar. If the model has multiple outputs, you can
-use a different loss on each output by passing a dictionary or a list
-of losses. The loss value that will be minimized by the model will
-then be the sum of all individual losses.</p>
+y_pred)</cite>, where <cite>y_true</cite> are the ground truth values, and
+<cite>y_pred</cite> are the model’s predictions.
+<cite>y_true</cite> should have shape
+<cite>(batch_size, d0, .. dN)</cite> (except in the case of
+sparse loss functions such as
+sparse categorical crossentropy which expects integer arrays of shape
+<cite>(batch_size, d0, .. dN-1)</cite>).
+<cite>y_pred</cite> should have shape <cite>(batch_size, d0, .. dN)</cite>.
+The loss function should return a float tensor.
+If a custom <cite>Loss</cite> instance is
+used and reduction is set to <cite>None</cite>, return value has shape
+<cite>(batch_size, d0, .. dN-1)</cite> i.e. per-sample or per-timestep loss
+values; otherwise, it is a scalar. If the model has multiple outputs,
+you can use a different loss on each output by passing a dictionary
+or a list of losses. The loss value that will be minimized by the
+model will then be the sum of all individual losses, unless
+<cite>loss_weights</cite> is specified.</p>
 </dd>
 <dt>metrics: List of metrics to be evaluated by the model during training</dt><dd><p>and testing. Each of this can be a string (name of a built-in
 function), function or a <cite>tf.keras.metrics.Metric</cite> instance. See
 <cite>tf.keras.metrics</cite>. Typically you will use <cite>metrics=[‘accuracy’]</cite>. A
 function is any callable with the signature <cite>result = fn(y_true,
 y_pred)</cite>. To specify different metrics for different outputs of a
-multi-output model, you could also pass a dictionary, such as</p>
-<blockquote>
-<div><dl class="simple">
-<dt><cite>metrics={‘output_a’: ‘accuracy’, ‘output_b’: [‘accuracy’, ‘mse’]}</cite>.</dt><dd><p>You can also pass a list (len = len(outputs)) of lists of metrics
-such as <cite>metrics=[[‘accuracy’], [‘accuracy’, ‘mse’]]</cite> or
-<cite>metrics=[‘accuracy’, [‘accuracy’, ‘mse’]]</cite>. When you pass the
+multi-output model, you could also pass a dictionary, such as
+<cite>metrics={‘output_a’: ‘accuracy’, ‘output_b’: [‘accuracy’, ‘mse’]}</cite>.
+You can also pass a list to specify a metric or a list of metrics
+for each output, such as <cite>metrics=[[‘accuracy’], [‘accuracy’, ‘mse’]]</cite>
+or <cite>metrics=[‘accuracy’, [‘accuracy’, ‘mse’]]</cite>. When you pass the
 strings ‘accuracy’ or ‘acc’, we convert this to one of
 <cite>tf.keras.metrics.BinaryAccuracy</cite>,
 <cite>tf.keras.metrics.CategoricalAccuracy</cite>,
 <cite>tf.keras.metrics.SparseCategoricalAccuracy</cite> based on the loss
 function used and the model output shape. We do a similar
 conversion for the strings ‘crossentropy’ and ‘ce’ as well.</p>
-</dd>
-</dl>
-</div></blockquote>
 </dd>
 <dt>loss_weights: Optional list or dictionary specifying scalar coefficients</dt><dd><p>(Python floats) to weight the loss contributions of different model
 outputs. The loss value that will be minimized by the model will then
@@ -546,7 +717,7 @@ to scalar coefficients.</p>
 </dl>
 </div></blockquote>
 </dd>
-<dt>weighted_metrics: List of metrics to be evaluated and weighted by</dt><dd><p>sample_weight or class_weight during training and testing.</p>
+<dt>weighted_metrics: List of metrics to be evaluated and weighted by</dt><dd><p><cite>sample_weight</cite> or <cite>class_weight</cite> during training and testing.</p>
 </dd>
 <dt>run_eagerly: Bool. Defaults to <cite>False</cite>. If <cite>True</cite>, this <cite>Model</cite>’s</dt><dd><p>logic will not be wrapped in a <cite>tf.function</cite>. Recommended to leave
 this as <cite>None</cite> unless your <cite>Model</cite> cannot be run inside a
@@ -565,12 +736,7 @@ will only be called every <cite>N</cite> batches
 (i.e. before/after each <cite>tf.function</cite> execution).</p>
 </dd>
 </dl>
-<p><a href="#id19"><span class="problematic" id="id20">**</span></a>kwargs: Arguments supported for backwards compatibility only.</p>
-</dd>
-<dt>Raises:</dt><dd><dl class="simple">
-<dt>ValueError: In case of invalid arguments for</dt><dd><p><cite>optimizer</cite>, <cite>loss</cite> or <cite>metrics</cite>.</p>
-</dd>
-</dl>
+<p><a href="#id35"><span class="problematic" id="id36">**</span></a>kwargs: Arguments supported for backwards compatibility only.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -619,7 +785,9 @@ form of datasets, generators, or <cite>keras.utils.Sequence</cite> instances
 (since they generate batches).</p>
 </dd>
 <dt>epochs: Integer. Number of epochs to train the model.</dt><dd><p>An epoch is an iteration over the entire <cite>x</cite> and <cite>y</cite>
-data provided.
+data provided
+(unless the <cite>steps_per_epoch</cite> flag is set to
+something other than None).
 Note that in conjunction with <cite>initial_epoch</cite>,
 <cite>epochs</cite> is to be understood as “final epoch”.
 The model is not trained for a number of iterations
@@ -719,9 +887,15 @@ the batch size, or 1 if that cannot be determined. If x is a
 <cite>tf.data</cite> dataset, and ‘steps_per_epoch’
 is None, the epoch will run until the input dataset is exhausted.
 When passing an infinitely repeating dataset, you must specify the
-<cite>steps_per_epoch</cite> argument. This argument is not supported with
-array inputs. <cite>steps_per_epoch=None</cite> is not supported when using
-<cite>tf.distribute.experimental.ParameterServerStrategy</cite>.</p>
+<cite>steps_per_epoch</cite> argument. If <cite>steps_per_epoch=-1</cite> the training
+will run indefinitely with an infinitely repeating dataset.
+This argument is not supported with array inputs.
+When using <cite>tf.distribute.experimental.ParameterServerStrategy</cite>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>steps_per_epoch=None</cite> is not supported.</p></li>
+</ul>
+</div></blockquote>
 </dd>
 <dt>validation_steps: Only relevant if <cite>validation_data</cite> is provided and</dt><dd><p>is a <cite>tf.data</cite> dataset. Total number of steps (batches of
 samples) to draw before stopping when performing validation
