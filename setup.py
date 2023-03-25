@@ -28,7 +28,7 @@ setup(
     packages=find_packages(exclude=('tests',)),
 
     install_requires=['numpy>=1.19.1', 'matplotlib==3.3.3', 'scipy', 'seaborn', 'tqdm', 'jupyter',
-                      'maxent-infer', 'pandas', 'networkx==2.5', 'tensorflow==2.7.2', 'tensorflow_probability==0.11.1'],
+                      'maxent-infer', 'pandas', 'networkx==2.5', 'tensorflow==2.11.1', 'tensorflow_probability==0.11.1'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
